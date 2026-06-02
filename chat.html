@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat – Situative Typografie</title>
+
+  <!-- Inter als variable Schrift laden (Gewichtsachse 100–900) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #f6f5f2;
+      color: #222;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── Kopfzeile ─────────────────────────────────── */
+    .kopfzeile {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 52px;
+      background: #f6f5f2;
+      border-bottom: 1px solid #e0ddd7;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      z-index: 100;
+    }
+
+    .kopfzeile-titel {
+      font-size: 12px;
+      color: #aaa;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* Sensor-Platzhalter-Steuerung oben rechts */
+    .sensor-steuerung {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sensor-label {
+      font-size: 11px;
+      color: #bbb;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    #sensor-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 110px;
+      height: 2px;
+      background: #ccc;
+      border-radius: 1px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    #sensor-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #555;
+      cursor: pointer;
+    }
+
+    #sensor-slider::-moz-range-thumb {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #555;
+      border: none;
+      cursor: pointer;
+    }
+
+    #sensor-wert {
+      font-size: 12px;
+      color: #bbb;
+      min-width: 30px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Chat-Bereich ──────────────────────────────── */
+    .chat-bereich {
+      max-width: 580px;
+      margin: 0 auto;
+      padding: 76px 28px 96px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Nachricht: gemeinsame Basis */
+    .nachricht {
+      display: flex;
+      flex-direction: column;
+      max-width: 74%;
+      animation: einblenden 0.18s ease forwards;
+    }
+
+    /* Nachrichten der anderen Person: linksbündig, etwas heller */
+    .nachricht-andere {
+      align-self: flex-start;
+    }
+
+    .nachricht-andere .text {
+      color: #777;
+      /* Gewicht fest: andere Person bleibt unberührt vom Slider */
+      font-variation-settings: 'wght' 400;
+    }
+
+    /* Eigene Nachrichten: rechtsbündig, dunkler */
+    .nachricht-ich {
+      align-self: flex-end;
+      text-align: right;
+    }
+
+    .nachricht-ich .text {
+      color: #111;
+      /* Startwert – wird live per Slider/Sensor überschrieben */
+      font-variation-settings: 'wght' 400;
+    }
+
+    /* Sanftes Einblenden jeder neuen Nachricht */
+    @keyframes einblenden {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Eingabebereich unten ──────────────────────── */
+    .eingabe-bereich {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #f6f5f2;
+      border-top: 1px solid #e0ddd7;
+      padding: 12px 28px;
+    }
+
+    .eingabe-innen {
+      max-width: 580px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Button zum Einblenden der nächsten vorgegebenen Antwort */
+    #antwort-btn {
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid #d0cdc8;
+      color: #999;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-variation-settings: 'wght' 400;
+      letter-spacing: 0.04em;
+      padding: 7px 11px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    #antwort-btn:hover:not(:disabled) {
+      border-color: #aaa;
+      color: #666;
+    }
+
+    #antwort-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    /* Texteingabefeld */
+    #eingabe {
+      flex: 1;
+      background: none;
+      border: none;
+      border-bottom: 1px solid #ccc;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      color: #222;
+      font-variation-settings: 'wght' 400;
+      padding: 5px 0;
+      transition: border-color 0.15s;
+    }
+
+    #eingabe:focus {
+      border-bottom-color: #888;
+    }
+
+    #eingabe::placeholder {
+      color: #c0bdb8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Kopfzeile mit Sensor-Platzhalter-Slider oben rechts -->
+  <header class="kopfzeile">
+    <span class="kopfzeile-titel">Chat</span>
+
+    <div class="sensor-steuerung" title="Platzhalter – wird durch echte Sensordaten ersetzt">
+      <span class="sensor-label">Sensor</span>
+      <input type="range" id="sensor-slider" min="100" max="900" value="400" step="1">
+      <span id="sensor-wert">400</span>
+    </div>
+  </header>
+
+  <!-- Scrollbarer Chat-Verlauf -->
+  <main class="chat-bereich" id="chat"></main>
+
+  <!-- Feste Eingabeleiste -->
+  <footer class="eingabe-bereich">
+    <div class="eingabe-innen">
+      <!-- Blendet die nächste vordefinierte Antwort der anderen Person ein -->
+      <button id="antwort-btn">&#8592; Antwort</button>
+      <input
+        type="text"
+        id="eingabe"
+        placeholder="Nachricht schreiben …"
+        autocomplete="off"
+      >
+    </div>
+  </footer>
+
+  <script>
+
+    // ═══════════════════════════════════════════════════════════════
+    //  MAPPING-FUNKTION
+    //  Wandelt einen Rohwert (Slider oder Sensor) in CSS-Schrift-Achsen um.
+    //
+    //  HIER ANPASSEN, wenn echte Sensordaten kommen:
+    //    • 'rohwert' durch den eigenen Sensorwert ersetzen
+    //    • Wertebereich des Sensors ggf. umrechnen, z. B.:
+    //        const wght = umrechnen(rohwert, 0, 1023, 100, 900);
+    //    • Weitere Achsen der variablen Schrift im Rückgabe-Objekt ergänzen:
+    //        wdth: ...,   // Breite (Condensed ↔ Expanded)
+    //        ital: ...,   // Kursiv-Achse
+    //        opsz: ...,   // Optische Größe
+    // ═══════════════════════════════════════════════════════════════
+    function sensorZuSchriftAchse(rohwert) {
+      // Wert auf gültigen CSS-Bereich für 'wght' begrenzen
+      const wght = Math.min(900, Math.max(100, Math.round(rohwert)));
+
+      // Rückgabe: Achsenname → Wert
+      // Weitere Achsen einfach hier hinzufügen
+      return {
+        wght: wght
+      };
+    }
+
+    // Hilfsfunktion: lineares Umrechnen eines Wertebereichs in einen anderen
+    // (z. B. Sensor 0–1023 → Schrift 100–900)
+    function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
+      return zuMin + (wert - vonMin) / (vonMax - vonMin) * (zuMax - zuMin);
+    }
+
+    // Wandelt das Achsen-Objekt in einen CSS-String um
+    // Beispiel: { wght: 600 } → "'wght' 600"
+    function achsenAlsCSS(achsen) {
+      return Object.entries(achsen)
+        .map(([name, wert]) => `'${name}' ${wert}`)
+        .join(', ');
+    }
+
+    // Wendet aktuelle Schrift-Achsen auf alle bereits gesendeten eigenen Nachrichten an
+    function meineNachrichtenAktualisieren(achsen) {
+      const css = achsenAlsCSS(achsen);
+      document.querySelectorAll('.nachricht-ich .text').forEach(el => {
+        el.style.fontVariationSettings = css;
+        el.style.fontWeight = achsen.wght; // Fallback für ältere Browser
+      });
+    }
+
+
+    // ── Vordefinierte Nachrichten der anderen Person ──────────────
+    const vorgegebeneNachrichten = [
+      "Hey, was machst du gerade?",
+      "Ah, klingt interessant – wie funktioniert das genau?",
+      "Also die Schrift verändert sich je nach Kontext?",
+      "Hast du schon was zum Zeigen?",
+      "Schick mir mal einen Screenshot, wenn's fertig ist."
+    ];
+    let naechsteAntwortIndex = 0; // zeigt auf die nächste einzublendende Antwort
+
+
+    // ── DOM-Referenzen ────────────────────────────────────────────
+    const chat        = document.getElementById('chat');
+    const eingabe     = document.getElementById('eingabe');
+    const antwortBtn  = document.getElementById('antwort-btn');
+    const slider      = document.getElementById('sensor-slider');
+    const wertAnzeige = document.getElementById('sensor-wert');
+
+    // Aktueller Achsenzustand (initialisiert mit Slider-Startwert)
+    let aktuelleAchsen = sensorZuSchriftAchse(Number(slider.value));
+
+
+    // ── Nachricht in den Chat einfügen ────────────────────────────
+    function nachrichtHinzufuegen(text, vonMir) {
+      const wrapper = document.createElement('div');
+      wrapper.classList.add('nachricht', vonMir ? 'nachricht-ich' : 'nachricht-andere');
+
+      const textEl = document.createElement('p');
+      textEl.classList.add('text');
+      textEl.textContent = text;
+
+      // Nur eigene Nachrichten erhalten die aktuellen Schrift-Achsen
+      if (vonMir) {
+        textEl.style.fontVariationSettings = achsenAlsCSS(aktuelleAchsen);
+        textEl.style.fontWeight = aktuelleAchsen.wght;
+      }
+
+      wrapper.appendChild(textEl);
+      chat.appendChild(wrapper);
+
+      // Automatisch ans Ende scrollen
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+
+    // ── Ereignis-Handler ──────────────────────────────────────────
+
+    // Enter sendet die eigene Nachricht
+    eingabe.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      const text = eingabe.value.trim();
+      if (!text) return;
+      nachrichtHinzufuegen(text, true);
+      eingabe.value = '';
+    });
+
+    // Button blendet die nächste vordefinierte Antwort ein
+    antwortBtn.addEventListener('click', function () {
+      if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) return;
+      nachrichtHinzufuegen(vorgegebeneNachrichten[naechsteAntwortIndex], false);
+      naechsteAntwortIndex++;
+
+      // Button deaktivieren, wenn alle Antworten verbraucht sind
+      if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) {
+        antwortBtn.disabled = true;
+        antwortBtn.textContent = '–';
+      }
+    });
+
+    // Slider-Bewegung: Mapping-Funktion aufrufen, Schrift live aktualisieren
+    slider.addEventListener('input', function () {
+      aktuelleAchsen = sensorZuSchriftAchse(Number(this.value));
+
+      // Wertanzeige neben dem Slider
+      wertAnzeige.textContent = aktuelleAchsen.wght;
+
+      // Alle bisherigen eigenen Nachrichten neu stylen
+      meineNachrichtenAktualisieren(aktuelleAchsen);
+    });
+
+  </script>
+</body>
+</html>
