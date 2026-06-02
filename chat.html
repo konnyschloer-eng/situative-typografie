@@ -170,6 +170,7 @@
     .chat-bereich {
       flex: 1;
       overflow-y: auto;
+      overflow-x: hidden; /* kein horizontales Scrollen */
       padding: 20px;
       display: flex;
       flex-direction: column;
@@ -182,6 +183,7 @@
       display: flex;
       flex-direction: column;
       max-width: 78%;
+      min-width: 0; /* verhindert Überlauf in Flex-Containern */
       animation: einblenden 0.18s ease forwards;
     }
 
@@ -195,6 +197,15 @@
     .nachricht-ich .text {
       color: #111;
       font-variation-settings: 'wght' 400;
+    }
+
+    /* Textumbruch für alle Nachrichten ─────────────────────────
+       overflow-wrap: break-word  → lange Wörter/URLs umbrechen
+       word-break: break-word     → Fallback für ältere Browser  */
+    .nachricht .text {
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-width: 0;
     }
 
     @keyframes einblenden {
