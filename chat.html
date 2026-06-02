@@ -18,25 +18,47 @@
     }
 
     body {
-      background: #f6f5f2;
-      color: #222;
+      background: #e8e6e1;
       font-family: 'Inter', sans-serif;
       font-size: 15px;
       line-height: 1.6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      min-height: 100dvh;
     }
 
-    /* ── Kopfzeile ─────────────────────────────────── */
+    /* ── Phone-Frame ──────────────────────────────────── */
+    .phone-frame {
+      width: 390px;
+      height: 844px;
+      max-height: 100dvh;
+      background: #f6f5f2;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    @media (max-width: 440px) {
+      body { background: #f6f5f2; }
+      .phone-frame { width: 100%; height: 100dvh; box-shadow: none; }
+    }
+
+    /* ── Kopfzeile mit 4-Dimensionen-Grid ────────────── */
     .kopfzeile {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 52px;
+      flex-shrink: 0;
       background: #f6f5f2;
       border-bottom: 1px solid #e0ddd7;
+      padding: 10px 16px 12px;
+    }
+
+    .kopfzeile-titelzeile {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 28px;
-      z-index: 100;
+      margin-bottom: 10px;
     }
 
     .kopfzeile-titel {
@@ -46,25 +68,50 @@
       text-transform: uppercase;
     }
 
-    /* Sensor-Platzhalter-Steuerung oben rechts */
-    .sensor-steuerung {
+    /* Platzhalter-Hinweis oben rechts */
+    .sensor-hinweis {
+      font-size: 10px;
+      color: #ccc;
+      letter-spacing: 0.04em;
+      font-style: italic;
+    }
+
+    /* 2×2-Raster für die 4 Sensor-Platzhalter-Slider */
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 18px;
+    }
+
+    .sensor-dimension {
       display: flex;
-      align-items: center;
-      gap: 10px;
+      flex-direction: column;
+      gap: 3px;
     }
 
-    .sensor-label {
-      font-size: 11px;
-      color: #bbb;
-      letter-spacing: 0.07em;
+    .dimension-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .dimension-label {
+      font-size: 10px;
+      color: #aaa;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      white-space: nowrap;
     }
 
-    #sensor-slider {
+    .dimension-wert {
+      font-size: 10px;
+      color: #bbb;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dimension-slider {
       -webkit-appearance: none;
       appearance: none;
-      width: 110px;
+      width: 100%;
       height: 2px;
       background: #ccc;
       border-radius: 1px;
@@ -72,63 +119,53 @@
       cursor: pointer;
     }
 
-    #sensor-slider::-webkit-slider-thumb {
+    .dimension-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 13px;
-      height: 13px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       background: #555;
       cursor: pointer;
     }
 
-    #sensor-slider::-moz-range-thumb {
-      width: 13px;
-      height: 13px;
+    .dimension-slider::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       background: #555;
       border: none;
       cursor: pointer;
     }
 
-    #sensor-wert {
-      font-size: 12px;
-      color: #bbb;
-      min-width: 30px;
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* ── Chat-Bereich ──────────────────────────────── */
+    /* ── Chat-Bereich ─────────────────────────────────── */
     .chat-bereich {
-      max-width: 580px;
-      margin: 0 auto;
-      padding: 76px 28px 96px;
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
+      scrollbar-width: thin;
+      scrollbar-color: #ddd transparent;
     }
 
-    /* Nachricht: gemeinsame Basis */
     .nachricht {
       display: flex;
       flex-direction: column;
-      max-width: 74%;
+      max-width: 78%;
       animation: einblenden 0.18s ease forwards;
     }
 
-    /* Nachrichten der anderen Person: linksbündig, etwas heller */
     .nachricht-andere {
       align-self: flex-start;
     }
 
     .nachricht-andere .text {
       color: #777;
-      /* Gewicht fest: andere Person bleibt unberührt vom Slider */
       font-variation-settings: 'wght' 400;
     }
 
-    /* Eigene Nachrichten: rechtsbündig, dunkler */
     .nachricht-ich {
       align-self: flex-end;
       text-align: right;
@@ -136,34 +173,47 @@
 
     .nachricht-ich .text {
       color: #111;
-      /* Startwert – wird live per Slider/Sensor überschrieben */
+      /* Startwert – wird beim Senden durch aktuelle Achsen ersetzt */
       font-variation-settings: 'wght' 400;
     }
 
-    /* Sanftes Einblenden jeder neuen Nachricht */
     @keyframes einblenden {
       from { opacity: 0; transform: translateY(5px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── Eingabebereich unten ──────────────────────── */
+    /* ── Zittern-Animation (Stabilität) ──────────────────
+       Verwendet CSS-Custom-Properties, die per JS gesetzt
+       werden – so lassen sich Amplitude und Schrägstellung
+       pro Nachricht individuell einfrieren.
+       BEHELF – später durch echte Schrift-Achse ersetzen.  */
+    @keyframes zittern {
+      0%,  100% { transform: translateX(0)
+                              skewX(var(--zt-skew, 0deg)); }
+      20%       { transform: translateX(var(--zt-amplitude, 0px))
+                              skewX(var(--zt-skew, 0deg)); }
+      40%       { transform: translateX(calc(var(--zt-amplitude, 0px) * -0.7))
+                              skewX(var(--zt-skew, 0deg)); }
+      60%       { transform: translateX(calc(var(--zt-amplitude, 0px) * 0.4))
+                              skewX(var(--zt-skew, 0deg)); }
+      80%       { transform: translateX(calc(var(--zt-amplitude, 0px) * -0.2))
+                              skewX(var(--zt-skew, 0deg)); }
+    }
+
+    /* ── Eingabebereich ───────────────────────────────── */
     .eingabe-bereich {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
+      flex-shrink: 0;
       background: #f6f5f2;
       border-top: 1px solid #e0ddd7;
-      padding: 12px 28px;
+      padding: 10px 14px;
     }
 
     .eingabe-innen {
-      max-width: 580px;
-      margin: 0 auto;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
-    /* Button zum Einblenden der nächsten vorgegebenen Antwort */
     #antwort-btn {
       flex-shrink: 0;
       background: none;
@@ -172,25 +222,18 @@
       font-family: 'Inter', sans-serif;
       font-size: 12px;
       font-variation-settings: 'wght' 400;
-      letter-spacing: 0.04em;
-      padding: 7px 11px;
+      padding: 7px 10px;
       cursor: pointer;
       transition: border-color 0.15s, color 0.15s;
     }
 
-    #antwort-btn:hover:not(:disabled) {
-      border-color: #aaa;
-      color: #666;
-    }
+    #antwort-btn:hover:not(:disabled) { border-color: #aaa; color: #666; }
+    #antwort-btn:disabled { opacity: 0.3; cursor: default; }
 
-    #antwort-btn:disabled {
-      opacity: 0.3;
-      cursor: default;
-    }
-
-    /* Texteingabefeld */
+    /* Eingabefeld – Live-Vorschau der Schrift-Achsen */
     #eingabe {
       flex: 1;
+      min-width: 0;
       background: none;
       border: none;
       border-bottom: 1px solid #ccc;
@@ -198,97 +241,236 @@
       font-family: 'Inter', sans-serif;
       font-size: 15px;
       color: #222;
+      /* Startwert – wird per vorschauAktualisieren() überschrieben */
       font-variation-settings: 'wght' 400;
       padding: 5px 0;
       transition: border-color 0.15s;
+      /* transform für Tonalitäts-Schrägstellung; kein Zittern (stört Tippen) */
     }
 
-    #eingabe:focus {
-      border-bottom-color: #888;
+    #eingabe:focus { border-bottom-color: #888; }
+    #eingabe::placeholder { color: #c0bdb8; }
+
+    /* ── Emotion-Toggle ───────────────────────────────── */
+    .emotion-schalter {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      user-select: none;
     }
 
-    #eingabe::placeholder {
-      color: #c0bdb8;
+    .emotion-schalter input[type="checkbox"] { display: none; }
+
+    .schalter-visuell {
+      width: 34px;
+      height: 19px;
+      background: #ccc;
+      border-radius: 10px;
+      position: relative;
+      transition: background 0.2s;
+    }
+
+    .schalter-visuell::after {
+      content: '';
+      position: absolute;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s;
+    }
+
+    #emotion-toggle:checked + .schalter-visuell { background: #444; }
+    #emotion-toggle:checked + .schalter-visuell::after { transform: translateX(15px); }
+
+    .schalter-label {
+      font-size: 9px;
+      color: #aaa;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
     }
   </style>
 </head>
 <body>
 
-  <!-- Kopfzeile mit Sensor-Platzhalter-Slider oben rechts -->
-  <header class="kopfzeile">
-    <span class="kopfzeile-titel">Chat</span>
+  <div class="phone-frame">
 
-    <div class="sensor-steuerung" title="Platzhalter – wird durch echte Sensordaten ersetzt">
-      <span class="sensor-label">Sensor</span>
-      <input type="range" id="sensor-slider" min="100" max="900" value="400" step="1">
-      <span id="sensor-wert">400</span>
-    </div>
-  </header>
+    <!-- Kopfzeile: Titel + 4 Sensor-Platzhalter-Slider -->
+    <header class="kopfzeile">
+      <div class="kopfzeile-titelzeile">
+        <span class="kopfzeile-titel">Chat</span>
+        <span class="sensor-hinweis">Platzhalter · Sensordaten</span>
+      </div>
 
-  <!-- Scrollbarer Chat-Verlauf -->
-  <main class="chat-bereich" id="chat"></main>
+      <!-- 4 Dimensionen als 2×2-Raster -->
+      <div class="sensor-grid">
 
-  <!-- Feste Eingabeleiste -->
-  <footer class="eingabe-bereich">
-    <div class="eingabe-innen">
-      <!-- Blendet die nächste vordefinierte Antwort der anderen Person ein -->
-      <button id="antwort-btn">&#8592; Antwort</button>
-      <input
-        type="text"
-        id="eingabe"
-        placeholder="Nachricht schreiben …"
-        autocomplete="off"
-      >
-    </div>
-  </footer>
+        <!-- Dimension 1: Intensität → font-weight -->
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label">Intensität</span>
+            <span class="dimension-wert" id="wert-intensitaet">500</span>
+          </div>
+          <input class="dimension-slider" type="range"
+            id="slider-intensitaet" min="100" max="900" value="500" step="1">
+        </div>
+
+        <!-- Dimension 2: Tempo → letter-spacing + Animations-Geschwindigkeit -->
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label">Tempo</span>
+            <span class="dimension-wert" id="wert-tempo">500</span>
+          </div>
+          <input class="dimension-slider" type="range"
+            id="slider-tempo" min="100" max="900" value="500" step="1">
+        </div>
+
+        <!-- Dimension 3: Stabilität → Zitter-Animation -->
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label">Stabilität</span>
+            <span class="dimension-wert" id="wert-stabilitaet">900</span>
+          </div>
+          <input class="dimension-slider" type="range"
+            id="slider-stabilitaet" min="100" max="900" value="900" step="1">
+        </div>
+
+        <!-- Dimension 4: Tonalität → Schrägstellung (Platzhalter) -->
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label">Tonalität</span>
+            <span class="dimension-wert" id="wert-tonalitaet">500</span>
+          </div>
+          <input class="dimension-slider" type="range"
+            id="slider-tonalitaet" min="100" max="900" value="500" step="1">
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Scrollbarer Chat-Verlauf -->
+    <main class="chat-bereich" id="chat"></main>
+
+    <!-- Eingabeleiste mit Emotion-Toggle -->
+    <footer class="eingabe-bereich">
+      <div class="eingabe-innen">
+        <button id="antwort-btn">&#8592; Antwort</button>
+        <input type="text" id="eingabe"
+          placeholder="Nachricht schreiben …" autocomplete="off">
+        <label class="emotion-schalter" title="Emotionale Typografie an/aus">
+          <input type="checkbox" id="emotion-toggle" checked>
+          <span class="schalter-visuell"></span>
+          <span class="schalter-label">Emotion</span>
+        </label>
+      </div>
+    </footer>
+
+  </div><!-- /.phone-frame -->
 
   <script>
 
     // ═══════════════════════════════════════════════════════════════
     //  MAPPING-FUNKTION
-    //  Wandelt einen Rohwert (Slider oder Sensor) in CSS-Schrift-Achsen um.
+    //  Wandelt 4 Rohwerte (Slider / Sensor, je 100–900) in
+    //  typografische Parameter um.
     //
     //  HIER ANPASSEN, wenn echte Sensordaten kommen:
-    //    • 'rohwert' durch den eigenen Sensorwert ersetzen
-    //    • Wertebereich des Sensors ggf. umrechnen, z. B.:
-    //        const wght = umrechnen(rohwert, 0, 1023, 100, 900);
-    //    • Weitere Achsen der variablen Schrift im Rückgabe-Objekt ergänzen:
-    //        wdth: ...,   // Breite (Condensed ↔ Expanded)
-    //        ital: ...,   // Kursiv-Achse
-    //        opsz: ...,   // Optische Größe
+    //    • rohwerte.intensitaet / .tempo / .stabilitaet / .tonalitaet
+    //      durch eigene Sensor-Kanäle ersetzen
+    //    • Wertebereich ggf. umrechnen (z. B. BPM 50–180 → 100–900)
+    //    • BEHELF-Stellen durch echte Achsen der eigenen Variable Font
+    //      ersetzen (z. B. 'ZITR' statt CSS-Animation, 'TONA' statt skew)
     // ═══════════════════════════════════════════════════════════════
-    function sensorZuSchriftAchse(rohwert) {
-      // Wert auf gültigen CSS-Bereich für 'wght' begrenzen
-      const wght = Math.min(900, Math.max(100, Math.round(rohwert)));
+    function sensorZuSchriftAchse(rohwerte) {
 
-      // Rückgabe: Achsenname → Wert
-      // Weitere Achsen einfach hier hinzufügen
-      return {
-        wght: wght
-      };
+      // ── Intensität → font-weight ──────────────────────────────
+      // Echte Inter-Achse 'wght', kein Behelf nötig.
+      const wght = Math.min(900, Math.max(100, Math.round(rohwerte.intensitaet)));
+
+      // ── Tempo → letter-spacing (em) ──────────────────────────
+      // BEHELF – später durch eigene Schrift-Achse ersetzen
+      // 100 = eng (−0.04 em), 900 = weit (0.12 em)
+      const spacing = umrechnen(rohwerte.tempo, 100, 900, -0.04, 0.12);
+
+      // ── Tempo → Animations-Dauer (s) ─────────────────────────
+      // Steuert die Geschwindigkeit der Zitter-Animation.
+      // 100 = langsam (2 s/Zyklus), 900 = schnell (0.3 s/Zyklus)
+      const animDuration = umrechnen(rohwerte.tempo, 100, 900, 2, 0.3);
+
+      // ── Stabilität → Zitter-Amplitude (px) ───────────────────
+      // BEHELF – später durch eigene Schrift-Achse ersetzen
+      // 900 = stabil (0 px), 100 = unruhig (3 px)
+      const wobbleRoh = umrechnen(rohwerte.stabilitaet, 100, 900, 3, 0);
+      // Unterhalb von 0.2 px ist das Zittern nicht wahrnehmbar →
+      // Animation ganz abschalten, um Rauschen zu vermeiden.
+      const wobble = wobbleRoh < 0.2 ? 0 : wobbleRoh;
+
+      // ── Tonalität → CSS-Schrägstellung (deg) ─────────────────
+      // BEHELF – später durch eigene Schrift-Achse ersetzen
+      // (Platzhalter für Achsen wie rund/spitz, warm/kalt o. Ä.)
+      // 100 = neutral (0°), 900 = warm/geneigt (−5°, Richtung Italic)
+      const skew = umrechnen(rohwerte.tonalitaet, 100, 900, 0, -5);
+
+      return { wght, spacing, animDuration, wobble, skew };
     }
 
-    // Hilfsfunktion: lineares Umrechnen eines Wertebereichs in einen anderen
-    // (z. B. Sensor 0–1023 → Schrift 100–900)
+    // ─── Hilfsfunktion: lineares Umrechnen von Wertebereichen ─────
+    // Beispiel: umrechnen(600, 100, 900, −0.04, 0.12) → 0.05
     function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
-      return zuMin + (wert - vonMin) / (vonMax - vonMin) * (zuMax - zuMin);
+      const t = (wert - vonMin) / (vonMax - vonMin);
+      return zuMin + t * (zuMax - zuMin);
     }
 
-    // Wandelt das Achsen-Objekt in einen CSS-String um
-    // Beispiel: { wght: 600 } → "'wght' 600"
-    function achsenAlsCSS(achsen) {
-      return Object.entries(achsen)
-        .map(([name, wert]) => `'${name}' ${wert}`)
-        .join(', ');
+    // ─── Alle typografischen Parameter auf ein Element anwenden ───
+    // Wird beim Einfrieren (Senden) aufgerufen.
+    // Gesendete Elemente werden danach NIE mehr aktualisiert.
+    function stilAnwenden(element, achsen) {
+      // Intensität → font-weight (echte Achse)
+      element.style.fontVariationSettings = `'wght' ${achsen.wght}`;
+      element.style.fontWeight = achsen.wght; // Fallback
+
+      // BEHELF – Tempo → letter-spacing
+      element.style.letterSpacing = `${achsen.spacing.toFixed(3)}em`;
+
+      // BEHELF – Tonalität → CSS Custom Property für die Animation
+      element.style.setProperty('--zt-skew', `${achsen.skew.toFixed(2)}deg`);
+
+      if (achsen.wobble > 0) {
+        // BEHELF – Stabilität → Zitter-Animation
+        // Die Animation übernimmt auch die Schrägstellung (--zt-skew).
+        element.style.setProperty('--zt-amplitude', `${achsen.wobble.toFixed(2)}px`);
+        element.style.animation =
+          `zittern ${achsen.animDuration.toFixed(2)}s ease-in-out infinite`;
+        element.style.transform = ''; // Animation übernimmt den Transform
+      } else {
+        element.style.animation = 'none';
+        // BEHELF – Tonalität → statische Schrägstellung (kein Zittern)
+        element.style.transform = `skewX(${achsen.skew.toFixed(2)}deg)`;
+      }
     }
 
-    // Wendet aktuelle Schrift-Achsen auf alle bereits gesendeten eigenen Nachrichten an
-    function meineNachrichtenAktualisieren(achsen) {
-      const css = achsenAlsCSS(achsen);
-      document.querySelectorAll('.nachricht-ich .text').forEach(el => {
-        el.style.fontVariationSettings = css;
-        el.style.fontWeight = achsen.wght; // Fallback für ältere Browser
-      });
+    // ─── Vorschau im Eingabefeld aktualisieren ────────────────────
+    // Gesendete Nachrichten werden NICHT berührt.
+    // Kein Zittern im Eingabefeld (würde das Tippen stören).
+    function vorschauAktualisieren() {
+      if (emotionAktiv) {
+        eingabe.style.fontVariationSettings = `'wght' ${aktuelleAchsen.wght}`;
+        eingabe.style.fontWeight = aktuelleAchsen.wght;
+        // BEHELF – Tempo → letter-spacing
+        eingabe.style.letterSpacing = `${aktuelleAchsen.spacing.toFixed(3)}em`;
+        // BEHELF – Tonalität → Schrägstellung
+        eingabe.style.transform = `skewX(${aktuelleAchsen.skew.toFixed(2)}deg)`;
+      } else {
+        eingabe.style.fontVariationSettings = "'wght' 400";
+        eingabe.style.fontWeight = 400;
+        eingabe.style.letterSpacing = '0em';
+        eingabe.style.transform = 'none';
+      }
     }
 
 
@@ -300,18 +482,45 @@
       "Hast du schon was zum Zeigen?",
       "Schick mir mal einen Screenshot, wenn's fertig ist."
     ];
-    let naechsteAntwortIndex = 0; // zeigt auf die nächste einzublendende Antwort
+    let naechsteAntwortIndex = 0;
 
 
     // ── DOM-Referenzen ────────────────────────────────────────────
-    const chat        = document.getElementById('chat');
-    const eingabe     = document.getElementById('eingabe');
-    const antwortBtn  = document.getElementById('antwort-btn');
-    const slider      = document.getElementById('sensor-slider');
-    const wertAnzeige = document.getElementById('sensor-wert');
+    const chat          = document.getElementById('chat');
+    const eingabe       = document.getElementById('eingabe');
+    const antwortBtn    = document.getElementById('antwort-btn');
+    const emotionToggle = document.getElementById('emotion-toggle');
 
-    // Aktueller Achsenzustand (initialisiert mit Slider-Startwert)
-    let aktuelleAchsen = sensorZuSchriftAchse(Number(slider.value));
+    // Slider
+    const sliderIntensitaet = document.getElementById('slider-intensitaet');
+    const sliderTempo       = document.getElementById('slider-tempo');
+    const sliderStabilitaet = document.getElementById('slider-stabilitaet');
+    const sliderTonalitaet  = document.getElementById('slider-tonalitaet');
+
+    // Wertanzeigen
+    const wertIntensitaet = document.getElementById('wert-intensitaet');
+    const wertTempo       = document.getElementById('wert-tempo');
+    const wertStabilitaet = document.getElementById('wert-stabilitaet');
+    const wertTonalitaet  = document.getElementById('wert-tonalitaet');
+
+
+    // ── Zustand ───────────────────────────────────────────────────
+
+    // Aktuelle Rohwerte (werden später durch Sensordaten ersetzt)
+    let aktuelleRohwerte = {
+      intensitaet: Number(sliderIntensitaet.value),
+      tempo:       Number(sliderTempo.value),
+      stabilitaet: Number(sliderStabilitaet.value),
+      tonalitaet:  Number(sliderTonalitaet.value)
+    };
+
+    // Berechnete Schrift-Parameter (Ausgabe der Mapping-Funktion)
+    let aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+
+    let emotionAktiv = emotionToggle.checked; // true = Emotion AN
+
+    // Vorschau beim Laden sofort initialisieren
+    vorschauAktualisieren();
 
 
     // ── Nachricht in den Chat einfügen ────────────────────────────
@@ -323,23 +532,53 @@
       textEl.classList.add('text');
       textEl.textContent = text;
 
-      // Nur eigene Nachrichten erhalten die aktuellen Schrift-Achsen
       if (vonMir) {
-        textEl.style.fontVariationSettings = achsenAlsCSS(aktuelleAchsen);
-        textEl.style.fontWeight = aktuelleAchsen.wght;
+        if (emotionAktiv) {
+          // Achsen-Snapshot beim Absenden – wird NIE mehr geändert
+          stilAnwenden(textEl, aktuelleAchsen);
+        } else {
+          // Emotion AUS: Standard-Schrift, keine Effekte
+          textEl.style.fontVariationSettings = "'wght' 400";
+          textEl.style.fontWeight = 400;
+          textEl.style.letterSpacing = '0em';
+          textEl.style.transform = 'none';
+          textEl.style.animation = 'none';
+        }
       }
 
       wrapper.appendChild(textEl);
       chat.appendChild(wrapper);
-
-      // Automatisch ans Ende scrollen
       chat.scrollTop = chat.scrollHeight;
     }
 
 
     // ── Ereignis-Handler ──────────────────────────────────────────
 
-    // Enter sendet die eigene Nachricht
+    // Alle 4 Slider: Rohwerte lesen → Mapping → Vorschau
+    // Gesendete Nachrichten bleiben eingefroren
+    function rohwerteAktualisieren() {
+      aktuelleRohwerte = {
+        intensitaet: Number(sliderIntensitaet.value),
+        tempo:       Number(sliderTempo.value),
+        stabilitaet: Number(sliderStabilitaet.value),
+        tonalitaet:  Number(sliderTonalitaet.value)
+      };
+      aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+
+      // Wertanzeigen aktualisieren
+      wertIntensitaet.textContent = aktuelleRohwerte.intensitaet;
+      wertTempo.textContent       = aktuelleRohwerte.tempo;
+      wertStabilitaet.textContent = aktuelleRohwerte.stabilitaet;
+      wertTonalitaet.textContent  = aktuelleRohwerte.tonalitaet;
+
+      // Nur die Vorschau im Eingabefeld aktualisieren
+      vorschauAktualisieren();
+    }
+
+    [sliderIntensitaet, sliderTempo, sliderStabilitaet, sliderTonalitaet]
+      .forEach(s => s.addEventListener('input', rohwerteAktualisieren));
+
+    // Enter → eigene Nachricht mit eingefrorenem Zustand senden
     eingabe.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter') return;
       const text = eingabe.value.trim();
@@ -348,28 +587,22 @@
       eingabe.value = '';
     });
 
-    // Button blendet die nächste vordefinierte Antwort ein
+    // Button → nächste vordefinierte Antwort einblenden
     antwortBtn.addEventListener('click', function () {
       if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) return;
       nachrichtHinzufuegen(vorgegebeneNachrichten[naechsteAntwortIndex], false);
       naechsteAntwortIndex++;
-
-      // Button deaktivieren, wenn alle Antworten verbraucht sind
       if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) {
         antwortBtn.disabled = true;
         antwortBtn.textContent = '–';
       }
     });
 
-    // Slider-Bewegung: Mapping-Funktion aufrufen, Schrift live aktualisieren
-    slider.addEventListener('input', function () {
-      aktuelleAchsen = sensorZuSchriftAchse(Number(this.value));
-
-      // Wertanzeige neben dem Slider
-      wertAnzeige.textContent = aktuelleAchsen.wght;
-
-      // Alle bisherigen eigenen Nachrichten neu stylen
-      meineNachrichtenAktualisieren(aktuelleAchsen);
+    // Emotion-Toggle → nur Vorschau umschalten;
+    // gesendete Nachrichten bleiben unberührt (eingefroren)
+    emotionToggle.addEventListener('change', function () {
+      emotionAktiv = this.checked;
+      vorschauAktualisieren();
     });
 
   </script>
