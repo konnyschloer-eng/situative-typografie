@@ -25,13 +25,12 @@
 
     /* ── Phone-Frame ──────────────────────────────────── */
     .phone-frame {
+      position: relative; /* Anker für absolute Ansichten */
       width: 390px;
       height: 844px;
       max-height: 100dvh;
       background: #f6f5f2;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      overflow: hidden;   /* kein Überlauf aus dem Frame */
       box-shadow: 0 8px 40px rgba(0,0,0,.12);
     }
 
@@ -40,7 +39,117 @@
       .phone-frame { width: 100%; height: 100dvh; box-shadow: none; }
     }
 
-    /* ── Kopfzeile ────────────────────────────────────── */
+    /* ── Ansichten (Übersicht / Chat) ─────────────────────
+       Beide Ansichten liegen übereinander (absolute),
+       füllen den Phone-Frame vollständig aus und werden
+       per JS ein- und ausgeblendet.                       */
+    .ansicht {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: #f6f5f2;
+      /* Sanfte Überblendung beim Wechsel */
+      transition: opacity 0.2s ease;
+    }
+
+    .ansicht--versteckt {
+      opacity: 0;
+      pointer-events: none; /* kein Klick auf versteckte Ansicht */
+    }
+
+
+    /* ══════════════════════════════════════════════════════
+       ANSICHT 1 – GESPRÄCHSÜBERSICHT
+       ══════════════════════════════════════════════════════ */
+
+    /* Kopfzeile der Übersicht */
+    .kopfzeile-uebersicht {
+      flex-shrink: 0;
+      height: 52px;
+      background: #f6f5f2;
+      border-bottom: 1px solid #e0ddd7;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+    }
+
+    .kopfzeile-uebersicht .seitentitel {
+      font-size: 12px;
+      color: #aaa;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* Liste der Gespräche */
+    .gespraechs-liste {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #ddd transparent;
+    }
+
+    /* Einzelner Eintrag */
+    .gespraechs-eintrag {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #ece9e4;
+      cursor: pointer;
+      transition: background 0.12s;
+      user-select: none;
+    }
+
+    .gespraechs-eintrag:hover,
+    .gespraechs-eintrag:active {
+      background: #efece7;
+    }
+
+    /* Runder Avatar-Platzhalter mit Initial */
+    .avatar {
+      flex-shrink: 0;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #666;
+      font-variation-settings: 'wght' 500;
+    }
+
+    /* Textteil neben dem Avatar */
+    .gespraechs-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0; /* text-overflow funktioniert nur mit min-width: 0 */
+    }
+
+    .gespraechs-name {
+      font-size: 14px;
+      color: #222;
+      font-variation-settings: 'wght' 500;
+    }
+
+    /* Vorschau der letzten Nachricht – einzeilig mit Auslassungspunkten */
+    .gespraechs-vorschau {
+      font-size: 13px;
+      color: #aaa;
+      font-variation-settings: 'wght' 400;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+
+    /* ══════════════════════════════════════════════════════
+       ANSICHT 2 – CHAT
+       ══════════════════════════════════════════════════════ */
+
+    /* Kopfzeile des Chats */
     .kopfzeile {
       flex-shrink: 0;
       background: #f6f5f2;
@@ -54,6 +163,27 @@
       justify-content: space-between;
       margin-bottom: 10px;
     }
+
+    /* Zurück-Pfeil + Gesprächspartner-Name */
+    .kopfzeile-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .zurueck-btn {
+      background: none;
+      border: none;
+      padding: 0 8px 0 0;
+      cursor: pointer;
+      font-size: 18px;
+      color: #999;
+      line-height: 1;
+      font-family: inherit;
+      transition: color 0.15s;
+    }
+
+    .zurueck-btn:hover { color: #555; }
 
     .kopfzeile-titel {
       font-size: 12px;
@@ -70,7 +200,7 @@
     }
 
     /* 2×2-Raster: Intensität + Tonalität = Slider,
-                   Tempo + Stabilität = berechnete Anzeige   */
+                   Tempo + Stabilität = Live-Anzeige    */
     .sensor-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -85,7 +215,6 @@
       align-items: baseline;
     }
 
-    /* Label für steuerbare Slider */
     .dimension-label {
       font-size: 10px;
       color: #aaa;
@@ -93,16 +222,13 @@
       text-transform: uppercase;
     }
 
-    /* Label für Live-Messungen: pulsierender Punkt signalisiert "aktiv" */
-    .dimension-label--live {
-      color: #777;
-    }
+    /* Pulsierender Punkt = Live-Messung */
+    .dimension-label--live { color: #777; }
 
     .dimension-label--live::before {
       content: '';
       display: inline-block;
-      width: 5px;
-      height: 5px;
+      width: 5px; height: 5px;
       border-radius: 50%;
       background: #aaa;
       margin-right: 4px;
@@ -121,12 +247,11 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* Interaktiver Slider (Intensität, Tonalität) */
+    /* Interaktiver Slider */
     .dimension-slider {
       -webkit-appearance: none;
       appearance: none;
-      width: 100%;
-      height: 2px;
+      width: 100%; height: 2px;
       background: #ccc;
       border-radius: 1px;
       outline: none;
@@ -149,28 +274,26 @@
       cursor: pointer;
     }
 
-    /* Fortschrittsbalken für Live-Messungen (kein Thumb, nicht steuerbar) */
+    /* Fortschrittsbalken für Live-Messungen */
     .dimension-balken-spur {
-      width: 100%;
-      height: 2px;
+      width: 100%; height: 2px;
       background: #e0ddd7;
       border-radius: 1px;
       overflow: hidden;
     }
 
     .dimension-balken {
-      height: 100%;
-      width: 0%;
+      height: 100%; width: 0%;
       background: #888;
       border-radius: 1px;
       transition: width 0.15s ease;
     }
 
-    /* ── Chat-Bereich ─────────────────────────────────── */
+    /* ── Chat-Verlauf ─────────────────────────────────── */
     .chat-bereich {
       flex: 1;
       overflow-y: auto;
-      overflow-x: hidden; /* kein horizontales Scrollen */
+      overflow-x: hidden;
       padding: 20px;
       display: flex;
       flex-direction: column;
@@ -183,7 +306,7 @@
       display: flex;
       flex-direction: column;
       max-width: 78%;
-      min-width: 0; /* verhindert Überlauf in Flex-Containern */
+      min-width: 0;
       animation: einblenden 0.18s ease forwards;
     }
 
@@ -199,9 +322,7 @@
       font-variation-settings: 'wght' 400;
     }
 
-    /* Textumbruch für alle Nachrichten ─────────────────────────
-       overflow-wrap: break-word  → lange Wörter/URLs umbrechen
-       word-break: break-word     → Fallback für ältere Browser  */
+    /* Zeilenumbruch erzwingen, lange Wörter/URLs ebenfalls */
     .nachricht .text {
       overflow-wrap: break-word;
       word-break: break-word;
@@ -213,10 +334,8 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── Zittern-Animation ────────────────────────────────
-       Amplitude (--zt-amplitude) und Schrägstellung (--zt-skew)
-       werden pro Nachricht eingefroren und nie mehr verändert.
-       BEHELF – später durch echte Schrift-Achse ersetzen.   */
+    /* Zittern-Animation (Stabilität) – BEHELF
+       --zt-amplitude und --zt-skew werden pro Nachricht eingefroren. */
     @keyframes zittern {
       0%,  100% { transform: translateX(0)                              skewX(var(--zt-skew,0deg)); }
       20%        { transform: translateX(var(--zt-amplitude,0px))       skewX(var(--zt-skew,0deg)); }
@@ -255,7 +374,6 @@
     #antwort-btn:hover:not(:disabled) { border-color: #aaa; color: #666; }
     #antwort-btn:disabled { opacity: 0.3; cursor: default; }
 
-    /* Eingabefeld – Live-Vorschau der Schrift */
     #eingabe {
       flex: 1;
       min-width: 0;
@@ -319,78 +437,165 @@
 <body>
 <div class="phone-frame">
 
-  <!-- Kopfzeile: 2 Slider (Intensität, Tonalität) + 2 Live-Anzeigen (Tempo, Stabilität) -->
-  <header class="kopfzeile">
-    <div class="kopfzeile-titelzeile">
-      <span class="kopfzeile-titel">Chat</span>
-      <span class="sensor-hinweis">Platzhalter · Sensordaten</span>
-    </div>
+  <!-- ══════════════════════════════════════════════════════
+       ANSICHT 1 – GESPRÄCHSÜBERSICHT
+       ══════════════════════════════════════════════════════ -->
+  <div class="ansicht" id="ansicht-uebersicht">
 
-    <div class="sensor-grid">
+    <header class="kopfzeile-uebersicht">
+      <span class="seitentitel">Gespräche</span>
+    </header>
 
-      <!-- Intensität: Slider-Platzhalter (noch kein Sensor) -->
-      <div class="sensor-dimension">
-        <div class="dimension-header">
-          <span class="dimension-label">Intensität</span>
-          <span class="dimension-wert" id="wert-intensitaet">500</span>
-        </div>
-        <input class="dimension-slider" type="range"
-          id="slider-intensitaet" min="100" max="900" value="500" step="1">
-      </div>
+    <main class="gespraechs-liste">
 
-      <!-- Tempo: wird aus Tippgeschwindigkeit berechnet, nicht steuerbar -->
-      <div class="sensor-dimension">
-        <div class="dimension-header">
-          <span class="dimension-label dimension-label--live">Tempo</span>
-          <span class="dimension-wert" id="wert-tempo">—</span>
-        </div>
-        <div class="dimension-balken-spur">
-          <div class="dimension-balken" id="balken-tempo"></div>
+      <!-- Eintrag 1 -->
+      <div class="gespraechs-eintrag" data-name="Anna">
+        <div class="avatar" style="background: #dedad4;">A</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Anna</span>
+          <span class="gespraechs-vorschau">Schick mir mal einen Screenshot, wenn's fertig ist.</span>
         </div>
       </div>
 
-      <!-- Stabilität: wird aus Tipprhythmus berechnet, nicht steuerbar -->
-      <div class="sensor-dimension">
-        <div class="dimension-header">
-          <span class="dimension-label dimension-label--live">Stabilität</span>
-          <span class="dimension-wert" id="wert-stabilitaet">—</span>
-        </div>
-        <div class="dimension-balken-spur">
-          <div class="dimension-balken" id="balken-stabilitaet"></div>
+      <!-- Eintrag 2 -->
+      <div class="gespraechs-eintrag" data-name="Luca">
+        <div class="avatar" style="background: #d4d9de;">L</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Luca</span>
+          <span class="gespraechs-vorschau">Klingt interessant – wie funktioniert das genau?</span>
         </div>
       </div>
 
-      <!-- Tonalität: Slider-Platzhalter (noch kein Sensor) -->
-      <div class="sensor-dimension">
-        <div class="dimension-header">
-          <span class="dimension-label">Tonalität</span>
-          <span class="dimension-wert" id="wert-tonalitaet">500</span>
+      <!-- Eintrag 3 -->
+      <div class="gespraechs-eintrag" data-name="Mia">
+        <div class="avatar" style="background: #d4d9d6;">M</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Mia</span>
+          <span class="gespraechs-vorschau">Hast du schon was zum Zeigen?</span>
         </div>
-        <input class="dimension-slider" type="range"
-          id="slider-tonalitaet" min="100" max="900" value="500" step="1">
       </div>
 
-    </div>
-  </header>
+    </main>
+  </div><!-- /#ansicht-uebersicht -->
 
-  <main class="chat-bereich" id="chat"></main>
 
-  <footer class="eingabe-bereich">
-    <div class="eingabe-innen">
-      <button id="antwort-btn">&#8592; Antwort</button>
-      <input type="text" id="eingabe"
-        placeholder="Nachricht schreiben …" autocomplete="off">
-      <label class="emotion-schalter" title="Emotionale Typografie an/aus">
-        <input type="checkbox" id="emotion-toggle" checked>
-        <span class="schalter-visuell"></span>
-        <span class="schalter-label">Emotion</span>
-      </label>
-    </div>
-  </footer>
+  <!-- ══════════════════════════════════════════════════════
+       ANSICHT 2 – CHAT
+       ══════════════════════════════════════════════════════ -->
+  <div class="ansicht ansicht--versteckt" id="ansicht-chat">
+
+    <!-- Kopfzeile mit Zurück-Pfeil + Dimensionen -->
+    <header class="kopfzeile">
+      <div class="kopfzeile-titelzeile">
+        <div class="kopfzeile-links">
+          <!-- Zurück zur Übersicht -->
+          <button class="zurueck-btn" id="zurueck-btn">&#8592;</button>
+          <span class="kopfzeile-titel" id="chat-partner-name">–</span>
+        </div>
+        <span class="sensor-hinweis">Platzhalter · Sensordaten</span>
+      </div>
+
+      <div class="sensor-grid">
+
+        <!-- Intensität: Slider-Platzhalter -->
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label">Intensität</span>
+            <span class="dimension-wert" id="wert-intensitaet">500</span>
+          </div>
+          <input class="dimension-slider" type="range"
+            id="slider-intensitaet" min="100" max="900" value="500" step="1">
+        </div>
+
+        <!-- Tempo: wird aus Tippgeschwindigkeit berechnet -->
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label dimension-label--live">Tempo</span>
+            <span class="dimension-wert" id="wert-tempo">—</span>
+          </div>
+          <div class="dimension-balken-spur">
+            <div class="dimension-balken" id="balken-tempo"></div>
+          </div>
+        </div>
+
+        <!-- Stabilität: wird aus Tipprhythmus berechnet -->
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label dimension-label--live">Stabilität</span>
+            <span class="dimension-wert" id="wert-stabilitaet">—</span>
+          </div>
+          <div class="dimension-balken-spur">
+            <div class="dimension-balken" id="balken-stabilitaet"></div>
+          </div>
+        </div>
+
+        <!-- Tonalität: Slider-Platzhalter -->
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label">Tonalität</span>
+            <span class="dimension-wert" id="wert-tonalitaet">500</span>
+          </div>
+          <input class="dimension-slider" type="range"
+            id="slider-tonalitaet" min="100" max="900" value="500" step="1">
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Scrollbarer Chat-Verlauf -->
+    <main class="chat-bereich" id="chat"></main>
+
+    <!-- Eingabeleiste -->
+    <footer class="eingabe-bereich">
+      <div class="eingabe-innen">
+        <button id="antwort-btn">&#8592; Antwort</button>
+        <input type="text" id="eingabe"
+          placeholder="Nachricht schreiben …" autocomplete="off">
+        <label class="emotion-schalter" title="Emotionale Typografie an/aus">
+          <input type="checkbox" id="emotion-toggle" checked>
+          <span class="schalter-visuell"></span>
+          <span class="schalter-label">Emotion</span>
+        </label>
+      </div>
+    </footer>
+
+  </div><!-- /#ansicht-chat -->
 
 </div><!-- /.phone-frame -->
 
 <script>
+
+  // ══════════════════════════════════════════════════════════════
+  //  NAVIGATION – Wechsel zwischen Übersicht und Chat
+  // ══════════════════════════════════════════════════════════════
+
+  const ansichtUebersicht = document.getElementById('ansicht-uebersicht');
+  const ansichtChat       = document.getElementById('ansicht-chat');
+  const chatPartnerName   = document.getElementById('chat-partner-name');
+
+  function zeigeUebersicht() {
+    ansichtChat.classList.add('ansicht--versteckt');
+    ansichtUebersicht.classList.remove('ansicht--versteckt');
+  }
+
+  function zeigeChat(name) {
+    chatPartnerName.textContent = name;
+    ansichtUebersicht.classList.add('ansicht--versteckt');
+    ansichtChat.classList.remove('ansicht--versteckt');
+    // Eingabefeld fokussieren, sobald der Chat sichtbar ist
+    setTimeout(() => eingabe.focus(), 210);
+  }
+
+  // Klick auf Gesprächseintrag → Chat öffnen
+  document.querySelectorAll('.gespraechs-eintrag').forEach(function (el) {
+    el.addEventListener('click', function () {
+      zeigeChat(this.dataset.name);
+    });
+  });
+
+  // Zurück-Pfeil → Übersicht
+  document.getElementById('zurueck-btn').addEventListener('click', zeigeUebersicht);
+
 
   // ═══════════════════════════════════════════════════════════════
   //  MAPPING-FUNKTION
@@ -399,7 +604,6 @@
   //  HIER ANPASSEN, wenn echte Sensordaten kommen:
   //    • Intensität / Tonalität: Slider durch Sensor ersetzen
   //    • Tempo / Stabilität: Tipp-Berechnung durch Sensor ersetzen
-  //    • Wertebereich ggf. mit umrechnen() anpassen
   //    • BEHELF-Stellen → eigene Variable-Font-Achsen einsetzen
   // ═══════════════════════════════════════════════════════════════
   function sensorZuSchriftAchse(rohwerte) {
@@ -414,7 +618,6 @@
     const spacing = umrechnen(rohwerte.tempo, 100, 900, -0.04, 0.12);
 
     // ── Tempo → Animations-Dauer (s) ─────────────────────────
-    // Steuert die Geschwindigkeit der Zitter-Animation (Stabilität).
     // Langsam (100) = 2 s/Zyklus · schnell (900) = 0.3 s/Zyklus
     const animDuration = umrechnen(rohwerte.tempo, 100, 900, 2, 0.3);
 
@@ -422,53 +625,40 @@
     // BEHELF – später durch eigene Schrift-Achse ersetzen
     // Stabil (900) = 0 px · unruhig (100) = 3 px
     const wobbleRoh = umrechnen(rohwerte.stabilitaet, 100, 900, 3, 0);
-    // Unter 0.2 px nicht wahrnehmbar → Animation komplett abschalten
-    const wobble = wobbleRoh < 0.2 ? 0 : wobbleRoh;
+    const wobble    = wobbleRoh < 0.2 ? 0 : wobbleRoh;
 
     // ── Tonalität → Schrägstellung (deg) ─────────────────────
     // BEHELF – später durch eigene Schrift-Achse ersetzen
-    // (Platzhalter für Achsen wie rund/spitz, warm/kalt o. Ä.)
-    // Neutral (100) = 0° · warm/geneigt (900) = −5° (Richtung Italic)
+    // Neutral (100) = 0° · warm/geneigt (900) = −5°
     const skew = umrechnen(rohwerte.tonalitaet, 100, 900, 0, -5);
 
     return { wght, spacing, animDuration, wobble, skew };
   }
 
-  // ─── Hilfsfunktion: lineares Umrechnen zweier Wertebereiche ───
   function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
     const t = (wert - vonMin) / (vonMax - vonMin);
     return zuMin + t * (zuMax - zuMin);
   }
 
-  // ─── Alle typografischen Parameter auf ein Element anwenden ───
-  // Wird beim Einfrieren (Senden) aufgerufen – danach nie mehr.
+  // Alle typografischen Parameter auf ein Element anwenden (Einfrieren beim Senden)
   function stilAnwenden(element, achsen) {
-    // Intensität → font-weight (echte Achse)
     element.style.fontVariationSettings = `'wght' ${achsen.wght}`;
-    element.style.fontWeight = achsen.wght;
-
-    // BEHELF – Tempo → letter-spacing
-    element.style.letterSpacing = `${achsen.spacing.toFixed(3)}em`;
-
-    // BEHELF – Tonalität als CSS Custom Property (für Zitter-Animation)
-    element.style.setProperty('--zt-skew', `${achsen.skew.toFixed(2)}deg`);
+    element.style.fontWeight            = achsen.wght;
+    element.style.letterSpacing         = `${achsen.spacing.toFixed(3)}em`;  // BEHELF
+    element.style.setProperty('--zt-skew', `${achsen.skew.toFixed(2)}deg`);  // BEHELF
 
     if (achsen.wobble > 0) {
       // BEHELF – Stabilität → Zitter-Animation
       element.style.setProperty('--zt-amplitude', `${achsen.wobble.toFixed(2)}px`);
-      element.style.animation =
-        `zittern ${achsen.animDuration.toFixed(2)}s ease-in-out infinite`;
-      element.style.transform = '';
+      element.style.animation = `zittern ${achsen.animDuration.toFixed(2)}s ease-in-out infinite`;
+      element.style.transform  = '';
     } else {
       element.style.animation = 'none';
-      // BEHELF – Tonalität → statische Schrägstellung (ohne Zitter)
-      element.style.transform = `skewX(${achsen.skew.toFixed(2)}deg)`;
+      element.style.transform  = `skewX(${achsen.skew.toFixed(2)}deg)`;     // BEHELF
     }
   }
 
-  // ─── Vorschau im Eingabefeld aktualisieren ─────────────────────
-  // Gesendete Nachrichten werden NICHT berührt.
-  // Kein Zittern auf dem Input (würde Tippen stören).
+  // Vorschau im Eingabefeld (kein Zittern, kein Einfrieren)
   function vorschauAktualisieren() {
     if (emotionAktiv) {
       eingabe.style.fontVariationSettings = `'wght' ${aktuelleAchsen.wght}`;
@@ -486,66 +676,51 @@
 
   // ═══════════════════════════════════════════════════════════════
   //  TIPP-ANALYSE  ←  HIER WIRD DAS ECHTE TIPPVERHALTEN GEMESSEN
-  //  Berechnet Tempo und Stabilität live aus Tastenanschlägen.
-  //  Ersetzt die Slider für diese beiden Dimensionen.
-  //  Später: diese Funktion durch echte Sensordaten ersetzen.
   // ═══════════════════════════════════════════════════════════════
 
-  const TIPP_FENSTER_MS = 4000; // Rollierendes Zeitfenster (4 s)
-  const MAX_IKI_MS      = 2000; // Längere Pausen werden ignoriert (Denkpausen)
-  const CPS_MAXIMUM     = 8;    // Zeichen/s → Tempo-Wert 900
-                                // Anpassen, wenn Werte zu schnell/langsam saturieren
+  const TIPP_FENSTER_MS = 4000;
+  const MAX_IKI_MS      = 2000;
+  const CPS_MAXIMUM     = 8;
 
-  let tipp_zeitstempel  = []; // Alle Tastenanschläge im Zeitfenster
-  let backspace_puffer  = []; // Backspace-Zeitstempel im Zeitfenster
-  let iki_puffer        = []; // Inter-Keystroke-Intervalle in ms (max. 30 Einträge)
-  let letzter_ts        = null; // Zeitstempel des letzten Tastenanschlags
+  let tipp_zeitstempel = [];
+  let backspace_puffer = [];
+  let iki_puffer       = [];
+  let letzter_ts       = null;
 
-  // Wird bei jedem relevanten Tastendruck im Eingabefeld aufgerufen
   function tippAnalysieren(event) {
-    // Nur Tasten zählen, die den Text tatsächlich verändern
     const istTippTaste =
-      event.key.length === 1 ||    // Druckbare Zeichen
+      event.key.length === 1 ||
       event.key === 'Backspace' ||
       event.key === 'Delete';
-
     if (!istTippTaste) return;
 
     const jetzt = Date.now();
 
-    // ── Inter-Keystroke-Intervall (IKI) berechnen ─────────────
     if (letzter_ts !== null) {
       const delta = jetzt - letzter_ts;
-      // Lange Pausen (Ablenkung, Nachdenken) nicht aufzeichnen –
-      // sie würden die Varianz künstlich aufblähen.
       if (delta < MAX_IKI_MS) {
         iki_puffer.push(delta);
-        if (iki_puffer.length > 30) iki_puffer.shift(); // Puffer begrenzen
+        if (iki_puffer.length > 30) iki_puffer.shift();
       }
     }
     letzter_ts = jetzt;
 
-    // ── Tastenanschläge im Zeitfenster verwalten ───────────────
     tipp_zeitstempel.push(jetzt);
     if (event.key === 'Backspace' || event.key === 'Delete') {
       backspace_puffer.push(jetzt);
     }
 
-    // Einträge älter als das Zeitfenster entfernen
-    const grenze = jetzt - TIPP_FENSTER_MS;
+    const grenze      = jetzt - TIPP_FENSTER_MS;
     tipp_zeitstempel  = tipp_zeitstempel.filter(t => t >= grenze);
     backspace_puffer  = backspace_puffer.filter(t => t >= grenze);
 
-    // ── Tempo und Stabilität berechnen ────────────────────────
     const tempo       = tempoBerechnen();
     const stabilitaet = stabilitaetBerechnen();
 
-    // ── Rohwerte aktualisieren → Mapping → Vorschau ────────────
     aktuelleRohwerte.tempo       = tempo;
     aktuelleRohwerte.stabilitaet = stabilitaet;
     aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
 
-    // Anzeige und Fortschrittsbalken aktualisieren
     wertTempoAnzeige.textContent       = tempo;
     wertStabilitaetAnzeige.textContent = stabilitaet;
     balkenTempo.style.width       = `${(tempo       - 100) / 800 * 100}%`;
@@ -554,32 +729,21 @@
     vorschauAktualisieren();
   }
 
-  // Tippgeschwindigkeit: Zeichen pro Sekunde → 100–900
   function tempoBerechnen() {
     const cps     = tipp_zeitstempel.length / (TIPP_FENSTER_MS / 1000);
     const gemappt = Math.round(umrechnen(cps, 0, CPS_MAXIMUM, 100, 900));
     return Math.min(900, Math.max(100, gemappt));
   }
 
-  // Gleichmäßigkeit des Tipprhythmus + Korrekturen → 100–900
   function stabilitaetBerechnen() {
-    if (iki_puffer.length < 3) return 500; // Zu wenig Daten → Mitte
-
-    // ── Variationskoeffizient (CV = stddev / mean) ─────────────
-    // CV ≈ 0 → sehr gleichmäßig → hohe Stabilität
-    // CV ≈ 1+ → sehr unregelmäßig → niedrige Stabilität
+    if (iki_puffer.length < 3) return 500;
     const n       = iki_puffer.length;
     const mean    = iki_puffer.reduce((a, b) => a + b, 0) / n;
     const varianz = iki_puffer.reduce((s, v) => s + (v - mean) ** 2, 0) / n;
     const cv      = mean > 0 ? Math.sqrt(varianz) / mean : 0;
-
-    // ── Korrektur-Rate (Backspace/Delete-Anteil im Zeitfenster) ─
-    // 0 % Korrekturen → kein Abzug · 30 %+ → max. Abzug (−300)
-    const korrekturRate    = tipp_zeitstempel.length > 0
+    const korrekturRate  = tipp_zeitstempel.length > 0
       ? backspace_puffer.length / tipp_zeitstempel.length : 0;
-    const korrekturAbzug   = Math.round(umrechnen(korrekturRate, 0, 0.3, 0, 300));
-
-    // ── Stabilität zusammensetzen und klemmen ─────────────────
+    const korrekturAbzug = Math.round(umrechnen(korrekturRate, 0, 0.3, 0, 300));
     const basis = Math.round(umrechnen(cv, 0, 1, 900, 100));
     return Math.min(900, Math.max(100, basis - korrekturAbzug));
   }
@@ -602,13 +766,10 @@
   const antwortBtn    = document.getElementById('antwort-btn');
   const emotionToggle = document.getElementById('emotion-toggle');
 
-  // Slider (Intensität + Tonalität)
-  const sliderIntensitaet = document.getElementById('slider-intensitaet');
-  const sliderTonalitaet  = document.getElementById('slider-tonalitaet');
-  const wertIntensitaet   = document.getElementById('wert-intensitaet');
-  const wertTonalitaet    = document.getElementById('wert-tonalitaet');
-
-  // Live-Anzeigen (Tempo + Stabilität)
+  const sliderIntensitaet      = document.getElementById('slider-intensitaet');
+  const sliderTonalitaet       = document.getElementById('slider-tonalitaet');
+  const wertIntensitaet        = document.getElementById('wert-intensitaet');
+  const wertTonalitaet         = document.getElementById('wert-tonalitaet');
   const wertTempoAnzeige       = document.getElementById('wert-tempo');
   const wertStabilitaetAnzeige = document.getElementById('wert-stabilitaet');
   const balkenTempo            = document.getElementById('balken-tempo');
@@ -616,21 +777,20 @@
 
 
   // ── Startzustand ──────────────────────────────────────────────
-
   let aktuelleRohwerte = {
     intensitaet: Number(sliderIntensitaet.value),
-    tempo:       100, // wird durch Tippen hochgesetzt
-    stabilitaet: 500, // wird durch Tippen angepasst
+    tempo:       100,
+    stabilitaet: 500,
     tonalitaet:  Number(sliderTonalitaet.value)
   };
 
   let aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
   let emotionAktiv   = emotionToggle.checked;
 
-  vorschauAktualisieren(); // Eingabefeld direkt beim Laden stylen
+  vorschauAktualisieren();
 
 
-  // ── Nachricht in den Chat einfügen ────────────────────────────
+  // ── Nachricht einfügen ────────────────────────────────────────
   function nachrichtHinzufuegen(text, vonMir) {
     const wrapper = document.createElement('div');
     wrapper.classList.add('nachricht', vonMir ? 'nachricht-ich' : 'nachricht-andere');
@@ -641,7 +801,7 @@
 
     if (vonMir) {
       if (emotionAktiv) {
-        // Snapshot aller vier Achsen beim Absenden – wird NIE mehr geändert
+        // Snapshot aller vier Achsen – wird NIE mehr geändert
         stilAnwenden(textEl, aktuelleAchsen);
       } else {
         textEl.style.fontVariationSettings = "'wght' 400";
@@ -660,7 +820,7 @@
 
   // ── Ereignis-Handler ──────────────────────────────────────────
 
-  // Tipp-Analyse: jeder relevante Tastendruck im Eingabefeld
+  // Tipp-Analyse auf das Eingabefeld
   eingabe.addEventListener('keydown', tippAnalysieren);
 
   // Enter → Nachricht senden
@@ -670,10 +830,9 @@
     if (!text) return;
     nachrichtHinzufuegen(text, true);
     eingabe.value = '';
-    // IKI-Puffer zurücksetzen: Pause nach dem Senden nicht mit
-    // dem nächsten Tipp-Block vermischen
-    letzter_ts  = null;
-    iki_puffer  = [];
+    // IKI-Zustand nach dem Senden zurücksetzen
+    letzter_ts = null;
+    iki_puffer = [];
   });
 
   // Slider Intensität + Tonalität
@@ -689,7 +848,7 @@
   sliderIntensitaet.addEventListener('input', sliderAktualisieren);
   sliderTonalitaet.addEventListener('input',  sliderAktualisieren);
 
-  // Button → nächste vordefinierte Antwort einblenden
+  // Antwort-Button
   antwortBtn.addEventListener('click', function () {
     if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) return;
     nachrichtHinzufuegen(vorgegebeneNachrichten[naechsteAntwortIndex], false);
@@ -700,7 +859,7 @@
     }
   });
 
-  // Emotion-Toggle → Vorschau umschalten; gesendete Nachrichten unberührt
+  // Emotion-Toggle
   emotionToggle.addEventListener('change', function () {
     emotionAktiv = this.checked;
     vorschauAktualisieren();
