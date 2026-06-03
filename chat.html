@@ -12,8 +12,50 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ══════════════════════════════════════════════════════════════
+       FARBWELTEN – als CSS-Custom-Properties auf .phone-frame
+       Zum Anpassen: nur die Werte hier ändern, der Rest folgt.
+
+       NEUTRAL (Emotion AUS): kühl, sachlich, nüchtern
+       WARM   (Emotion AN):   zartes Pfirsich, persönlich, weich
+       ══════════════════════════════════════════════════════════════ */
+
+    .phone-frame {
+      /* ── Neutral (Standardzustand, Emotion AUS) ── */
+      --bg:           #f2f2f0;   /* Haupthintergrund */
+      --bg-surface:   #eceae7;   /* Header, Footer, Flächen */
+      --bg-hover:     #e8e5e1;   /* Hover auf Listenelementen */
+      --border:       #d6d3cc;   /* Kräftigere Linien */
+      --border-light: #e4e1da;   /* Feine Trennlinien */
+      --text-2:       #888888;   /* Sekundärtext */
+      --text-3:       #aaaaaa;   /* Labels, schwacher Text */
+      --text-4:       #bbbbbb;   /* Sehr schwacher Text, Wertanzeigen */
+      --accent:       #555555;   /* Slider-Thumb, Fortschrittsbalken */
+      --toggle-off:   #c4c2bb;   /* Toggle-Schiene, Emotion AUS */
+      --toggle-on:    #444444;   /* Toggle-Schiene, Emotion AN */
+      --placeholder:  #c0bdb8;   /* Eingabefeld-Platzhalter */
+    }
+
+    .phone-frame.emotion-an {
+      /* ── Warm (Emotion AN) ── */
+      --bg:           #fdf0ec;   /* Zartes Pfirsich */
+      --bg-surface:   #f8e6df;   /* Etwas wärmere Fläche */
+      --bg-hover:     #f2ddd4;   /* Hover: minimal dunkler */
+      --border:       #e2cec6;   /* Warme Trennlinie */
+      --border-light: #eeddd6;   /* Feine warme Linie */
+      --text-2:       #9a7a72;   /* Sekundärtext warm-gedämpft */
+      --text-3:       #b89890;   /* Labels warm */
+      --text-4:       #c8a8a0;   /* Sehr schwacher Text warm */
+      --accent:       #b87a6e;   /* Slider, Balken: gedämpftes Terra */
+      --toggle-off:   #d0a898;   /* Toggle-Spur warm */
+      --toggle-on:    #b87a6e;   /* Toggle-Spur AN warm */
+      --placeholder:  #c8a8a0;   /* Platzhalter warm */
+    }
+
+
+    /* ── Äußerer Rahmen ───────────────────────────────── */
     body {
-      background: #e8e6e1;
+      background: #e8e6e1;  /* bleibt konstant (außerhalb des Frames) */
       font-family: 'Inter', sans-serif;
       font-size: 15px;
       line-height: 1.6;
@@ -25,37 +67,33 @@
 
     /* ── Phone-Frame ──────────────────────────────────── */
     .phone-frame {
-      position: relative; /* Anker für absolute Ansichten */
+      position: relative;
       width: 390px;
       height: 844px;
       max-height: 100dvh;
-      background: #f6f5f2;
-      overflow: hidden;   /* kein Überlauf aus dem Frame */
+      background: var(--bg);
+      overflow: hidden;
       box-shadow: 0 8px 40px rgba(0,0,0,.12);
     }
 
     @media (max-width: 440px) {
-      body { background: #f6f5f2; }
+      body { background: var(--bg); }
       .phone-frame { width: 100%; height: 100dvh; box-shadow: none; }
     }
 
-    /* ── Ansichten (Übersicht / Chat) ─────────────────────
-       Beide Ansichten liegen übereinander (absolute),
-       füllen den Phone-Frame vollständig aus und werden
-       per JS ein- und ausgeblendet.                       */
+    /* ── Ansichten (Übersicht / Chat) ─────────────────── */
     .ansicht {
       position: absolute;
       inset: 0;
       display: flex;
       flex-direction: column;
-      background: #f6f5f2;
-      /* Sanfte Überblendung beim Wechsel */
+      background: var(--bg);
       transition: opacity 0.2s ease;
     }
 
     .ansicht--versteckt {
       opacity: 0;
-      pointer-events: none; /* kein Klick auf versteckte Ansicht */
+      pointer-events: none;
     }
 
 
@@ -63,54 +101,48 @@
        ANSICHT 1 – GESPRÄCHSÜBERSICHT
        ══════════════════════════════════════════════════════ */
 
-    /* Kopfzeile der Übersicht */
     .kopfzeile-uebersicht {
       flex-shrink: 0;
       height: 52px;
-      background: #f6f5f2;
-      border-bottom: 1px solid #e0ddd7;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       padding: 0 20px;
     }
 
-    .kopfzeile-uebersicht .seitentitel {
+    .seitentitel {
       font-size: 12px;
-      color: #aaa;
+      color: var(--text-3);
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
-    /* Liste der Gespräche */
     .gespraechs-liste {
       flex: 1;
       overflow-y: auto;
       scrollbar-width: thin;
-      scrollbar-color: #ddd transparent;
+      scrollbar-color: var(--border) transparent;
     }
 
-    /* Einzelner Eintrag */
     .gespraechs-eintrag {
       display: flex;
       align-items: center;
       gap: 14px;
       padding: 14px 20px;
-      border-bottom: 1px solid #ece9e4;
+      border-bottom: 1px solid var(--border-light);
       cursor: pointer;
-      transition: background 0.12s;
       user-select: none;
     }
 
     .gespraechs-eintrag:hover,
     .gespraechs-eintrag:active {
-      background: #efece7;
+      background: var(--bg-hover);
     }
 
-    /* Runder Avatar-Platzhalter mit Initial */
     .avatar {
       flex-shrink: 0;
-      width: 42px;
-      height: 42px;
+      width: 42px; height: 42px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -120,24 +152,22 @@
       font-variation-settings: 'wght' 500;
     }
 
-    /* Textteil neben dem Avatar */
     .gespraechs-info {
       display: flex;
       flex-direction: column;
       gap: 2px;
-      min-width: 0; /* text-overflow funktioniert nur mit min-width: 0 */
+      min-width: 0;
     }
 
     .gespraechs-name {
       font-size: 14px;
-      color: #222;
+      color: #222; /* bleibt konstant – Lesbarkeit */
       font-variation-settings: 'wght' 500;
     }
 
-    /* Vorschau der letzten Nachricht – einzeilig mit Auslassungspunkten */
     .gespraechs-vorschau {
       font-size: 13px;
-      color: #aaa;
+      color: var(--text-3);
       font-variation-settings: 'wght' 400;
       white-space: nowrap;
       overflow: hidden;
@@ -149,11 +179,10 @@
        ANSICHT 2 – CHAT
        ══════════════════════════════════════════════════════ */
 
-    /* Kopfzeile des Chats */
     .kopfzeile {
       flex-shrink: 0;
-      background: #f6f5f2;
-      border-bottom: 1px solid #e0ddd7;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
       padding: 10px 16px 12px;
     }
 
@@ -164,7 +193,6 @@
       margin-bottom: 10px;
     }
 
-    /* Zurück-Pfeil + Gesprächspartner-Name */
     .kopfzeile-links {
       display: flex;
       align-items: center;
@@ -177,30 +205,28 @@
       padding: 0 8px 0 0;
       cursor: pointer;
       font-size: 18px;
-      color: #999;
+      color: var(--text-3);
       line-height: 1;
       font-family: inherit;
-      transition: color 0.15s;
     }
 
-    .zurueck-btn:hover { color: #555; }
+    .zurueck-btn:hover { color: var(--text-2); }
 
     .kopfzeile-titel {
       font-size: 12px;
-      color: #aaa;
+      color: var(--text-3);
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .sensor-hinweis {
       font-size: 10px;
-      color: #ccc;
+      color: var(--text-4);
       letter-spacing: 0.04em;
       font-style: italic;
     }
 
-    /* 2×2-Raster: Intensität + Tonalität = Slider,
-                   Tempo + Stabilität = Live-Anzeige    */
+    /* 2×2-Raster für die 4 Dimensionen */
     .sensor-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -217,20 +243,19 @@
 
     .dimension-label {
       font-size: 10px;
-      color: #aaa;
+      color: var(--text-3);
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
 
-    /* Pulsierender Punkt = Live-Messung */
-    .dimension-label--live { color: #777; }
+    .dimension-label--live { color: var(--text-2); }
 
     .dimension-label--live::before {
       content: '';
       display: inline-block;
       width: 5px; height: 5px;
       border-radius: 50%;
-      background: #aaa;
+      background: var(--text-3);
       margin-right: 4px;
       vertical-align: middle;
       animation: pulsieren 2s ease-in-out infinite;
@@ -243,16 +268,15 @@
 
     .dimension-wert {
       font-size: 10px;
-      color: #bbb;
+      color: var(--text-4);
       font-variant-numeric: tabular-nums;
     }
 
-    /* Interaktiver Slider */
     .dimension-slider {
       -webkit-appearance: none;
       appearance: none;
       width: 100%; height: 2px;
-      background: #ccc;
+      background: var(--border);
       border-radius: 1px;
       outline: none;
       cursor: pointer;
@@ -262,29 +286,28 @@
       -webkit-appearance: none;
       width: 12px; height: 12px;
       border-radius: 50%;
-      background: #555;
+      background: var(--accent);
       cursor: pointer;
     }
 
     .dimension-slider::-moz-range-thumb {
       width: 12px; height: 12px;
       border-radius: 50%;
-      background: #555;
+      background: var(--accent);
       border: none;
       cursor: pointer;
     }
 
-    /* Fortschrittsbalken für Live-Messungen */
     .dimension-balken-spur {
       width: 100%; height: 2px;
-      background: #e0ddd7;
+      background: var(--border-light);
       border-radius: 1px;
       overflow: hidden;
     }
 
     .dimension-balken {
       height: 100%; width: 0%;
-      background: #888;
+      background: var(--accent);
       border-radius: 1px;
       transition: width 0.15s ease;
     }
@@ -299,7 +322,7 @@
       flex-direction: column;
       gap: 16px;
       scrollbar-width: thin;
-      scrollbar-color: #ddd transparent;
+      scrollbar-color: var(--border) transparent;
     }
 
     .nachricht {
@@ -312,17 +335,17 @@
 
     .nachricht-andere { align-self: flex-start; }
     .nachricht-andere .text {
-      color: #777;
+      color: #777; /* bleibt konstant – Lesbarkeit */
       font-variation-settings: 'wght' 400;
     }
 
     .nachricht-ich { align-self: flex-end; text-align: right; }
     .nachricht-ich .text {
-      color: #111;
+      color: #111; /* bleibt konstant – Lesbarkeit */
       font-variation-settings: 'wght' 400;
     }
 
-    /* Zeilenumbruch erzwingen, lange Wörter/URLs ebenfalls */
+    /* Zeilenumbruch erzwingen */
     .nachricht .text {
       overflow-wrap: break-word;
       word-break: break-word;
@@ -334,8 +357,8 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Zittern-Animation (Stabilität) – BEHELF
-       --zt-amplitude und --zt-skew werden pro Nachricht eingefroren. */
+    /* Zittern-Animation (Stabilität) – BEHELF ────────────
+       Custom Properties werden pro Nachricht eingefroren.  */
     @keyframes zittern {
       0%,  100% { transform: translateX(0)                              skewX(var(--zt-skew,0deg)); }
       20%        { transform: translateX(var(--zt-amplitude,0px))       skewX(var(--zt-skew,0deg)); }
@@ -347,8 +370,8 @@
     /* ── Eingabebereich ───────────────────────────────── */
     .eingabe-bereich {
       flex-shrink: 0;
-      background: #f6f5f2;
-      border-top: 1px solid #e0ddd7;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
       padding: 10px 14px;
     }
 
@@ -361,17 +384,20 @@
     #antwort-btn {
       flex-shrink: 0;
       background: none;
-      border: 1px solid #d0cdc8;
-      color: #999;
+      border: 1px solid var(--border);
+      color: var(--text-3);
       font-family: 'Inter', sans-serif;
       font-size: 12px;
       font-variation-settings: 'wght' 400;
       padding: 7px 10px;
       cursor: pointer;
-      transition: border-color .15s, color .15s;
     }
 
-    #antwort-btn:hover:not(:disabled) { border-color: #aaa; color: #666; }
+    #antwort-btn:hover:not(:disabled) {
+      border-color: var(--text-3);
+      color: var(--text-2);
+    }
+
     #antwort-btn:disabled { opacity: 0.3; cursor: default; }
 
     #eingabe {
@@ -379,18 +405,18 @@
       min-width: 0;
       background: none;
       border: none;
-      border-bottom: 1px solid #ccc;
+      border-bottom: 1px solid var(--border);
       outline: none;
       font-family: 'Inter', sans-serif;
       font-size: 15px;
-      color: #222;
+      color: #222; /* bleibt konstant */
       font-variation-settings: 'wght' 400;
       padding: 5px 0;
-      transition: border-color .15s;
     }
 
-    #eingabe:focus { border-bottom-color: #888; }
-    #eingabe::placeholder { color: #c0bdb8; }
+    #eingabe:focus { border-bottom-color: var(--text-2); }
+
+    #eingabe::placeholder { color: var(--placeholder); }
 
     /* ── Emotion-Toggle ───────────────────────────────── */
     .emotion-schalter {
@@ -407,10 +433,9 @@
 
     .schalter-visuell {
       width: 34px; height: 19px;
-      background: #ccc;
+      background: var(--toggle-off);
       border-radius: 10px;
       position: relative;
-      transition: background .2s;
     }
 
     .schalter-visuell::after {
@@ -420,22 +445,52 @@
       border-radius: 50%;
       background: #fff;
       top: 3px; left: 3px;
-      transition: transform .2s;
+      transition: transform 0.4s ease;
     }
 
-    #emotion-toggle:checked + .schalter-visuell { background: #444; }
-    #emotion-toggle:checked + .schalter-visuell::after { transform: translateX(15px); }
+    #emotion-toggle:checked + .schalter-visuell {
+      background: var(--toggle-on);
+    }
+
+    #emotion-toggle:checked + .schalter-visuell::after {
+      transform: translateX(15px);
+    }
 
     .schalter-label {
       font-size: 9px;
-      color: #aaa;
+      color: var(--text-3);
       letter-spacing: 0.07em;
       text-transform: uppercase;
     }
+
+
+    /* ══════════════════════════════════════════════════════
+       MODUSWECHSEL-TRANSITION
+       Alle Farb-Eigenschaften im Frame wechseln weich (0.4 s).
+       Betrifft NUR background-color, border-color, color –
+       keine Konflikte mit transform/opacity-Animationen.
+       Muss als letztes stehen, damit es nicht überschrieben wird.
+       ══════════════════════════════════════════════════════ */
+    .phone-frame,
+    .phone-frame * {
+      transition-property: background-color, border-color, color;
+      transition-duration: 0.4s;
+      transition-timing-function: ease;
+    }
+
+    /* Slider-Thumb (Pseudo-Elemente brauchen eigene Regel) */
+    .dimension-slider::-webkit-slider-thumb { transition: background-color 0.4s ease; }
+    .dimension-slider::-moz-range-thumb     { transition: background-color 0.4s ease; }
+
+    /* Balken-Breite bleibt schnell (0.15 s) – nur Farbe folgt dem Modus */
+    .dimension-balken { transition: width 0.15s ease, background-color 0.4s ease; }
+
+    /* Toggle-Schieber bewegt sich immer mit 0.4 s (konsistent mit Moduswechsel) */
+    .schalter-visuell::after { transition: transform 0.4s ease; }
   </style>
 </head>
 <body>
-<div class="phone-frame">
+<div class="phone-frame" id="phone-frame">
 
   <!-- ══════════════════════════════════════════════════════
        ANSICHT 1 – GESPRÄCHSÜBERSICHT
@@ -448,7 +503,6 @@
 
     <main class="gespraechs-liste">
 
-      <!-- Eintrag 1 -->
       <div class="gespraechs-eintrag" data-name="Anna">
         <div class="avatar" style="background: #dedad4;">A</div>
         <div class="gespraechs-info">
@@ -457,7 +511,6 @@
         </div>
       </div>
 
-      <!-- Eintrag 2 -->
       <div class="gespraechs-eintrag" data-name="Luca">
         <div class="avatar" style="background: #d4d9de;">L</div>
         <div class="gespraechs-info">
@@ -466,7 +519,6 @@
         </div>
       </div>
 
-      <!-- Eintrag 3 -->
       <div class="gespraechs-eintrag" data-name="Mia">
         <div class="avatar" style="background: #d4d9d6;">M</div>
         <div class="gespraechs-info">
@@ -476,7 +528,7 @@
       </div>
 
     </main>
-  </div><!-- /#ansicht-uebersicht -->
+  </div>
 
 
   <!-- ══════════════════════════════════════════════════════
@@ -484,11 +536,9 @@
        ══════════════════════════════════════════════════════ -->
   <div class="ansicht ansicht--versteckt" id="ansicht-chat">
 
-    <!-- Kopfzeile mit Zurück-Pfeil + Dimensionen -->
     <header class="kopfzeile">
       <div class="kopfzeile-titelzeile">
         <div class="kopfzeile-links">
-          <!-- Zurück zur Übersicht -->
           <button class="zurueck-btn" id="zurueck-btn">&#8592;</button>
           <span class="kopfzeile-titel" id="chat-partner-name">–</span>
         </div>
@@ -497,7 +547,6 @@
 
       <div class="sensor-grid">
 
-        <!-- Intensität: Slider-Platzhalter -->
         <div class="sensor-dimension">
           <div class="dimension-header">
             <span class="dimension-label">Intensität</span>
@@ -507,7 +556,6 @@
             id="slider-intensitaet" min="100" max="900" value="500" step="1">
         </div>
 
-        <!-- Tempo: wird aus Tippgeschwindigkeit berechnet -->
         <div class="sensor-dimension">
           <div class="dimension-header">
             <span class="dimension-label dimension-label--live">Tempo</span>
@@ -518,7 +566,6 @@
           </div>
         </div>
 
-        <!-- Stabilität: wird aus Tipprhythmus berechnet -->
         <div class="sensor-dimension">
           <div class="dimension-header">
             <span class="dimension-label dimension-label--live">Stabilität</span>
@@ -529,7 +576,6 @@
           </div>
         </div>
 
-        <!-- Tonalität: Slider-Platzhalter -->
         <div class="sensor-dimension">
           <div class="dimension-header">
             <span class="dimension-label">Tonalität</span>
@@ -542,10 +588,8 @@
       </div>
     </header>
 
-    <!-- Scrollbarer Chat-Verlauf -->
     <main class="chat-bereich" id="chat"></main>
 
-    <!-- Eingabeleiste -->
     <footer class="eingabe-bereich">
       <div class="eingabe-innen">
         <button id="antwort-btn">&#8592; Antwort</button>
@@ -559,19 +603,17 @@
       </div>
     </footer>
 
-  </div><!-- /#ansicht-chat -->
+  </div>
 
 </div><!-- /.phone-frame -->
 
 <script>
 
-  // ══════════════════════════════════════════════════════════════
-  //  NAVIGATION – Wechsel zwischen Übersicht und Chat
-  // ══════════════════════════════════════════════════════════════
-
+  // ── Navigation ────────────────────────────────────────────────
   const ansichtUebersicht = document.getElementById('ansicht-uebersicht');
   const ansichtChat       = document.getElementById('ansicht-chat');
   const chatPartnerName   = document.getElementById('chat-partner-name');
+  const phoneFrame        = document.getElementById('phone-frame');
 
   function zeigeUebersicht() {
     ansichtChat.classList.add('ansicht--versteckt');
@@ -582,83 +624,62 @@
     chatPartnerName.textContent = name;
     ansichtUebersicht.classList.add('ansicht--versteckt');
     ansichtChat.classList.remove('ansicht--versteckt');
-    // Eingabefeld fokussieren, sobald der Chat sichtbar ist
     setTimeout(() => eingabe.focus(), 210);
   }
 
-  // Klick auf Gesprächseintrag → Chat öffnen
   document.querySelectorAll('.gespraechs-eintrag').forEach(function (el) {
-    el.addEventListener('click', function () {
-      zeigeChat(this.dataset.name);
-    });
+    el.addEventListener('click', function () { zeigeChat(this.dataset.name); });
   });
 
-  // Zurück-Pfeil → Übersicht
   document.getElementById('zurueck-btn').addEventListener('click', zeigeUebersicht);
 
 
   // ═══════════════════════════════════════════════════════════════
   //  MAPPING-FUNKTION
   //  Wandelt 4 Rohwerte (je 100–900) in typografische Parameter um.
-  //
-  //  HIER ANPASSEN, wenn echte Sensordaten kommen:
-  //    • Intensität / Tonalität: Slider durch Sensor ersetzen
-  //    • Tempo / Stabilität: Tipp-Berechnung durch Sensor ersetzen
-  //    • BEHELF-Stellen → eigene Variable-Font-Achsen einsetzen
   // ═══════════════════════════════════════════════════════════════
   function sensorZuSchriftAchse(rohwerte) {
 
-    // ── Intensität → font-weight ──────────────────────────────
-    // Echte Inter-Achse 'wght' – kein Behelf.
+    // Intensität → font-weight (echte Inter-Achse 'wght')
     const wght = Math.min(900, Math.max(100, Math.round(rohwerte.intensitaet)));
 
-    // ── Tempo → letter-spacing (em) ──────────────────────────
-    // BEHELF – später durch eigene Schrift-Achse ersetzen
-    // Langsam (100) = eng (−0.04 em) · schnell (900) = weit (0.12 em)
+    // BEHELF – Tempo → letter-spacing (−0.04 em … 0.12 em)
     const spacing = umrechnen(rohwerte.tempo, 100, 900, -0.04, 0.12);
 
-    // ── Tempo → Animations-Dauer (s) ─────────────────────────
-    // Langsam (100) = 2 s/Zyklus · schnell (900) = 0.3 s/Zyklus
+    // Tempo → Animations-Dauer (2 s … 0.3 s)
     const animDuration = umrechnen(rohwerte.tempo, 100, 900, 2, 0.3);
 
-    // ── Stabilität → Zitter-Amplitude (px) ───────────────────
-    // BEHELF – später durch eigene Schrift-Achse ersetzen
-    // Stabil (900) = 0 px · unruhig (100) = 3 px
+    // BEHELF – Stabilität → Zitter-Amplitude (3 px … 0 px)
     const wobbleRoh = umrechnen(rohwerte.stabilitaet, 100, 900, 3, 0);
     const wobble    = wobbleRoh < 0.2 ? 0 : wobbleRoh;
 
-    // ── Tonalität → Schrägstellung (deg) ─────────────────────
-    // BEHELF – später durch eigene Schrift-Achse ersetzen
-    // Neutral (100) = 0° · warm/geneigt (900) = −5°
+    // BEHELF – Tonalität → Schrägstellung (0° … −5°)
     const skew = umrechnen(rohwerte.tonalitaet, 100, 900, 0, -5);
 
     return { wght, spacing, animDuration, wobble, skew };
   }
 
   function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
-    const t = (wert - vonMin) / (vonMax - vonMin);
-    return zuMin + t * (zuMax - zuMin);
+    return zuMin + (wert - vonMin) / (vonMax - vonMin) * (zuMax - zuMin);
   }
 
   // Alle typografischen Parameter auf ein Element anwenden (Einfrieren beim Senden)
   function stilAnwenden(element, achsen) {
     element.style.fontVariationSettings = `'wght' ${achsen.wght}`;
     element.style.fontWeight            = achsen.wght;
-    element.style.letterSpacing         = `${achsen.spacing.toFixed(3)}em`;  // BEHELF
-    element.style.setProperty('--zt-skew', `${achsen.skew.toFixed(2)}deg`);  // BEHELF
-
+    element.style.letterSpacing         = `${achsen.spacing.toFixed(3)}em`;
+    element.style.setProperty('--zt-skew', `${achsen.skew.toFixed(2)}deg`);
     if (achsen.wobble > 0) {
-      // BEHELF – Stabilität → Zitter-Animation
       element.style.setProperty('--zt-amplitude', `${achsen.wobble.toFixed(2)}px`);
       element.style.animation = `zittern ${achsen.animDuration.toFixed(2)}s ease-in-out infinite`;
       element.style.transform  = '';
     } else {
       element.style.animation = 'none';
-      element.style.transform  = `skewX(${achsen.skew.toFixed(2)}deg)`;     // BEHELF
+      element.style.transform  = `skewX(${achsen.skew.toFixed(2)}deg)`;
     }
   }
 
-  // Vorschau im Eingabefeld (kein Zittern, kein Einfrieren)
+  // Vorschau im Eingabefeld (kein Einfrieren, kein Zittern)
   function vorschauAktualisieren() {
     if (emotionAktiv) {
       eingabe.style.fontVariationSettings = `'wght' ${aktuelleAchsen.wght}`;
@@ -675,9 +696,8 @@
 
 
   // ═══════════════════════════════════════════════════════════════
-  //  TIPP-ANALYSE  ←  HIER WIRD DAS ECHTE TIPPVERHALTEN GEMESSEN
+  //  TIPP-ANALYSE  ←  ECHTES TIPPVERHALTEN
   // ═══════════════════════════════════════════════════════════════
-
   const TIPP_FENSTER_MS = 4000;
   const MAX_IKI_MS      = 2000;
   const CPS_MAXIMUM     = 8;
@@ -695,7 +715,6 @@
     if (!istTippTaste) return;
 
     const jetzt = Date.now();
-
     if (letzter_ts !== null) {
       const delta = jetzt - letzter_ts;
       if (delta < MAX_IKI_MS) {
@@ -710,9 +729,9 @@
       backspace_puffer.push(jetzt);
     }
 
-    const grenze      = jetzt - TIPP_FENSTER_MS;
-    tipp_zeitstempel  = tipp_zeitstempel.filter(t => t >= grenze);
-    backspace_puffer  = backspace_puffer.filter(t => t >= grenze);
+    const grenze     = jetzt - TIPP_FENSTER_MS;
+    tipp_zeitstempel = tipp_zeitstempel.filter(t => t >= grenze);
+    backspace_puffer = backspace_puffer.filter(t => t >= grenze);
 
     const tempo       = tempoBerechnen();
     const stabilitaet = stabilitaetBerechnen();
@@ -744,12 +763,11 @@
     const korrekturRate  = tipp_zeitstempel.length > 0
       ? backspace_puffer.length / tipp_zeitstempel.length : 0;
     const korrekturAbzug = Math.round(umrechnen(korrekturRate, 0, 0.3, 0, 300));
-    const basis = Math.round(umrechnen(cv, 0, 1, 900, 100));
-    return Math.min(900, Math.max(100, basis - korrekturAbzug));
+    return Math.min(900, Math.max(100, Math.round(umrechnen(cv, 0, 1, 900, 100)) - korrekturAbzug));
   }
 
 
-  // ── Vordefinierte Nachrichten der anderen Person ──────────────
+  // ── Vordefinierte Nachrichten ─────────────────────────────────
   const vorgegebeneNachrichten = [
     "Hey, was machst du gerade?",
     "Ah, klingt interessant – wie funktioniert das genau?",
@@ -758,7 +776,6 @@
     "Schick mir mal einen Screenshot, wenn's fertig ist."
   ];
   let naechsteAntwortIndex = 0;
-
 
   // ── DOM-Referenzen ────────────────────────────────────────────
   const chat          = document.getElementById('chat');
@@ -775,7 +792,6 @@
   const balkenTempo            = document.getElementById('balken-tempo');
   const balkenStabilitaet      = document.getElementById('balken-stabilitaet');
 
-
   // ── Startzustand ──────────────────────────────────────────────
   let aktuelleRohwerte = {
     intensitaet: Number(sliderIntensitaet.value),
@@ -785,10 +801,11 @@
   };
 
   let aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
-  let emotionAktiv   = emotionToggle.checked;
+  let emotionAktiv   = emotionToggle.checked; // true = AN
 
+  // Interface sofort in den richtigen Modus bringen
+  phoneFrame.classList.toggle('emotion-an', emotionAktiv);
   vorschauAktualisieren();
-
 
   // ── Nachricht einfügen ────────────────────────────────────────
   function nachrichtHinzufuegen(text, vonMir) {
@@ -801,8 +818,7 @@
 
     if (vonMir) {
       if (emotionAktiv) {
-        // Snapshot aller vier Achsen – wird NIE mehr geändert
-        stilAnwenden(textEl, aktuelleAchsen);
+        stilAnwenden(textEl, aktuelleAchsen); // Snapshot – NIE mehr ändern
       } else {
         textEl.style.fontVariationSettings = "'wght' 400";
         textEl.style.fontWeight            = 400;
@@ -817,25 +833,20 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
-
   // ── Ereignis-Handler ──────────────────────────────────────────
 
-  // Tipp-Analyse auf das Eingabefeld
   eingabe.addEventListener('keydown', tippAnalysieren);
 
-  // Enter → Nachricht senden
   eingabe.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter') return;
     const text = eingabe.value.trim();
     if (!text) return;
     nachrichtHinzufuegen(text, true);
     eingabe.value = '';
-    // IKI-Zustand nach dem Senden zurücksetzen
-    letzter_ts = null;
-    iki_puffer = [];
+    letzter_ts    = null;
+    iki_puffer    = [];
   });
 
-  // Slider Intensität + Tonalität
   function sliderAktualisieren() {
     aktuelleRohwerte.intensitaet = Number(sliderIntensitaet.value);
     aktuelleRohwerte.tonalitaet  = Number(sliderTonalitaet.value);
@@ -848,7 +859,6 @@
   sliderIntensitaet.addEventListener('input', sliderAktualisieren);
   sliderTonalitaet.addEventListener('input',  sliderAktualisieren);
 
-  // Antwort-Button
   antwortBtn.addEventListener('click', function () {
     if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) return;
     nachrichtHinzufuegen(vorgegebeneNachrichten[naechsteAntwortIndex], false);
@@ -859,9 +869,12 @@
     }
   });
 
-  // Emotion-Toggle
+  // Emotion-Toggle:
+  //   1. CSS-Klasse wechselt das komplette Farbschema (via Variablen)
+  //   2. emotionAktiv steuert die typografische Logik (Vorschau, Einfrieren)
   emotionToggle.addEventListener('change', function () {
     emotionAktiv = this.checked;
+    phoneFrame.classList.toggle('emotion-an', emotionAktiv); // ← Moduswechsel
     vorschauAktualisieren();
   });
 
