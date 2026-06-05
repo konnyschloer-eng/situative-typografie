@@ -330,7 +330,14 @@
       flex-direction: column;
       max-width: 78%;
       min-width: 0;
-      animation: einblenden 0.18s ease forwards;
+      /* --einblenden-dauer wird per JS auf eigene Nachrichten gesetzt (Tempo) */
+      animation: einblenden var(--einblenden-dauer, 0.18s) ease forwards;
+    }
+
+    /* Einzelne Buchstaben im Zitter-Modus benötigen inline-block,
+       damit transform darauf wirkt (inline-Elemente ignorieren transform). */
+    .zitter-buchstabe {
+      display: inline-block;
     }
 
     .nachricht-andere { align-self: flex-start; }
@@ -357,15 +364,8 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Zittern-Animation (Stabilität) – BEHELF ────────────
-       Custom Properties werden pro Nachricht eingefroren.  */
-    @keyframes zittern {
-      0%,  100% { transform: translateX(0)                              skewX(var(--zt-skew,0deg)); }
-      20%        { transform: translateX(var(--zt-amplitude,0px))       skewX(var(--zt-skew,0deg)); }
-      40%        { transform: translateX(calc(var(--zt-amplitude,0px)*-0.7)) skewX(var(--zt-skew,0deg)); }
-      60%        { transform: translateX(calc(var(--zt-amplitude,0px)* 0.4)) skewX(var(--zt-skew,0deg)); }
-      80%        { transform: translateX(calc(var(--zt-amplitude,0px)*-0.2)) skewX(var(--zt-skew,0deg)); }
-    }
+    /* Zitter-Keyframes werden dynamisch per JS erzeugt (ein Keyframe pro
+       Buchstabe, zufällige Werte). Kein statischer @keyframes-Block nötig. */
 
     /* ── Eingabebereich ───────────────────────────────── */
     .eingabe-bereich {
@@ -377,7 +377,7 @@
 
     .eingabe-innen {
       display: flex;
-      align-items: center;
+      align-items: flex-end; /* Button + Toggle bleiben unten, wenn Feld wächst */
       gap: 10px;
     }
 
@@ -409,14 +409,49 @@
       outline: none;
       font-family: 'Inter', sans-serif;
       font-size: 15px;
-      color: #222; /* bleibt konstant */
+      line-height: 1.5;       /* explizit – Basis für die Höhenberechnung */
+      color: #222;            /* bleibt konstant */
       font-variation-settings: 'wght' 400;
       padding: 5px 0;
+      resize: none;           /* kein manuelles Ziehen */
+      overflow-y: hidden;     /* wird per JS auf auto gesetzt, wenn Max-Höhe erreicht */
     }
 
     #eingabe:focus { border-bottom-color: var(--text-2); }
 
     #eingabe::placeholder { color: var(--placeholder); }
+
+    /* ── Scrollbalken im Eingabefeld ─────────────────────
+       Nur sichtbar, wenn der Text die Max-Höhe übersteigt.
+       Firefox: scrollbar-width / scrollbar-color
+       Chrome / Edge / Safari: ::-webkit-scrollbar-*       */
+
+    /* Firefox – schmale Variante, Farbe: Daumen / Spur */
+    #eingabe {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+    }
+
+    /* Breite der Scrollleiste */
+    #eingabe::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    /* Spur: vollständig transparent */
+    #eingabe::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    /* Ziehbalken: schmale, leicht abgerundete Linie */
+    #eingabe::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.18);
+      border-radius: 2px;
+    }
+
+    /* Pfeil-Buttons entfernen */
+    #eingabe::-webkit-scrollbar-button {
+      display: none;
+    }
 
     /* ── Emotion-Toggle ───────────────────────────────── */
     .emotion-schalter {
@@ -593,8 +628,10 @@
     <footer class="eingabe-bereich">
       <div class="eingabe-innen">
         <button id="antwort-btn">&#8592; Antwort</button>
-        <input type="text" id="eingabe"
-          placeholder="Nachricht schreiben …" autocomplete="off">
+        <!-- textarea statt input: wächst automatisch nach oben -->
+        <textarea id="eingabe" rows="1"
+          placeholder="Nachricht schreiben …"
+          autocomplete="off"></textarea>
         <label class="emotion-schalter" title="Emotionale Typografie an/aus">
           <input type="checkbox" id="emotion-toggle" checked>
           <span class="schalter-visuell"></span>
@@ -624,7 +661,8 @@
     chatPartnerName.textContent = name;
     ansichtUebersicht.classList.add('ansicht--versteckt');
     ansichtChat.classList.remove('ansicht--versteckt');
-    setTimeout(() => eingabe.focus(), 210);
+    // Höhe anpassen, sobald die Ansicht sichtbar ist (scrollHeight = 0 wenn unsichtbar)
+    setTimeout(() => { eingabeFeldAnpassen(); eingabe.focus(); }, 210);
   }
 
   document.querySelectorAll('.gespraechs-eintrag').forEach(function (el) {
@@ -646,66 +684,216 @@
     // BEHELF – Tempo → letter-spacing (−0.04 em … 0.12 em)
     const spacing = umrechnen(rohwerte.tempo, 100, 900, -0.04, 0.12);
 
-    // Tempo → Animations-Dauer (2 s … 0.3 s)
-    const animDuration = umrechnen(rohwerte.tempo, 100, 900, 2, 0.3);
+    // Tempo → Dauer der Einblend-Animation neuer Nachrichten
+    // Niedrig (100) = langsam/bedächtig (0.5 s) · hoch (900) = schnell/knapp (0.06 s)
+    // Teilt KEINEN Parameter mehr mit Stabilität.
+    const einblendDauer = umrechnen(rohwerte.tempo, 100, 900, 0.5, 0.06);
 
-    // BEHELF – Stabilität → Zitter-Amplitude (3 px … 0 px)
-    const wobbleRoh = umrechnen(rohwerte.stabilitaet, 100, 900, 3, 0);
-    const wobble    = wobbleRoh < 0.2 ? 0 : wobbleRoh;
+    // BEHELF – Stabilität → Translations-Amplitude pro Buchstabe
+    // Dezenterer Bereich: spürbar aber nie unleserlich/grotesk
+    const WOBBLE_AMPLITUDE_MAX = 2.0; // ← nachjustieren (px): Maximum bei Stabilität 100
+    const WOBBLE_TOTZONE_PX    = 0.4; // ← nachjustieren (px): darunter = kein Zittern
+    const wobbleRoh = umrechnen(rohwerte.stabilitaet, 100, 900, WOBBLE_AMPLITUDE_MAX, 0);
+    const wobble    = wobbleRoh < WOBBLE_TOTZONE_PX ? 0 : wobbleRoh;
 
-    // BEHELF – Tonalität → Schrägstellung (0° … −5°)
-    const skew = umrechnen(rohwerte.tonalitaet, 100, 900, 0, -5);
+    // BEHELF – Stabilität → Rotations-Amplitude pro Buchstabe (Grad)
+    const WOBBLE_ROT_MAX     = 2.5; // ← nachjustieren (Grad): Maximum
+    const WOBBLE_ROT_TOTZONE = 0.5; // ← nachjustieren (Grad): Totzone
+    const wobbleRotRoh = umrechnen(rohwerte.stabilitaet, 100, 900, WOBBLE_ROT_MAX, 0);
+    const wobbleRot    = wobbleRotRoh < WOBBLE_ROT_TOTZONE ? 0 : wobbleRotRoh;
 
-    return { wght, spacing, animDuration, wobble, skew };
+    // BEHELF – Tonalität → font-style: oblique (0° … 20°)
+    // Ersetzt transform: skewX() – oblique wirkt nur auf die Glyphen,
+    // nicht auf den Element-Container (Scrollbalken, Rahmen bleiben gerade).
+    // Kalt/neutral (100) = 0° · warm/persönlich (900) = 20°
+    const oblique = umrechnen(rohwerte.tonalitaet, 100, 900, 0, 20);
+
+    return { wght, spacing, einblendDauer, wobble, wobbleRot, oblique };
   }
 
   function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
     return zuMin + (wert - vonMin) / (vonMax - vonMin) * (zuMax - zuMin);
   }
 
-  // Alle typografischen Parameter auf ein Element anwenden (Einfrieren beim Senden)
-  function stilAnwenden(element, achsen) {
-    element.style.fontVariationSettings = `'wght' ${achsen.wght}`;
-    element.style.fontWeight            = achsen.wght;
-    element.style.letterSpacing         = `${achsen.spacing.toFixed(3)}em`;
-    element.style.setProperty('--zt-skew', `${achsen.skew.toFixed(2)}deg`);
-    if (achsen.wobble > 0) {
-      element.style.setProperty('--zt-amplitude', `${achsen.wobble.toFixed(2)}px`);
-      element.style.animation = `zittern ${achsen.animDuration.toFixed(2)}s ease-in-out infinite`;
-      element.style.transform  = '';
-    } else {
-      element.style.animation = 'none';
-      element.style.transform  = `skewX(${achsen.skew.toFixed(2)}deg)`;
+  // ── Dynamisches Stylesheet für Zitter-Keyframes ────────────────
+  // Pro Buchstabe wird ein einzigartiger @keyframes-Block erzeugt
+  // und hier eingefügt, damit jeder Buchstabe zufällig zittert.
+  const zitterStyleEl = document.createElement('style');
+  document.head.appendChild(zitterStyleEl);
+
+  // Erzeugt einen einzigartigen @keyframes-Block für einen Buchstaben.
+  // Gibt den Animations-Namen zurück; fügt den Block ins Stylesheet ein.
+  // BEHELF – später durch echte variable Schrift-Achsen ersetzen.
+  function erstelleZitterAnimation(amplitude, rotAmplitude) {
+    // Eindeutiger Name, damit Buchstaben sich nicht gegenseitig überschreiben
+    const name = 'zb' + Math.random().toString(36).slice(2, 9);
+
+    // Unregelmäßige Zeitstempel (nicht gleichmäßig verteilt) für nervöses Timing
+    const schritte = [0];
+    for (let i = 0; i < 5; i++) {
+      schritte.push(Math.round(10 + Math.random() * 78));
+    }
+    schritte.push(100);
+    schritte.sort((a, b) => a - b);
+
+    let css = `@keyframes ${name}{`;
+    schritte.forEach(pct => {
+      const x   = ((Math.random() * 2 - 1) * amplitude   ).toFixed(2);
+      const y   = ((Math.random() * 2 - 1) * amplitude * 0.8).toFixed(2);
+      const r   = ((Math.random() * 2 - 1) * rotAmplitude).toFixed(2);
+      // Leichte Zufalls-Skalierung: vermittelt Forminstabilität
+      const sx  = (1 + (Math.random() * 2 - 1) * 0.04).toFixed(3);
+      const sy  = (1 + (Math.random() * 2 - 1) * 0.04).toFixed(3);
+      css += `${pct}%{transform:translate(${x}px,${y}px) rotate(${r}deg) scale(${sx},${sy});}`;
+    });
+    css += '}';
+
+    zitterStyleEl.sheet.insertRule(css, zitterStyleEl.sheet.cssRules.length);
+    return name;
+  }
+
+  // Teilt den Text eines Elements in einzelne Buchstaben-Spans auf
+  // und weist jedem Buchstaben eine eigene, zufällige Zitter-Animation zu.
+  // BEHELF – später durch variable Font-Achsen ersetzen.
+  function buchstabenAnimieren(element, achsen) {
+    const text = element.textContent;
+    element.textContent = ''; // Inhalt leeren, dann neu aufbauen
+
+    for (const buchstabe of text) {
+      const span = document.createElement('span');
+      span.textContent = buchstabe;
+
+      if (buchstabe === ' ' || buchstabe === '\n') {
+        // Leer-/Trennzeichen: kein Transform, kein inline-block nötig
+        element.appendChild(span);
+        continue;
+      }
+
+      span.classList.add('zitter-buchstabe'); // display: inline-block per CSS
+
+      // Einzigartiger Keyframe + zufällige Dauer und Startversatz pro Buchstabe
+      // → unregelmäßiges, asynchrones Zittern statt synchronem Takt
+      const animName  = erstelleZitterAnimation(achsen.wobble, achsen.wobbleRot);
+      const dauer     = (0.25 + Math.random() * 0.9).toFixed(2); // 0.25–1.15 s
+      const verzoeger = (-Math.random() * 1.5).toFixed(2);        // negativer Delay = mid-cycle start
+
+      span.style.animationName           = animName;
+      span.style.animationDuration       = `${dauer}s`;
+      span.style.animationTimingFunction = 'ease-in-out';
+      span.style.animationIterationCount = 'infinite';
+      span.style.animationDelay          = `${verzoeger}s`;
+
+      element.appendChild(span);
     }
   }
 
-  // Vorschau im Eingabefeld (kein Einfrieren, kein Zittern)
+  // Alle typografischen Parameter auf ein Element anwenden (Einfrieren beim Senden).
+  // Die Werte werden als Snapshot eingefroren – danach nie mehr verändert.
+  function stilAnwenden(element, achsen) {
+    // Intensität → font-weight (echte Inter-Achse 'wght')
+    element.style.fontVariationSettings = `'wght' ${achsen.wght}`;
+    element.style.fontWeight            = achsen.wght;
+
+    // BEHELF – Tempo → letter-spacing
+    // Tempo steuert NICHT das Zittern – nur Laufweite und Einblend-Speed.
+    element.style.letterSpacing = `${achsen.spacing.toFixed(3)}em`;
+
+    // BEHELF – Tonalität → font-style: oblique (nur Glyphen, kein Box-Transform)
+    element.style.fontStyle = `oblique ${achsen.oblique.toFixed(1)}deg`;
+
+    // BEHELF – Stabilität → per-Buchstaben-Zittern mit Zufallsanimation
+    // Teilt KEINEN Parameter mit Tempo.
+    if (achsen.wobble > 0) {
+      buchstabenAnimieren(element, achsen);
+    }
+    // Kein transform/animation auf dem Container-Element selbst
+  }
+
+  // Vorschau im Eingabefeld – alle vier Dimensions-Effekte live.
+  //
+  // Tonalität wird hier als font-style: oblique Xdeg angewendet,
+  // NICHT als transform: skewX(). Der Unterschied:
+  //   • transform: skewX() → neigt den gesamten Element-Kasten
+  //     (Scrollbalken und Rahmen sehen schief aus, Layout verschiebt sich)
+  //   • font-style: oblique Xdeg → neigt nur die Glyphen-Darstellung,
+  //     der Container-Kasten bleibt geometrisch unverändert.
   function vorschauAktualisieren() {
     if (emotionAktiv) {
       eingabe.style.fontVariationSettings = `'wght' ${aktuelleAchsen.wght}`;
       eingabe.style.fontWeight            = aktuelleAchsen.wght;
       eingabe.style.letterSpacing         = `${aktuelleAchsen.spacing.toFixed(3)}em`;
-      eingabe.style.transform             = `skewX(${aktuelleAchsen.skew.toFixed(2)}deg)`;
+      // BEHELF – Tonalität: oblique neigt Text, nicht Container
+      eingabe.style.fontStyle             = `oblique ${aktuelleAchsen.oblique.toFixed(1)}deg`;
     } else {
       eingabe.style.fontVariationSettings = "'wght' 400";
       eingabe.style.fontWeight            = 400;
       eingabe.style.letterSpacing         = '0em';
-      eingabe.style.transform             = 'none';
+      eingabe.style.fontStyle             = 'normal';
     }
+  }
+
+
+  // ── Auto-Grow: Eingabefeld an Inhalt anpassen ─────────────────
+  const MAX_EINGABE_HOEHE = 120; // ca. 5 Zeilen (5 × 1.5 × 15 px + Padding)
+
+  function eingabeFeldAnpassen() {
+    eingabe.style.height   = 'auto'; // zurücksetzen, damit scrollHeight stimmt
+    const inhaltsHoehe     = eingabe.scrollHeight;
+    eingabe.style.height   = Math.min(inhaltsHoehe, MAX_EINGABE_HOEHE) + 'px';
+    // Scrollbalken nur zeigen, wenn Max-Höhe überschritten
+    eingabe.style.overflowY = inhaltsHoehe > MAX_EINGABE_HOEHE ? 'auto' : 'hidden';
   }
 
 
   // ═══════════════════════════════════════════════════════════════
   //  TIPP-ANALYSE  ←  ECHTES TIPPVERHALTEN
+  //
+  //  Tempo:      Zeichen pro Sekunde (rollendes Zeitfenster)
+  //  Stabilität: Ereignis-Modell — Backspace = Unruhe, Space = Ruhe.
+  //              Ruhe ist der Ausgangszustand und die Standardannahme.
   // ═══════════════════════════════════════════════════════════════
-  const TIPP_FENSTER_MS = 4000;
-  const MAX_IKI_MS      = 2000;
-  const CPS_MAXIMUM     = 8;
+
+  // ── Tempo ────────────────────────────────────────────────────
+  const TIPP_FENSTER_MS = 4000; // Rollierendes Zeitfenster (ms)
+  const CPS_MAXIMUM     = 8;    // ← nachjustieren: Zeichen/s → Tempo 900
 
   let tipp_zeitstempel = [];
-  let backspace_puffer = [];
-  let iki_puffer       = [];
-  let letzter_ts       = null;
+
+  // ── Stabilität: Schrittwerte (alle gut sichtbar hier) ─────────
+  const STAB_START              = 900; // Startzustand: vollständige Ruhe
+  const STAB_MIN                = 100; // untere Grenze
+  const STAB_MAX                = 900; // obere Grenze (= Ruhe)
+
+  // Wie stark ein einzelner Backspace/Delete destabilisiert:
+  const STAB_BACKSPACE_ABZUG    = 40;  // ← nachjustieren
+
+  // Wie stark ein Leerzeichen (Wort abgeschlossen) beruhigt:
+  const STAB_LEERZEICHEN_GEWINN = 10;  // ← nachjustieren (war: 20)
+
+  // Zeiterholung: alle X ms erholt sich Stabilität automatisch um Y Punkte.
+  // Niedrigere Werte = trägere Erholung = Unruhe bleibt länger sichtbar.
+  const STAB_ERHOLUNGS_MS       = 500; // ← nachjustieren in ms    (war: 250)
+  const STAB_ERHOLUNG_PRO_TICK  = 3;   // ← nachjustieren in Punkte (war: 6)
+
+  // Aktueller Stabilitätswert als fließende Zahl (für sanfte Übergänge)
+  let stabilitaet_wert = STAB_START;
+
+  // Stabilität in Rohwerte + Anzeige + Vorschau übernehmen
+  function stabilitaetUebernehmen() {
+    const gerundet               = Math.round(stabilitaet_wert);
+    aktuelleRohwerte.stabilitaet = gerundet;
+    aktuelleAchsen               = sensorZuSchriftAchse(aktuelleRohwerte);
+    wertStabilitaetAnzeige.textContent = gerundet;
+    balkenStabilitaet.style.width = `${(gerundet - STAB_MIN) / (STAB_MAX - STAB_MIN) * 100}%`;
+    vorschauAktualisieren();
+  }
+
+  // Kontinuierliche Zeiterholung: läuft immer, erholt Stabilität sanft
+  setInterval(() => {
+    if (stabilitaet_wert >= STAB_MAX) return; // schon ruhig, nichts zu tun
+    stabilitaet_wert = Math.min(STAB_MAX, stabilitaet_wert + STAB_ERHOLUNG_PRO_TICK);
+    stabilitaetUebernehmen();
+  }, STAB_ERHOLUNGS_MS);
 
   function tippAnalysieren(event) {
     const istTippTaste =
@@ -715,55 +903,36 @@
     if (!istTippTaste) return;
 
     const jetzt = Date.now();
-    if (letzter_ts !== null) {
-      const delta = jetzt - letzter_ts;
-      if (delta < MAX_IKI_MS) {
-        iki_puffer.push(delta);
-        if (iki_puffer.length > 30) iki_puffer.shift();
-      }
-    }
-    letzter_ts = jetzt;
 
+    // ── Tempo: Zeitstempel im Fenster verwalten ───────────────
     tipp_zeitstempel.push(jetzt);
+    tipp_zeitstempel = tipp_zeitstempel.filter(t => t >= jetzt - TIPP_FENSTER_MS);
+
+    // ── Stabilität: Ereignisse auswerten ─────────────────────
     if (event.key === 'Backspace' || event.key === 'Delete') {
-      backspace_puffer.push(jetzt);
+      // Löschen destabilisiert; mehrere kurz hintereinander wirken kumulativ
+      stabilitaet_wert = Math.max(STAB_MIN, stabilitaet_wert - STAB_BACKSPACE_ABZUG);
+    } else if (event.key === ' ') {
+      // Wort abgeschlossen → beruhigt den Rhythmus
+      stabilitaet_wert = Math.min(STAB_MAX, stabilitaet_wert + STAB_LEERZEICHEN_GEWINN);
     }
+    // Buchstaben: keine direkte Wirkung; Erholung läuft über den Timer
 
-    const grenze     = jetzt - TIPP_FENSTER_MS;
-    tipp_zeitstempel = tipp_zeitstempel.filter(t => t >= grenze);
-    backspace_puffer = backspace_puffer.filter(t => t >= grenze);
+    // ── Tempo berechnen ──────────────────────────────────────
+    const tempo = tempoBerechnen();
+    aktuelleRohwerte.tempo = tempo;
 
-    const tempo       = tempoBerechnen();
-    const stabilitaet = stabilitaetBerechnen();
+    wertTempoAnzeige.textContent = tempo;
+    balkenTempo.style.width = `${(tempo - 100) / 800 * 100}%`;
 
-    aktuelleRohwerte.tempo       = tempo;
-    aktuelleRohwerte.stabilitaet = stabilitaet;
-    aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
-
-    wertTempoAnzeige.textContent       = tempo;
-    wertStabilitaetAnzeige.textContent = stabilitaet;
-    balkenTempo.style.width       = `${(tempo       - 100) / 800 * 100}%`;
-    balkenStabilitaet.style.width = `${(stabilitaet - 100) / 800 * 100}%`;
-
-    vorschauAktualisieren();
+    // Stabilität und Vorschau synchronisieren
+    stabilitaetUebernehmen();
   }
 
   function tempoBerechnen() {
     const cps     = tipp_zeitstempel.length / (TIPP_FENSTER_MS / 1000);
     const gemappt = Math.round(umrechnen(cps, 0, CPS_MAXIMUM, 100, 900));
     return Math.min(900, Math.max(100, gemappt));
-  }
-
-  function stabilitaetBerechnen() {
-    if (iki_puffer.length < 3) return 500;
-    const n       = iki_puffer.length;
-    const mean    = iki_puffer.reduce((a, b) => a + b, 0) / n;
-    const varianz = iki_puffer.reduce((s, v) => s + (v - mean) ** 2, 0) / n;
-    const cv      = mean > 0 ? Math.sqrt(varianz) / mean : 0;
-    const korrekturRate  = tipp_zeitstempel.length > 0
-      ? backspace_puffer.length / tipp_zeitstempel.length : 0;
-    const korrekturAbzug = Math.round(umrechnen(korrekturRate, 0, 0.3, 0, 300));
-    return Math.min(900, Math.max(100, Math.round(umrechnen(cv, 0, 1, 900, 100)) - korrekturAbzug));
   }
 
 
@@ -806,11 +975,17 @@
   // Interface sofort in den richtigen Modus bringen
   phoneFrame.classList.toggle('emotion-an', emotionAktiv);
   vorschauAktualisieren();
+  eingabeFeldAnpassen(); // Starthöhe setzen
 
   // ── Nachricht einfügen ────────────────────────────────────────
   function nachrichtHinzufuegen(text, vonMir) {
     const wrapper = document.createElement('div');
     wrapper.classList.add('nachricht', vonMir ? 'nachricht-ich' : 'nachricht-andere');
+
+    // Tempo steuert die Dauer der Einblend-Animation eigener Nachrichten
+    if (vonMir && emotionAktiv) {
+      wrapper.style.setProperty('--einblenden-dauer', `${aktuelleAchsen.einblendDauer.toFixed(2)}s`);
+    }
 
     const textEl = document.createElement('p');
     textEl.classList.add('text');
@@ -823,6 +998,7 @@
         textEl.style.fontVariationSettings = "'wght' 400";
         textEl.style.fontWeight            = 400;
         textEl.style.letterSpacing         = '0em';
+        textEl.style.fontStyle             = 'normal';
         textEl.style.transform             = 'none';
         textEl.style.animation             = 'none';
       }
@@ -836,15 +1012,34 @@
   // ── Ereignis-Handler ──────────────────────────────────────────
 
   eingabe.addEventListener('keydown', tippAnalysieren);
+  eingabe.addEventListener('input', eingabeFeldAnpassen); // Höhe nach jeder Eingabe prüfen
 
   eingabe.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter') return;
+    if (e.shiftKey) return;        // Shift+Enter → Zeilenumbruch, nicht senden
+    e.preventDefault();            // verhindert Zeilenumbruch beim Senden
     const text = eingabe.value.trim();
     if (!text) return;
     nachrichtHinzufuegen(text, true);
     eingabe.value = '';
-    letzter_ts    = null;
-    iki_puffer    = [];
+    eingabeFeldAnpassen();         // Höhe nach dem Leeren zurücksetzen
+
+    // ── Zustand für die NÄCHSTE Nachricht zurücksetzen ────────
+    // Stabilität: sofort auf Ausgangswert (vollständige Ruhe)
+    stabilitaet_wert = STAB_START;
+
+    // Tempo: Zeitstempel-Puffer leeren → nächste Nachricht beginnt
+    // ohne Tipp-Vorgeschichte (Tempo startet bei Minimum)
+    tipp_zeitstempel = [];
+    aktuelleRohwerte.tempo = 100;
+    wertTempoAnzeige.textContent = 100;
+    balkenTempo.style.width      = '0%';
+
+    // Intensität und Tonalität: Slider-Werte bleiben (spiegeln Sensor-Zustand);
+    // nichts zurücksetzen – die Regler sind Platzhalter für externe Daten.
+
+    // Vorschau und Anzeigen auf den zurückgesetzten Zustand bringen
+    stabilitaetUebernehmen(); // setzt aktuelleAchsen + Vorschau neu
   });
 
   function sliderAktualisieren() {
