@@ -359,6 +359,22 @@
       min-width: 0;
     }
 
+    /* Dezenter Status-Indikator unterhalb jeder eigenen Nachricht.
+       "e" = emotionale Typografie war beim Senden aktiv.
+       Leer = neutral/leblos gesendet (Abwesenheit ist das Signal). */
+    .nachricht-status {
+      font-size: 10px;
+      line-height: 1;
+      margin-top: 3px;
+      color: var(--text-4);          /* sehr dezent, passend zur Farbwelt */
+      font-variation-settings: 'wght' 400;
+      font-style: italic;            /* kleines "e" wirkt leichter als Regular */
+      letter-spacing: 0;
+      user-select: none;
+    }
+
+    .nachricht-ich .nachricht-status { text-align: right; }
+
     @keyframes einblenden {
       from { opacity: 0; transform: translateY(5px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -818,13 +834,15 @@
   //   • font-style: oblique Xdeg → neigt nur die Glyphen-Darstellung,
   //     der Container-Kasten bleibt geometrisch unverändert.
   function vorschauAktualisieren() {
-    if (emotionAktiv) {
+    // Effekte nur wenn Emotion AN und Text selbst getippt (nicht eingefügt)
+    if (emotionAktiv && !istEingefuegt) {
       eingabe.style.fontVariationSettings = `'wght' ${aktuelleAchsen.wght}`;
       eingabe.style.fontWeight            = aktuelleAchsen.wght;
       eingabe.style.letterSpacing         = `${aktuelleAchsen.spacing.toFixed(3)}em`;
       // BEHELF – Tonalität: oblique neigt Text, nicht Container
       eingabe.style.fontStyle             = `oblique ${aktuelleAchsen.oblique.toFixed(1)}deg`;
     } else {
+      // Neutral: Emotion AUS oder eingefügter Text (bewusst "leblos")
       eingabe.style.fontVariationSettings = "'wght' 400";
       eingabe.style.fontWeight            = 400;
       eingabe.style.letterSpacing         = '0em';
@@ -877,6 +895,15 @@
 
   // Aktueller Stabilitätswert als fließende Zahl (für sanfte Übergänge)
   let stabilitaet_wert = STAB_START;
+
+  // ══ MARKIERUNG: Paste-Zustand ══════════════════════════════════
+  // true  → letzter Input war ein Einfüge-Vorgang (Paste):
+  //         Dimensionen-Effekte deaktiviert, Vorschau neutral.
+  // false → Nutzer schreibt selbst (oder hat nach einem Paste weitergetippt):
+  //         Effekte aktiv wie gewohnt.
+  // Wird in tippAnalysieren (via 'input'-Event) zurückgesetzt.
+  // ══════════════════════════════════════════════════════════════
+  let istEingefuegt = false;
 
   // Stabilität in Rohwerte + Anzeige + Vorschau übernehmen
   function stabilitaetUebernehmen() {
@@ -992,9 +1019,11 @@
     textEl.textContent = text;
 
     if (vonMir) {
-      if (emotionAktiv) {
-        stilAnwenden(textEl, aktuelleAchsen); // Snapshot – NIE mehr ändern
+      if (emotionAktiv && !istEingefuegt) {
+        // Selbst getippter Text: Dimensions-Snapshot einfrieren
+        stilAnwenden(textEl, aktuelleAchsen);
       } else {
+        // Neutral: Emotion AUS oder zuletzt eingefügter Text → "leblos"
         textEl.style.fontVariationSettings = "'wght' 400";
         textEl.style.fontWeight            = 400;
         textEl.style.letterSpacing         = '0em';
@@ -1005,6 +1034,17 @@
     }
 
     wrapper.appendChild(textEl);
+
+    // Status-Indikator: Emotion-Zustand beim Absenden einfrieren
+    // Nur bei eigenen Nachrichten relevant; wird nie nachträglich geändert.
+    if (vonMir) {
+      const statusEl = document.createElement('span');
+      statusEl.classList.add('nachricht-status');
+      // "e" sichtbar = emotionale Typografie war aktiv; leer = leblos/neutral
+      statusEl.textContent = (emotionAktiv && !istEingefuegt) ? 'e' : '';
+      wrapper.appendChild(statusEl);
+    }
+
     chat.appendChild(wrapper);
     chat.scrollTop = chat.scrollHeight;
   }
@@ -1012,7 +1052,27 @@
   // ── Ereignis-Handler ──────────────────────────────────────────
 
   eingabe.addEventListener('keydown', tippAnalysieren);
-  eingabe.addEventListener('input', eingabeFeldAnpassen); // Höhe nach jeder Eingabe prüfen
+  // Kombinierter Input-Handler: Höhe + Paste-Erkennung
+  eingabe.addEventListener('input', function (e) {
+    eingabeFeldAnpassen();
+
+    // ══ MARKIERUNG: Unterscheidung eingefügt vs. getippt ═════════
+    // InputEvent.inputType erkennt die Art der Eingabe zuverlässig:
+    //   'insertFromPaste'  → Ctrl+V, Kontextmenü-Einfügen, Drag-Drop
+    //   'insertText'       → normales Tippen
+    // So wird Ctrl+V-keydown (key 'v') nicht fälschlicherweise als
+    // Tipp-Event gewertet, weil erst das nachfolgende 'input'-Event
+    // den tatsächlichen insertType kennt.
+    if (e.inputType === 'insertFromPaste') {
+      istEingefuegt = true;
+      vorschauAktualisieren(); // sofort neutral anzeigen
+    } else if (istEingefuegt && e.inputType === 'insertText') {
+      // Nutzer tippt nach einem Paste selbst weiter → Effekte reaktivieren
+      istEingefuegt = false;
+      vorschauAktualisieren();
+    }
+    // ══════════════════════════════════════════════════════════════
+  });
 
   eingabe.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter') return;
@@ -1037,6 +1097,9 @@
 
     // Intensität und Tonalität: Slider-Werte bleiben (spiegeln Sensor-Zustand);
     // nichts zurücksetzen – die Regler sind Platzhalter für externe Daten.
+
+    // Paste-Flag zurücksetzen: nächste Nachricht beginnt im Tipp-Modus
+    istEingefuegt = false;
 
     // Vorschau und Anzeigen auf den zurückgesetzten Zustand bringen
     stabilitaetUebernehmen(); // setzt aktuelleAchsen + Vorschau neu
