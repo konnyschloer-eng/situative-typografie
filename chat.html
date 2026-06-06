@@ -538,6 +538,37 @@
 
     /* Toggle-Schieber bewegt sich immer mit 0.4 s (konsistent mit Moduswechsel) */
     .schalter-visuell::after { transition: transform 0.4s ease; }
+
+    /* ── Bluetooth-Band-Steuerung ─────────────────────────────── */
+    .band-steuerung {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .band-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-3);
+      font-family: 'Inter', sans-serif;
+      font-size: 9px;
+      font-variation-settings: 'wght' 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    .band-btn.verbunden { color: var(--accent); border-color: var(--accent); }
+
+    .band-bpm-live {
+      font-size: 10px;
+      color: var(--text-4);
+      font-variant-numeric: tabular-nums;
+      font-style: italic;
+    }
+
+    .band-bpm-live.fehler { color: var(--text-2); }
   </style>
 </head>
 <body>
@@ -593,7 +624,10 @@
           <button class="zurueck-btn" id="zurueck-btn">&#8592;</button>
           <span class="kopfzeile-titel" id="chat-partner-name">–</span>
         </div>
-        <span class="sensor-hinweis">Platzhalter · Sensordaten</span>
+        <div class="band-steuerung">
+          <span id="band-bpm-live" class="band-bpm-live" hidden></span>
+          <button id="band-btn" class="band-btn">Band verbinden</button>
+        </div>
       </div>
 
       <div class="sensor-grid">
@@ -1135,6 +1169,169 @@
     phoneFrame.classList.toggle('emotion-an', emotionAktiv); // ← Moduswechsel
     vorschauAktualisieren();
   });
+
+
+  // ══════════════════════════════════════════════════════════════════
+  //  BLUETOOTH-HERZFREQUENZ – Polar Verity Sense (oder kompatibles Band)
+  //
+  //  Verbindungsaufbau: Heart Rate Service (UUID 0x180D / 'heart_rate')
+  //  Datenquelle:       Heart Rate Measurement (UUID 0x2A37 / 'heart_rate_measurement')
+  //
+  //  BPM → Intensität:  55 bpm → Rohwert 100 (ruhig, leicht)
+  //                    105 bpm → Rohwert 900 (aktiviert, fett)
+  //  Werte außerhalb werden auf 100–900 geklemmt.
+  // ══════════════════════════════════════════════════════════════════
+
+  const BAND_BPM_MIN = 55;   // ← nachjustieren: Ruhepuls
+  const BAND_BPM_MAX = 105;  // ← nachjustieren: Belastungspuls
+
+  let bandVerbunden        = false;
+  let bluetoothGeraet      = null;
+  let bandCharacteristic   = null;
+  let intentionalesTrennen = false;
+
+  const bandBtn          = document.getElementById('band-btn');
+  const bandBpmLive      = document.getElementById('band-bpm-live');
+  const labelIntensitaet = sliderIntensitaet.closest('.sensor-dimension').querySelector('.dimension-label');
+
+  // ── Verbindungsaufbau per Klick ─────────────────────────────────
+  bandBtn.addEventListener('click', async function () {
+    // Zweiter Klick trennt das Band explizit
+    if (bandVerbunden) {
+      await bandExplizitTrennen();
+      return;
+    }
+
+    if (!navigator.bluetooth) {
+      bandFehlerZeigen('Web Bluetooth wird in diesem Browser nicht unterstützt.');
+      return;
+    }
+
+    try {
+      // Browser-Geräteauswahl-Dialog öffnet sich (nur Heart-Rate-Geräte sichtbar)
+      bluetoothGeraet = await navigator.bluetooth.requestDevice({
+        filters: [{ services: ['heart_rate'] }]
+      });
+
+      // Bei unerwartetem Verbindungsabbruch auf Slider zurückfallen
+      bluetoothGeraet.addEventListener('gattserverdisconnected', function () {
+        if (!intentionalesTrennen) {
+          bandZuruecksetzen();
+          bandFehlerZeigen('Verbindung zum Band getrennt – Slider aktiv.');
+        }
+        intentionalesTrennen = false;
+      });
+
+      // GATT-Verbindung aufbauen und Characteristic abonnieren
+      const server  = await bluetoothGeraet.gatt.connect();
+      const service = await server.getPrimaryService('heart_rate');
+      bandCharacteristic = await service.getCharacteristic('heart_rate_measurement');
+      await bandCharacteristic.startNotifications();
+      bandCharacteristic.addEventListener('characteristicvaluechanged', bpmEmpfangen);
+
+      // UI: verbunden → Slider sperren, Live-Indikator zeigen
+      bandVerbunden = true;
+      bandBtn.textContent = 'Band trennen';
+      bandBtn.classList.add('verbunden');
+      bandBpmLive.hidden = false;
+      bandBpmLive.classList.remove('fehler');
+      sliderIntensitaet.disabled            = true;
+      sliderIntensitaet.style.opacity       = '0.3';
+      sliderIntensitaet.style.pointerEvents = 'none';
+      labelIntensitaet.classList.add('dimension-label--live');
+
+    } catch (err) {
+      // NotFoundError = Nutzer hat Dialog abgebrochen → kein Hinweis nötig
+      if (err.name !== 'NotFoundError') {
+        bandFehlerZeigen('Verbindung fehlgeschlagen – Slider aktiv.');
+        console.error('[Bluetooth]', err);
+      }
+      bluetoothGeraet = null;
+    }
+  });
+
+  // ── BPM-Daten empfangen und auswerten ───────────────────────────
+  // Wird bei jeder neuen Heart Rate Measurement Notification aufgerufen.
+  function bpmEmpfangen(event) {
+    const daten    = event.target.value;   // DataView (rohe Bytes der Characteristic)
+    const flags    = daten.getUint8(0);    // Byte 0: Flags
+    const format16 = flags & 0x01;         // Bit 0: 1 = uint16, 0 = uint8
+
+    // Herzfrequenz lesen (1 oder 2 Bytes je nach Format-Flag)
+    const bpm = format16 ? daten.getUint16(1, true) : daten.getUint8(1);
+
+    // RR-Intervalle vorhanden? (Bit 4 der Flags) → für spätere HRV-Nutzung loggen
+    if (flags & 0x10) {
+      const offset  = format16 ? 3 : 2;
+      const rrWerte = [];
+      for (let i = offset; i + 1 < daten.byteLength; i += 2) {
+        // Einheit laut Spec: 1/1024 Sekunde → in ms umrechnen
+        rrWerte.push(Math.round(daten.getUint16(i, true) / 1024 * 1000));
+      }
+      if (rrWerte.length) console.log('[HRV] RR-Intervalle (ms):', rrWerte);
+    }
+
+    // Live-Anzeige des Rohwerts (sichtbar nach Verbindung)
+    bandBpmLive.textContent = bpm + ' bpm';
+
+    // ── BPM → Intensitäts-Rohwert mappen (fließt hier ins Mapping ein) ──
+    // umrechnen() wiederverwendet aus sensorZuSchriftAchse() oben.
+    const intensitaetRoh = Math.min(900, Math.max(100,
+      Math.round(umrechnen(bpm, BAND_BPM_MIN, BAND_BPM_MAX, 100, 900))
+    ));
+
+    // Intensität in aktuelleRohwerte einsetzen – ersetzt den Slider-Wert
+    aktuelleRohwerte.intensitaet = intensitaetRoh;
+    wertIntensitaet.textContent  = intensitaetRoh;
+    aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+    vorschauAktualisieren();
+  }
+
+  // ── Hilfsfunktionen Verbindungsstatus ───────────────────────────
+
+  // Setzt UI und Zustand auf Slider-Fallback zurück (intern + bei Abbruch).
+  function bandZuruecksetzen() {
+    bandVerbunden      = false;
+    bandCharacteristic = null;
+    bandBtn.textContent = 'Band verbinden';
+    bandBtn.classList.remove('verbunden');
+    bandBpmLive.hidden = true;
+    sliderIntensitaet.disabled            = false;
+    sliderIntensitaet.style.opacity       = '';
+    sliderIntensitaet.style.pointerEvents = '';
+    labelIntensitaet.classList.remove('dimension-label--live');
+    // Intensität auf letzten Slider-Wert zurücksetzen
+    aktuelleRohwerte.intensitaet = Number(sliderIntensitaet.value);
+    wertIntensitaet.textContent  = aktuelleRohwerte.intensitaet;
+    aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+    vorschauAktualisieren();
+  }
+
+  // Trennt die Verbindung auf Nutzerwunsch (kein Fehlerhinweis).
+  async function bandExplizitTrennen() {
+    intentionalesTrennen = true;
+    if (bandCharacteristic) {
+      try { await bandCharacteristic.stopNotifications(); } catch (e) {}
+    }
+    if (bluetoothGeraet && bluetoothGeraet.gatt.connected) {
+      bluetoothGeraet.gatt.disconnect();
+    }
+    bluetoothGeraet = null;
+    bandZuruecksetzen();
+  }
+
+  // Zeigt eine kurze Fehlermeldung (5 s) an der BPM-Anzeige.
+  function bandFehlerZeigen(meldung) {
+    bandBpmLive.textContent = meldung;
+    bandBpmLive.classList.add('fehler');
+    bandBpmLive.hidden = false;
+    setTimeout(function () {
+      if (!bandVerbunden) {
+        bandBpmLive.hidden = true;
+        bandBpmLive.classList.remove('fehler');
+      }
+    }, 5000);
+  }
 
 </script>
 </body>
