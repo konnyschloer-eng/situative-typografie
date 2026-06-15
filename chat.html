@@ -359,6 +359,16 @@
       min-width: 0;
     }
 
+    /* Jedes Wort als eigene Box: trägt seinen EIGENEN eingefrorenen
+       Dimensions-Zustand (siehe JS: wortZustaende). inline-block hält
+       das Wort als Einheit zusammen; bricht nur um, wenn es selbst
+       breiter als die verfügbare Zeile ist (z. B. sehr lange Wörter). */
+    .wort {
+      display: inline-block;
+      max-width: 100%;
+      overflow-wrap: break-word;
+    }
+
     /* Dezenter Status-Indikator unterhalb jeder eigenen Nachricht.
        "e" = emotionale Typografie war beim Senden aktiv.
        Leer = neutral/leblos gesendet (Abwesenheit ist das Signal). */
@@ -859,29 +869,34 @@
     // Kein transform/animation auf dem Container-Element selbst
   }
 
-  // Vorschau im Eingabefeld – alle vier Dimensions-Effekte live.
+  // Setzt ein Element auf den neutralen "leblosen" Zustand zurück
+  // (Emotion war AUS oder dieses Wort wurde eingefügt/Paste).
+  function stilNeutralAnwenden(element) {
+    element.style.fontVariationSettings = "'wght' 400";
+    element.style.fontWeight            = 400;
+    element.style.letterSpacing         = '0em';
+    element.style.fontStyle             = 'normal';
+    element.style.transform             = 'none';
+    element.style.animation             = 'none';
+  }
+
+  // Eingabefeld bleibt beim Tippen IMMER neutral.
   //
-  // Tonalität wird hier als font-style: oblique Xdeg angewendet,
-  // NICHT als transform: skewX(). Der Unterschied:
-  //   • transform: skewX() → neigt den gesamten Element-Kasten
-  //     (Scrollbalken und Rahmen sehen schief aus, Layout verschiebt sich)
-  //   • font-style: oblique Xdeg → neigt nur die Glyphen-Darstellung,
-  //     der Container-Kasten bleibt geometrisch unverändert.
+  // Grund: Ein <textarea> kennt keine Wortgrenzen für Styling – eine
+  // Live-Vorschau würde immer den GESAMTEN Text einfärben und damit
+  // auch bereits BESIEGELTE Wörter sichtbar mitverändern, während am
+  // nächsten Wort getippt wird. Das widerspricht der Regel "ein
+  // besiegeltes Wort verändert sich nicht mehr" (siehe
+  // wortZustaendeSynchronisieren). Darum: keine Live-Effekte im
+  // Eingabefeld. Die pro Wort eingefrorenen Zustände (wortZustaende)
+  // werden ausschließlich beim Anzeigen der GESENDETEN Nachricht
+  // sichtbar – dort jedes Wort einzeln mit seinem eigenen Zustand
+  // (siehe nachrichtHinzufuegen).
   function vorschauAktualisieren() {
-    // Effekte nur wenn Emotion AN und Text selbst getippt (nicht eingefügt)
-    if (emotionAktiv && !istEingefuegt) {
-      eingabe.style.fontVariationSettings = `'wght' ${aktuelleAchsen.wght}`;
-      eingabe.style.fontWeight            = aktuelleAchsen.wght;
-      eingabe.style.letterSpacing         = `${aktuelleAchsen.spacing.toFixed(3)}em`;
-      // BEHELF – Tonalität: oblique neigt Text, nicht Container
-      eingabe.style.fontStyle             = `oblique ${aktuelleAchsen.oblique.toFixed(1)}deg`;
-    } else {
-      // Neutral: Emotion AUS oder eingefügter Text (bewusst "leblos")
-      eingabe.style.fontVariationSettings = "'wght' 400";
-      eingabe.style.fontWeight            = 400;
-      eingabe.style.letterSpacing         = '0em';
-      eingabe.style.fontStyle             = 'normal';
-    }
+    eingabe.style.fontVariationSettings = "'wght' 400";
+    eingabe.style.fontWeight            = 400;
+    eingabe.style.letterSpacing         = '0em';
+    eingabe.style.fontStyle             = 'normal';
   }
 
 
@@ -938,6 +953,54 @@
   // Wird in tippAnalysieren (via 'input'-Event) zurückgesetzt.
   // ══════════════════════════════════════════════════════════════
   let istEingefuegt = false;
+
+  // ══════════════════════════════════════════════════════════════
+  //  WORT-ZUSTÄNDE  ←  pro Wort EIN eigener eingefrorener Zustand
+  //
+  //  wortZustaende[i] = { achsen, leblos } für das i-te (0-basierte)
+  //  Wort der aktuell getippten Nachricht. "leblos" entspricht der
+  //  bisherigen Nachrichten-weiten Leblos-Regel (Emotion AUS oder
+  //  Paste), nur eben pro Wort eingefroren statt für die ganze
+  //  Nachricht einheitlich.
+  // ══════════════════════════════════════════════════════════════
+  let wortZustaende = [];
+
+  // Zählt, wie viele Wörter im aktuellen Eingabetext bereits
+  // "abgeschlossen" sind, d. h. ein Leerzeichen folgt auf sie.
+  function abgeschlosseneWortAnzahl(text) {
+    const treffer = text.match(/\S+\s/g);
+    return treffer ? treffer.length : 0;
+  }
+
+  // Hält wortZustaende synchron zum Eingabetext.
+  //
+  // ══════════════════════════════════════════════════════════════
+  //  BESIEGELN EINES WORTES (bei Leerzeichen)
+  //  Sobald ein neues Leerzeichen ein Wort abschließt, steigt
+  //  "anzahl" um eins. GENAU in diesem Moment wird unten eine
+  //  KOPIE von aktuelleAchsen für dieses Wort in wortZustaende[]
+  //  abgelegt – nicht erst beim Senden. Da "{ ...aktuelleAchsen }"
+  //  eine eigenständige Kopie der Zahlenwerte erzeugt (keine
+  //  Referenz), ist dieser Zustand ab sofort UNVERÄNDERLICH:
+  //  spätere Änderungen an aktuelleAchsen (Puls, Tippverhalten,
+  //  Slider) betreffen nur noch das NÄCHSTE, noch offene Wort.
+  // ══════════════════════════════════════════════════════════════
+  function wortZustaendeSynchronisieren() {
+    const anzahl = abgeschlosseneWortAnzahl(eingabe.value);
+    const leblos = !emotionAktiv || istEingefuegt;
+
+    // ★★★ BESIEGELUNG: für jedes neu abgeschlossene Wort jetzt   ★★★
+    // ★★★ den aktuellen Zustand einfrieren – danach unangetastet. ★★★
+    while (wortZustaende.length < anzahl) {
+      wortZustaende.push({ achsen: { ...aktuelleAchsen }, leblos });
+    }
+    // Wortgrenze per Backspace wieder aufgehoben → zugehörigen
+    // eingefrorenen Zustand verwerfen (Wort ist wieder "in Arbeit",
+    // also noch nicht besiegelt).
+    if (wortZustaende.length > anzahl) {
+      wortZustaende.length = anzahl;
+    }
+  }
 
   // Stabilität in Rohwerte + Anzeige + Vorschau übernehmen
   function stabilitaetUebernehmen() {
@@ -1039,7 +1102,9 @@
   eingabeFeldAnpassen(); // Starthöhe setzen
 
   // ── Nachricht einfügen ────────────────────────────────────────
-  function nachrichtHinzufuegen(text, vonMir) {
+  // wortSnapshots: bei eigenen Nachrichten ein Array [{achsen, leblos}, ...],
+  // ein Eintrag pro Wort (siehe wortZustaendeSynchronisieren weiter oben).
+  function nachrichtHinzufuegen(text, vonMir, wortSnapshots) {
     const wrapper = document.createElement('div');
     wrapper.classList.add('nachricht', vonMir ? 'nachricht-ich' : 'nachricht-andere');
 
@@ -1050,21 +1115,40 @@
 
     const textEl = document.createElement('p');
     textEl.classList.add('text');
-    textEl.textContent = text;
 
     if (vonMir) {
-      if (emotionAktiv && !istEingefuegt) {
-        // Selbst getippter Text: Dimensions-Snapshot einfrieren
-        stilAnwenden(textEl, aktuelleAchsen);
-      } else {
-        // Neutral: Emotion AUS oder zuletzt eingefügter Text → "leblos"
-        textEl.style.fontVariationSettings = "'wght' 400";
-        textEl.style.fontWeight            = 400;
-        textEl.style.letterSpacing         = '0em';
-        textEl.style.fontStyle             = 'normal';
-        textEl.style.transform             = 'none';
-        textEl.style.animation             = 'none';
-      }
+      // ═══════════════════════════════════════════════════════════
+      // WORT-EBENE: Jedes Wort wird als eigenes <span class="wort">
+      // dargestellt und bekommt SEINEN eigenen eingefrorenen Zustand
+      // angewendet (statt eines einzigen Zustands für die ganze
+      // Nachricht). Zwischen den Wörtern steht ein normales
+      // Leerzeichen (Textknoten), damit der Zeilenumbruch dort
+      // weiterhin normal funktioniert.
+      // ═══════════════════════════════════════════════════════════
+      const woerter = text.split(/\s+/).filter(w => w.length > 0);
+
+      woerter.forEach((wort, i) => {
+        const snapshot = wortSnapshots[i];
+
+        const wortSpan = document.createElement('span');
+        wortSpan.classList.add('wort');
+        wortSpan.textContent = wort;
+
+        // ★★★ HIER wird der für dieses Wort eingefrorene Zustand ★★★
+        // ★★★ angewendet (oder die neutrale "leblos"-Darstellung). ★★★
+        if (snapshot && !snapshot.leblos) {
+          stilAnwenden(wortSpan, snapshot.achsen);
+        } else {
+          stilNeutralAnwenden(wortSpan);
+        }
+
+        textEl.appendChild(wortSpan);
+        if (i < woerter.length - 1) {
+          textEl.appendChild(document.createTextNode(' '));
+        }
+      });
+    } else {
+      textEl.textContent = text;
     }
 
     wrapper.appendChild(textEl);
@@ -1074,8 +1158,10 @@
     if (vonMir) {
       const statusEl = document.createElement('span');
       statusEl.classList.add('nachricht-status');
-      // "e" sichtbar = emotionale Typografie war aktiv; leer = leblos/neutral
-      statusEl.textContent = (emotionAktiv && !istEingefuegt) ? 'e' : '';
+      // "e" sichtbar, wenn mindestens EIN Wort emotional eingefroren wurde;
+      // leer = alle Wörter leblos/neutral (Abwesenheit ist das Signal)
+      const hatEmotionalesWort = wortSnapshots.some(s => !s.leblos);
+      statusEl.textContent = hatEmotionalesWort ? 'e' : '';
       wrapper.appendChild(statusEl);
     }
 
@@ -1106,6 +1192,9 @@
       vorschauAktualisieren();
     }
     // ══════════════════════════════════════════════════════════════
+
+    // Wort-Zustände an den aktuellen Text anpassen (siehe oben)
+    wortZustaendeSynchronisieren();
   });
 
   eingabe.addEventListener('keydown', function (e) {
@@ -1114,7 +1203,16 @@
     e.preventDefault();            // verhindert Zeilenumbruch beim Senden
     const text = eingabe.value.trim();
     if (!text) return;
-    nachrichtHinzufuegen(text, true);
+
+    // ═══ Letztes Wort einfrieren, falls noch kein Leerzeichen folgte ═══
+    // (Senden gilt – wie ein Leerzeichen – als Wortabschluss, siehe Konzept)
+    const woerter = text.split(/\s+/).filter(w => w.length > 0);
+    const wortSnapshots = wortZustaende.slice(0, woerter.length);
+    if (wortSnapshots.length < woerter.length) {
+      wortSnapshots.push({ achsen: { ...aktuelleAchsen }, leblos: !emotionAktiv || istEingefuegt });
+    }
+
+    nachrichtHinzufuegen(text, true, wortSnapshots);
     eingabe.value = '';
     eingabeFeldAnpassen();         // Höhe nach dem Leeren zurücksetzen
 
@@ -1134,6 +1232,10 @@
 
     // Paste-Flag zurücksetzen: nächste Nachricht beginnt im Tipp-Modus
     istEingefuegt = false;
+
+    // Wort-Zustände zurücksetzen: nächste Nachricht beginnt ohne
+    // eingefrorene Wörter (siehe wortZustaendeSynchronisieren)
+    wortZustaende = [];
 
     // Vorschau und Anzeigen auf den zurückgesetzten Zustand bringen
     stabilitaetUebernehmen(); // setzt aktuelleAchsen + Vorschau neu
