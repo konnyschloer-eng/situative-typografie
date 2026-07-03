@@ -17,7 +17,7 @@
        Zum Anpassen: nur die Werte hier ändern, der Rest folgt.
 
        NEUTRAL (Emotion AUS): kühl, sachlich, nüchtern
-       WARM   (Emotion AN):   zartes Pfirsich, persönlich, weich
+       DUNKEL  (Emotion AN):  invertiert, schwarz, direkt
        ══════════════════════════════════════════════════════════════ */
 
     .phone-frame {
@@ -37,19 +37,19 @@
     }
 
     .phone-frame.emotion-an {
-      /* ── Warm (Emotion AN) ── */
-      --bg:           #fdf0ec;   /* Zartes Pfirsich */
-      --bg-surface:   #f8e6df;   /* Etwas wärmere Fläche */
-      --bg-hover:     #f2ddd4;   /* Hover: minimal dunkler */
-      --border:       #e2cec6;   /* Warme Trennlinie */
-      --border-light: #eeddd6;   /* Feine warme Linie */
-      --text-2:       #9a7a72;   /* Sekundärtext warm-gedämpft */
-      --text-3:       #b89890;   /* Labels warm */
-      --text-4:       #c8a8a0;   /* Sehr schwacher Text warm */
-      --accent:       #b87a6e;   /* Slider, Balken: gedämpftes Terra */
-      --toggle-off:   #d0a898;   /* Toggle-Spur warm */
-      --toggle-on:    #b87a6e;   /* Toggle-Spur AN warm */
-      --placeholder:  #c8a8a0;   /* Platzhalter warm */
+      /* ── Invertiert/Dunkel (Emotion AN) ── */
+      --bg:           #111111;   /* Haupthintergrund – fast schwarz */
+      --bg-surface:   #1a1a1a;   /* Header, Footer, Flächen */
+      --bg-hover:     #222222;   /* Hover auf Listenelementen */
+      --border:       #383838;   /* Kräftigere Linien */
+      --border-light: #2a2a2a;   /* Feine Trennlinien */
+      --text-2:       #999999;   /* Sekundärtext */
+      --text-3:       #666666;   /* Labels, schwacher Text */
+      --text-4:       #505050;   /* Sehr schwacher Text, Wertanzeigen */
+      --accent:       #888888;   /* Slider-Thumb, Fortschrittsbalken */
+      --toggle-off:   #383838;   /* Toggle-Schiene, Emotion AUS */
+      --toggle-on:    #aaaaaa;   /* Toggle-Schiene, Emotion AN */
+      --placeholder:  #484848;   /* Eingabefeld-Platzhalter */
     }
 
 
@@ -548,6 +548,14 @@
 
     /* Toggle-Schieber bewegt sich immer mit 0.4 s (konsistent mit Moduswechsel) */
     .schalter-visuell::after { transition: transform 0.4s ease; }
+
+    /* ── Invertierter Modus (Emotion AN): helle Schrift auf dunklem Grund ── */
+    /* Überschreibt hartcodierte Farben, die nicht über CSS-Variablen laufen.  */
+    .phone-frame.emotion-an .gespraechs-name       { color: #d8d6d1; }
+    .phone-frame.emotion-an .nachricht-andere .text { color: #999999; }
+    .phone-frame.emotion-an .nachricht-ich .text    { color: #d8d6d1; }
+    .phone-frame.emotion-an #eingabe                { color: #d8d6d1; }
+    .phone-frame.emotion-an .avatar                 { background: #282828 !important; color: #777777; }
 
     /* ── Bluetooth-Band-Steuerung ─────────────────────────────── */
     .band-steuerung {
