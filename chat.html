@@ -315,20 +315,19 @@
     /* ── Chat-Verlauf ─────────────────────────────────── */
     .chat-bereich {
       flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding: 20px;
+      overflow: hidden;
+      padding: 28px 32px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
+      justify-content: center;
+      align-items: center;
     }
 
     .nachricht {
       display: flex;
       flex-direction: column;
-      max-width: 78%;
+      align-items: center;
+      width: 100%;
       min-width: 0;
       /* --einblenden-dauer wird per JS auf eigene Nachrichten gesetzt (Tempo) */
       animation: einblenden var(--einblenden-dauer, 0.18s) ease forwards;
@@ -340,20 +339,21 @@
       display: inline-block;
     }
 
-    .nachricht-andere { align-self: flex-start; }
     .nachricht-andere .text {
       color: #777; /* bleibt konstant – Lesbarkeit */
       font-variation-settings: 'wght' 400;
     }
 
-    .nachricht-ich { align-self: flex-end; text-align: right; }
     .nachricht-ich .text {
       color: #111; /* bleibt konstant – Lesbarkeit */
       font-variation-settings: 'wght' 400;
     }
 
-    /* Zeilenumbruch erzwingen */
+    /* Zeilenumbruch + große zentrale Darstellung */
     .nachricht .text {
+      font-size: 30px;
+      line-height: 1.35;
+      text-align: center;
       overflow-wrap: break-word;
       word-break: break-word;
       min-width: 0;
@@ -383,7 +383,7 @@
       user-select: none;
     }
 
-    .nachricht-ich .nachricht-status { text-align: right; }
+    .nachricht-ich .nachricht-status { text-align: center; }
 
     @keyframes einblenden {
       from { opacity: 0; transform: translateY(5px); }
@@ -1173,8 +1173,8 @@
       wrapper.appendChild(statusEl);
     }
 
+    chat.innerHTML = '';
     chat.appendChild(wrapper);
-    chat.scrollTop = chat.scrollHeight;
   }
 
   // ── Ereignis-Handler ──────────────────────────────────────────
