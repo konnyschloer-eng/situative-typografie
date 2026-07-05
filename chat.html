@@ -34,6 +34,7 @@
       --toggle-off:   #c4c2bb;   /* Toggle-Schiene, Emotion AUS */
       --toggle-on:    #444444;   /* Toggle-Schiene, Emotion AN */
       --placeholder:  #c0bdb8;   /* Eingabefeld-Platzhalter */
+      --bubble-outline: rgba(0, 0, 0, 0.75);   /* Sprechblasen-Outline, heller Modus */
     }
 
     .phone-frame.emotion-an {
@@ -50,6 +51,7 @@
       --toggle-off:   #383838;   /* Toggle-Schiene, Emotion AUS */
       --toggle-on:    #aaaaaa;   /* Toggle-Schiene, Emotion AN */
       --placeholder:  #484848;   /* Eingabefeld-Platzhalter */
+      --bubble-outline: var(--bubble-outline);  /* Sprechblasen-Outline, dunkler Modus */
     }
 
 
@@ -330,7 +332,7 @@
       width: 100%;
       min-width: 0;
       /* --einblenden-dauer wird per JS auf eigene Nachrichten gesetzt (Tempo) */
-      animation: einblenden var(--einblenden-dauer, 0.18s) ease forwards;
+      animation: einblenden var(--einblenden-dauer, 0.5s) ease-out forwards;
     }
 
     /* Einzelne Buchstaben im Zitter-Modus benötigen inline-block,
@@ -342,11 +344,75 @@
     .nachricht-andere .text {
       color: #777; /* bleibt konstant – Lesbarkeit */
       font-variation-settings: 'wght' 400;
+      display: inline-block;
+      max-width: 88%;
+      background: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.7);
+      border-radius: 18px 18px 18px 6px;
+      padding: 18px 24px;
+      position: relative;
+      transition: border-color 0.4s ease, color 0.4s ease;
+    }
+
+    /* Spitze unten links – äußeres Dreieck (Outline-Farbe) */
+    .nachricht-andere .text::before {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 16px;
+      width: 0; height: 0;
+      border-right: 12px solid transparent;
+      border-top: 12px solid rgba(0, 0, 0, 0.7);
+      transition: border-color 0.4s ease;
+    }
+
+    /* Spitze unten links – inneres Dreieck (Hintergrund, erzeugt Hohlraum) */
+    .nachricht-andere .text::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 17px;
+      width: 0; height: 0;
+      border-right: 10px solid transparent;
+      border-top: 10px solid var(--bg);
+      transition: border-color 0.4s ease;
     }
 
     .nachricht-ich .text {
       color: #111; /* bleibt konstant – Lesbarkeit */
       font-variation-settings: 'wght' 400;
+      display: inline-block;
+      max-width: 88%;
+      background: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.7);
+      border-radius: 18px 18px 6px 18px;
+      padding: 18px 24px;
+      position: relative;
+      transition: border-color 0.4s ease, color 0.4s ease;
+    }
+
+    /* Spitze unten rechts – äußeres Dreieck (Outline-Farbe) */
+    .nachricht-ich .text::before {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      right: 16px;
+      width: 0; height: 0;
+      border-left: 12px solid transparent;
+      border-top: 12px solid rgba(0, 0, 0, 0.7);
+      transition: border-color 0.4s ease;
+    }
+
+    /* Spitze unten rechts – inneres Dreieck (Hintergrund, erzeugt Hohlraum) */
+    .nachricht-ich .text::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      right: 17px;
+      width: 0; height: 0;
+      border-left: 10px solid transparent;
+      border-top: 10px solid var(--bg);
+      transition: border-color 0.4s ease;
     }
 
     /* Zeilenumbruch + große zentrale Darstellung */
@@ -369,14 +435,25 @@
       overflow-wrap: break-word;
     }
 
+    /* Absender-Label oberhalb der Nachricht */
+    .nachricht-absender {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      font-variation-settings: 'wght' 400;
+      margin-bottom: 10px;
+      user-select: none;
+    }
+
     /* Dezenter Status-Indikator unterhalb jeder eigenen Nachricht.
        "e" = emotionale Typografie war beim Senden aktiv.
        Leer = neutral/leblos gesendet (Abwesenheit ist das Signal). */
     .nachricht-status {
-      font-size: 10px;
+      font-size: 13px;
       line-height: 1;
-      margin-top: 3px;
-      color: var(--text-4);          /* sehr dezent, passend zur Farbwelt */
+      margin-top: 16px;
+      color: var(--text-2);          /* sichtbar in beiden Farbmodi */
       font-variation-settings: 'wght' 400;
       font-style: italic;            /* kleines "e" wirkt leichter als Regular */
       letter-spacing: 0;
@@ -386,7 +463,7 @@
     .nachricht-ich .nachricht-status { text-align: center; }
 
     @keyframes einblenden {
-      from { opacity: 0; transform: translateY(5px); }
+      from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
@@ -552,8 +629,10 @@
     /* ── Invertierter Modus (Emotion AN): helle Schrift auf dunklem Grund ── */
     /* Überschreibt hartcodierte Farben, die nicht über CSS-Variablen laufen.  */
     .phone-frame.emotion-an .gespraechs-name       { color: #d8d6d1; }
-    .phone-frame.emotion-an .nachricht-andere .text { color: #999999; }
-    .phone-frame.emotion-an .nachricht-ich .text    { color: #d8d6d1; }
+    .phone-frame.emotion-an .nachricht-andere .text         { color: #999999; border-color: rgba(255,255,255,0.7); }
+    .phone-frame.emotion-an .nachricht-andere .text::before { border-top-color: rgba(255,255,255,0.7); }
+    .phone-frame.emotion-an .nachricht-ich .text            { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
+    .phone-frame.emotion-an .nachricht-ich .text::before    { border-top-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an #eingabe                { color: #d8d6d1; }
     .phone-frame.emotion-an .avatar                 { background: #282828 !important; color: #777777; }
 
@@ -1120,6 +1199,11 @@
     if (vonMir && emotionAktiv) {
       wrapper.style.setProperty('--einblenden-dauer', `${aktuelleAchsen.einblendDauer.toFixed(2)}s`);
     }
+
+    const absenderEl = document.createElement('span');
+    absenderEl.classList.add('nachricht-absender');
+    absenderEl.textContent = vonMir ? 'Du' : chatPartnerName.textContent;
+    wrapper.appendChild(absenderEl);
 
     const textEl = document.createElement('p');
     textEl.classList.add('text');
