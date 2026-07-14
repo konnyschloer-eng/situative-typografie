@@ -317,12 +317,16 @@
     /* ── Chat-Verlauf ─────────────────────────────────── */
     .chat-bereich {
       flex: 1;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
       padding: 28px 32px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: safe center;
       align-items: center;
+      gap: 24px;
     }
 
     .nachricht {
@@ -342,7 +346,7 @@
     }
 
     .nachricht-andere .text {
-      color: #777; /* bleibt konstant – Lesbarkeit */
+      color: #111; /* wie eigene Nachrichten – nur die Outline unterscheidet den Absender */
       font-variation-settings: 'wght' 400;
       display: inline-block;
       max-width: 88%;
@@ -629,7 +633,7 @@
     /* ── Invertierter Modus (Emotion AN): helle Schrift auf dunklem Grund ── */
     /* Überschreibt hartcodierte Farben, die nicht über CSS-Variablen laufen.  */
     .phone-frame.emotion-an .gespraechs-name       { color: #d8d6d1; }
-    .phone-frame.emotion-an .nachricht-andere .text         { color: #999999; border-color: rgba(255,255,255,0.7); }
+    .phone-frame.emotion-an .nachricht-andere .text         { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an .nachricht-andere .text::before { border-top-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an .nachricht-ich .text            { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an .nachricht-ich .text::before    { border-top-color: rgba(255,255,255,0.7); }
@@ -1257,8 +1261,15 @@
       wrapper.appendChild(statusEl);
     }
 
-    chat.innerHTML = '';
     chat.appendChild(wrapper);
+
+    // Höchstens zwei Nachrichten gleichzeitig sichtbar (aktuelle + vorherige):
+    // erst wenn eine dritte hinzukommt, verschwindet die älteste.
+    while (chat.children.length > 2) {
+      chat.removeChild(chat.firstElementChild);
+    }
+
+    chat.scrollTop = chat.scrollHeight;
   }
 
   // ── Ereignis-Handler ──────────────────────────────────────────
