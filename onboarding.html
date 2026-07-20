@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onboarding – Situative Typografie</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ══════════════════════════════════════════════════════════════
+       FARBWELTEN – reiner Schwarz/Weiß-Kontrast, automatisch nach
+       Systemeinstellung (prefers-color-scheme). Hell: schwarze
+       Schrift auf Weiß. Dunkel: weiße Schrift auf Schwarz.
+       ══════════════════════════════════════════════════════════════ */
+
+    .phone-frame {
+      --bg:          #ffffff;
+      --karte-bg:    #f6f6f4;
+      --karte-rand:  rgba(0, 0, 0, 0.10);
+      --text:        #111111;
+      --text-2:      #6b6b6b;
+      --text-3:      #a8a8a8;
+      --punkt:       #d8d8d5;
+      --punkt-aktiv: #111111;
+      --btn-bg:      #111111;
+      --btn-text:    #ffffff;
+      --btn-rand:    #111111;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .phone-frame {
+        --bg:          #0d0d0d;
+        --karte-bg:    #171717;
+        --karte-rand:  rgba(255, 255, 255, 0.12);
+        --text:        #f5f5f3;
+        --text-2:      #9a9a9a;
+        --text-3:      #5c5c5c;
+        --punkt:       #333333;
+        --punkt-aktiv: #f5f5f3;
+        --btn-bg:      #f5f5f3;
+        --btn-text:    #111111;
+        --btn-rand:    #f5f5f3;
+      }
+    }
+
+    body {
+      background: #e8e6e1;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100dvh;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body { background: #000000; }
+    }
+
+    .phone-frame {
+      position: relative;
+      width: 390px;
+      height: 844px;
+      max-height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,.12);
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (max-width: 440px) {
+      body { background: var(--bg); }
+      .phone-frame { width: 100%; height: 100dvh; box-shadow: none; }
+    }
+
+    /* ── Kopfbereich: Fortschritt + Überspringen ─────────────────── */
+    .onboarding-kopf {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 26px 0;
+    }
+
+    .fortschritt {
+      display: flex;
+      gap: 7px;
+    }
+
+    .punkt {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--punkt);
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .punkt--aktiv {
+      background: var(--punkt-aktiv);
+      transform: scale(1.3);
+    }
+
+    #ueberspringen-btn {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text-2);
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      padding: 4px 2px;
+    }
+
+    #ueberspringen-btn:hover { color: var(--text); }
+
+    /* ── Schritt-Bühne ────────────────────────────────────────────── */
+    .buehne {
+      position: relative;
+      flex: 1;
+      padding: 18px 24px 0;
+      display: flex;
+    }
+
+    .schritt {
+      position: absolute;
+      inset: 18px 24px 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .schritt--aktiv { display: flex; }
+
+    /* Karte: großzügig gerundet, dezente Kontur, kein Verlauf */
+    .karte {
+      width: 100%;
+      background: var(--karte-bg);
+      border: 1px solid var(--karte-rand);
+      border-radius: 32px;
+      padding: 44px 30px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .schritt-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    /* Icon-Badge */
+    .schritt-icon {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border: 1px solid var(--karte-rand);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 16px 0 26px;
+      color: var(--text);
+    }
+
+    .schritt-icon svg { width: 26px; height: 26px; }
+
+    .schritt-titel {
+      font-size: 26px;
+      font-variation-settings: 'wght' 700;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 16px;
+    }
+
+    .schritt-text {
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--text-2);
+      font-variation-settings: 'wght' 400;
+      max-width: 30ch;
+    }
+
+    /* Elemente, die gestaffelt einfliegen (siehe JS: animationenStarten) */
+    [data-einblenden] {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+
+    .einblenden-aktiv {
+      animation: einfliegen 0.62s cubic-bezier(.16,1,.3,1) var(--verz, 0s) both;
+    }
+
+    @keyframes einfliegen {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Selbst-demonstrierende Wörter ───────────────────────────
+       Jedes Wort zeigt beim Erscheinen genau die typografische
+       Eigenschaft, die der Satz ihm zuschreibt. */
+    .demo-wort {
+      display: inline-block;
+      color: var(--text);
+    }
+
+    /* Intensität → Schriftstärke (wght) */
+    .demo-wght { font-variation-settings: 'wght' 100; font-weight: 100; }
+    .demo-wght.demo-aktiv {
+      animation: demoGewicht 1.3s cubic-bezier(.3,0,.2,1) 0.55s both;
+    }
+    @keyframes demoGewicht {
+      from { font-variation-settings: 'wght' 100; }
+      to   { font-variation-settings: 'wght' 800; }
+    }
+
+    /* Tempo → Zeichenabstand (letter-spacing) */
+    .demo-spacing { letter-spacing: 0em; }
+    .demo-spacing.demo-aktiv {
+      animation: demoAbstand 1.3s cubic-bezier(.3,0,.2,1) 0.55s both;
+    }
+    @keyframes demoAbstand {
+      from { letter-spacing: 0em; }
+      to   { letter-spacing: 0.3em; }
+    }
+
+    /* Tonalität → Schräglage (oblique) */
+    .demo-oblique { font-style: oblique 0deg; }
+    .demo-oblique.demo-aktiv {
+      animation: demoSchraeg 1.2s cubic-bezier(.3,0,.2,1) 0.55s both;
+    }
+    @keyframes demoSchraeg {
+      from { font-style: oblique 0deg; }
+      to   { font-style: oblique 16deg; }
+    }
+
+    /* Startseite: kleine Mehrfach-Andeutung (Form) */
+    .demo-form { font-variation-settings: 'wght' 300; letter-spacing: 0em; font-style: oblique 0deg; }
+    .demo-form.demo-aktiv {
+      animation: demoForm 3.2s ease-in-out 0.5s infinite;
+    }
+    @keyframes demoForm {
+      0%   { font-variation-settings: 'wght' 300; letter-spacing: 0em;    font-style: oblique 0deg;  }
+      50%  { font-variation-settings: 'wght' 800; letter-spacing: 0.1em; font-style: oblique 9deg;  }
+      100% { font-variation-settings: 'wght' 300; letter-spacing: 0em;    font-style: oblique 0deg;  }
+    }
+
+    /* Stabilität → Zittern (kontinuierlich, pro Buchstabe) */
+    .zittern-buchstabe { display: inline-block; }
+    @keyframes demoZittern {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25%      { transform: translate(var(--amp), calc(var(--amp) * -1)) rotate(-2deg); }
+      50%      { transform: translate(calc(var(--amp) * -1), var(--amp)) rotate(2deg); }
+      75%      { transform: translate(var(--amp), var(--amp)) rotate(-1deg); }
+    }
+
+    /* ── Fußbereich: primäre Aktion ──────────────────────────────── */
+    .onboarding-fuss {
+      flex-shrink: 0;
+      padding: 20px 26px 30px;
+    }
+
+    #weiter-btn {
+      width: 100%;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: 1px solid var(--btn-rand);
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 15px;
+      font-variation-settings: 'wght' 600;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      padding: 15px 0;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.15s ease;
+    }
+
+    #weiter-btn:hover { opacity: 0.88; }
+    #weiter-btn:active { transform: scale(0.98); }
+
+    /* ── Barrierefreiheit: reduzierte Bewegung ───────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      [data-einblenden], .demo-wort, .zittern-buchstabe {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="phone-frame" id="phone-frame">
+
+  <div class="onboarding-kopf">
+    <div class="fortschritt" id="fortschritt">
+      <span class="punkt punkt--aktiv" data-index="0"></span>
+      <span class="punkt" data-index="1"></span>
+      <span class="punkt" data-index="2"></span>
+      <span class="punkt" data-index="3"></span>
+      <span class="punkt" data-index="4"></span>
+    </div>
+    <button id="ueberspringen-btn">Überspringen</button>
+  </div>
+
+  <div class="buehne" id="buehne">
+
+    <section class="schritt schritt--aktiv" data-schritt="0">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">Willkommen</span>
+        <div class="schritt-icon" data-einblenden style="--verz:.06s">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12h4l1.8-5.5L11 18l2.2-11L15 12h7"/>
+          </svg>
+        </div>
+        <h1 class="schritt-titel" data-einblenden style="--verz:.14s">Bevor's losgeht</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.26s">
+          Diese App übersetzt, wie du dich beim Schreiben fühlst, in die
+          <span class="demo-wort demo-form" data-demo="form">Form</span> deiner Schrift.
+        </p>
+      </div>
+    </section>
+
+    <section class="schritt" data-schritt="1">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">1 / 4 · Intensität</span>
+        <div class="schritt-icon" data-einblenden style="--verz:.06s">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="12" width="3" height="7" rx="1"/>
+            <rect x="10.5" y="8" width="3" height="11" rx="1"/>
+            <rect x="17" y="4" width="3" height="15" rx="1"/>
+          </svg>
+        </div>
+        <h1 class="schritt-titel" data-einblenden style="--verz:.14s">Intensität</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.26s">
+          Wie intensiv du schreibst, bestimmt, wie
+          <span class="demo-wort demo-wght" data-demo="wght">fett</span> die Schrift erscheint.
+        </p>
+      </div>
+    </section>
+
+    <section class="schritt" data-schritt="2">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">2 / 4 · Tempo</span>
+        <div class="schritt-icon" data-einblenden style="--verz:.06s">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 12H2m0 0l3-3m-3 3l3 3"/>
+            <path d="M15 12h7m0 0l-3-3m3 3l-3 3"/>
+          </svg>
+        </div>
+        <h1 class="schritt-titel" data-einblenden style="--verz:.14s">Tempo</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.26s">
+          Dein Schreibtempo verändert den
+          <span class="demo-wort demo-spacing" data-demo="spacing">Zeichenabstand</span> – schnelles Tippen zieht die Buchstaben auseinander.
+        </p>
+      </div>
+    </section>
+
+    <section class="schritt" data-schritt="3">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">3 / 4 · Stabilität</span>
+        <div class="schritt-icon" data-einblenden style="--verz:.06s">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12l3-6 3 10 3-8 3 6 3-9 3 7 2-4"/>
+          </svg>
+        </div>
+        <h1 class="schritt-titel" data-einblenden style="--verz:.14s">Stabilität</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.26s">
+          Unruhiges Tippen lässt die Schrift sichtbar
+          <span class="demo-wort" data-demo="zittern">zittern</span>.
+        </p>
+      </div>
+    </section>
+
+    <section class="schritt" data-schritt="4">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">4 / 4 · Tonalität</span>
+        <div class="schritt-icon" data-einblenden style="--verz:.06s">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 4L5 20"/>
+            <path d="M15 4l-4 16"/>
+            <path d="M21 4l-4 16"/>
+          </svg>
+        </div>
+        <h1 class="schritt-titel" data-einblenden style="--verz:.14s">Tonalität</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.26s">
+          Eine wärmere Tonalität stellt die Schrift
+          <span class="demo-wort demo-oblique" data-demo="oblique">schräg</span>.
+        </p>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="onboarding-fuss">
+    <button id="weiter-btn">Weiter</button>
+  </div>
+
+</div>
+
+<script>
+  const schritte      = Array.from(document.querySelectorAll('.schritt'));
+  const punkte        = Array.from(document.querySelectorAll('.punkt'));
+  const weiterBtn      = document.getElementById('weiter-btn');
+  const ueberspringenBtn = document.getElementById('ueberspringen-btn');
+
+  let aktuellerIndex = 0;
+  const totalSchritte = schritte.length;
+
+  function zuChat() {
+    window.location.href = 'chat.html';
+  }
+
+  // Teilt den Text eines selbst-demonstrierenden "Zittern"-Wortes in
+  // Buchstaben-Spans auf (einmalig) und (re)startet pro Buchstabe eine
+  // eigene, leicht zufällige Zitter-Animation – unabhängig vom
+  // Wort-für-Wort-Einfrieren im eigentlichen Chat.
+  function zitterWortStarten(el) {
+    if (!el.dataset.zittern) {
+      const text = el.textContent;
+      el.textContent = '';
+      for (const zeichen of text) {
+        const span = document.createElement('span');
+        span.textContent = zeichen;
+        span.classList.add('zittern-buchstabe');
+        el.appendChild(span);
+      }
+      el.dataset.zittern = 'true';
+    }
+    el.querySelectorAll('.zittern-buchstabe').forEach(span => {
+      if (span.textContent === ' ') return;
+      span.style.animation = 'none';
+      void span.offsetWidth; // Reflow erzwingen, damit die Animation neu startet
+      const dauer = (0.35 + Math.random() * 0.4).toFixed(2);
+      const verzoeger = (0.5 + Math.random() * 0.5).toFixed(2);
+      const amplitude = (1.1 + Math.random() * 0.9).toFixed(2);
+      span.style.setProperty('--amp', amplitude + 'px');
+      span.style.animation = `demoZittern ${dauer}s ease-in-out ${verzoeger}s infinite`;
+    });
+  }
+
+  function animationenStarten(schrittEl) {
+    schrittEl.querySelectorAll('[data-einblenden]').forEach(el => {
+      el.classList.remove('einblenden-aktiv');
+      void el.offsetWidth;
+      el.classList.add('einblenden-aktiv');
+    });
+
+    schrittEl.querySelectorAll('.demo-wort').forEach(el => {
+      if (el.dataset.demo === 'zittern') {
+        zitterWortStarten(el);
+      } else {
+        el.classList.remove('demo-aktiv');
+        void el.offsetWidth;
+        el.classList.add('demo-aktiv');
+      }
+    });
+  }
+
+  function schrittAnzeigen(index) {
+    index = Math.max(0, Math.min(totalSchritte - 1, index));
+    aktuellerIndex = index;
+
+    schritte.forEach((el, i) => el.classList.toggle('schritt--aktiv', i === index));
+    punkte.forEach((p, i) => p.classList.toggle('punkt--aktiv', i === index));
+
+    const istLetzter = index === totalSchritte - 1;
+    weiterBtn.textContent = istLetzter ? 'Loslegen' : 'Weiter';
+    ueberspringenBtn.style.visibility = istLetzter ? 'hidden' : 'visible';
+
+    animationenStarten(schritte[index]);
+  }
+
+  weiterBtn.addEventListener('click', function () {
+    if (aktuellerIndex === totalSchritte - 1) {
+      zuChat();
+    } else {
+      schrittAnzeigen(aktuellerIndex + 1);
+    }
+  });
+
+  ueberspringenBtn.addEventListener('click', zuChat);
+
+  punkte.forEach((punkt, i) => {
+    punkt.addEventListener('click', () => schrittAnzeigen(i));
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') weiterBtn.click();
+    if (e.key === 'ArrowLeft' && aktuellerIndex > 0) schrittAnzeigen(aktuellerIndex - 1);
+  });
+
+  // Erste Einblend-Animation auslösen
+  schrittAnzeigen(0);
+</script>
+</body>
+</html>
