@@ -241,6 +241,26 @@
       to   { font-style: oblique 16deg; }
     }
 
+    /* Schlafqualität (Testwert) → Unschärfe (filter: blur) */
+    .demo-blur { filter: blur(0px); }
+    .demo-blur.demo-aktiv {
+      animation: demoUnschaerfe 1.2s cubic-bezier(.3,0,.2,1) 0.55s both;
+    }
+    @keyframes demoUnschaerfe {
+      from { filter: blur(0px); }
+      to   { filter: blur(2px); }
+    }
+
+    /* Atemfrequenz (Testwert) → Transparenz (opacity) */
+    .demo-transparenz { opacity: 1; }
+    .demo-transparenz.demo-aktiv {
+      animation: demoTransparenz 1.2s cubic-bezier(.3,0,.2,1) 0.55s both;
+    }
+    @keyframes demoTransparenz {
+      from { opacity: 1; }
+      to   { opacity: 0.35; }
+    }
+
     /* Startseite: kleine Mehrfach-Andeutung (Form) */
     .demo-form { font-variation-settings: 'wght' 300; letter-spacing: 0em; font-style: oblique 0deg; }
     .demo-form.demo-aktiv {
@@ -306,6 +326,8 @@
       <span class="punkt" data-index="2"></span>
       <span class="punkt" data-index="3"></span>
       <span class="punkt" data-index="4"></span>
+      <span class="punkt" data-index="5"></span>
+      <span class="punkt" data-index="6"></span>
     </div>
     <button id="ueberspringen-btn">Überspringen</button>
   </div>
@@ -330,7 +352,7 @@
 
     <section class="schritt" data-schritt="1">
       <div class="karte">
-        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">1 / 4 · Intensität</span>
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">1 / 6 · Intensität</span>
         <div class="schritt-icon" data-einblenden style="--verz:.06s">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <rect x="4" y="12" width="3" height="7" rx="1"/>
@@ -348,7 +370,7 @@
 
     <section class="schritt" data-schritt="2">
       <div class="karte">
-        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">2 / 4 · Tempo</span>
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">2 / 6 · Tempo</span>
         <div class="schritt-icon" data-einblenden style="--verz:.06s">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 12H2m0 0l3-3m-3 3l3 3"/>
@@ -365,7 +387,7 @@
 
     <section class="schritt" data-schritt="3">
       <div class="karte">
-        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">3 / 4 · Stabilität</span>
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">3 / 6 · Stabilität</span>
         <div class="schritt-icon" data-einblenden style="--verz:.06s">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2 12l3-6 3 10 3-8 3 6 3-9 3 7 2-4"/>
@@ -381,7 +403,7 @@
 
     <section class="schritt" data-schritt="4">
       <div class="karte">
-        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">4 / 4 · Tonalität</span>
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">4 / 6 · Tonalität</span>
         <div class="schritt-icon" data-einblenden style="--verz:.06s">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 4L5 20"/>
@@ -393,6 +415,41 @@
         <p class="schritt-text" data-einblenden style="--verz:.26s">
           Eine wärmere Tonalität stellt die Schrift
           <span class="demo-wort demo-oblique" data-demo="oblique">schräg</span>.
+        </p>
+      </div>
+    </section>
+
+    <section class="schritt" data-schritt="5">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">5 / 6 · Schlafqualität · Testwert</span>
+        <div class="schritt-icon" data-einblenden style="--verz:.06s">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z"/>
+            <circle cx="12" cy="12" r="2.6"/>
+          </svg>
+        </div>
+        <h1 class="schritt-titel" data-einblenden style="--verz:.14s">Schlafqualität</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.26s">
+          Als Testwert zeigt deine Wachheit, ob der Text scharf oder
+          <span class="demo-wort demo-blur" data-demo="blur">unscharf</span> wirkt.
+        </p>
+      </div>
+    </section>
+
+    <section class="schritt" data-schritt="6">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">6 / 6 · Atemfrequenz · Testwert</span>
+        <div class="schritt-icon" data-einblenden style="--verz:.06s">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <circle cx="12" cy="12" r="7"/>
+            <circle cx="12" cy="12" r="11"/>
+          </svg>
+        </div>
+        <h1 class="schritt-titel" data-einblenden style="--verz:.14s">Atemfrequenz</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.26s">
+          Als Testwert lässt deine Gefasstheit den Text kräftig oder
+          <span class="demo-wort demo-transparenz" data-demo="transparenz">blass</span> wirken.
         </p>
       </div>
     </section>

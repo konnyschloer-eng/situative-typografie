@@ -314,6 +314,91 @@
       transition: width 0.15s ease;
     }
 
+    .dimension-endpunkte {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: var(--text-4);
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Test-/Demo-Panel: ein-/ausfahrbares Dropdown ──────────
+       Beide simulierten Eingaben (kein Live-Sensor) liegen
+       gemeinsam in EINEM Panel. Standardmäßig eingeklappt – nur
+       der Griff unterhalb der Sensor-Anzeigen ist sichtbar. Das
+       Panel fährt von oben (unterhalb des Griffs) sanft nach
+       unten aus (grid-template-rows 0fr → 1fr = flüssige
+       Höhen-Animation ohne feste Pixel-Höhe). ── */
+    .test-drawer {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .test-drawer-griff {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      width: 100%;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: 3px 0;
+    }
+
+    .test-drawer-griff:hover { color: var(--text-2); }
+
+    .test-drawer-griff svg {
+      transition: transform 0.4s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .test-drawer.offen .test-drawer-griff svg {
+      transform: rotate(180deg);
+    }
+
+    .test-drawer-inhalt {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.45s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .test-drawer.offen .test-drawer-inhalt {
+      grid-template-rows: 1fr;
+    }
+
+    /* min-height:0 ist nötig, damit das Grid-Kind auf 0 kollabieren
+       kann (sonst verhindert der Inhalt selbst das Zuklappen). */
+    .test-drawer-inneres {
+      min-height: 0;
+      overflow: hidden;
+      padding-top: 12px;
+    }
+
+    .test-panel-label {
+      display: block;
+      font-size: 9px;
+      color: var(--text-4);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+
+    .test-badge {
+      font-style: italic;
+      font-size: 9px;
+      color: var(--text-4);
+      text-transform: none;
+      letter-spacing: 0;
+      margin-left: 4px;
+    }
+
     /* ── Chat-Verlauf ─────────────────────────────────── */
     .chat-bereich {
       flex: 1;
@@ -772,6 +857,51 @@
         </div>
 
       </div>
+
+      <!-- Ein-/ausfahrbares Test-/Demo-Panel: standardmäßig eingeklappt,
+           nur der Griff unterhalb der Sensor-Anzeigen ist sichtbar.
+           Beide Testregler liegen gemeinsam in diesem einen Panel und
+           fahren beim Öffnen sanft von oben nach unten aus. ── -->
+      <div class="test-drawer" id="test-drawer">
+        <button class="test-drawer-griff" id="test-drawer-griff"
+          aria-expanded="false" aria-controls="test-drawer-inhalt"
+          title="Test-Eingaben ein-/ausblenden">
+          <span>Test-Eingaben</span>
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </button>
+
+        <div class="test-drawer-inhalt" id="test-drawer-inhalt">
+          <div class="test-drawer-inneres">
+            <span class="test-panel-label">Test-Eingaben · simuliert, kein Live-Sensor</span>
+            <div class="sensor-grid">
+
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label">Schlafqualität<em class="test-badge">Testwert</em></span>
+                  <span class="dimension-wert" id="wert-schlafqualitaet">500</span>
+                </div>
+                <input class="dimension-slider" type="range"
+                  id="slider-schlafqualitaet" min="100" max="900" value="500" step="1">
+                <div class="dimension-endpunkte"><span>müde</span><span>wach</span></div>
+              </div>
+
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label">Atemfrequenz<em class="test-badge">Testwert</em></span>
+                  <span class="dimension-wert" id="wert-atemfrequenz">500</span>
+                </div>
+                <input class="dimension-slider" type="range"
+                  id="slider-atemfrequenz" min="100" max="900" value="500" step="1">
+                <div class="dimension-endpunkte"><span>aufgewühlt</span><span>gefasst</span></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
     </header>
 
     <main class="chat-bereich" id="chat"></main>
@@ -823,6 +953,18 @@
   document.getElementById('zurueck-btn').addEventListener('click', zeigeUebersicht);
 
 
+  // ── Test-/Demo-Panel: ein-/ausfahrbare Schublade ────────────────
+  // Betrifft nur die Sichtbarkeit der zwei simulierten Test-Regler –
+  // keine Auswirkung auf Puls-, Tipp-Tempo- oder HRV-Logik.
+  const testDrawer      = document.getElementById('test-drawer');
+  const testDrawerGriff = document.getElementById('test-drawer-griff');
+
+  testDrawerGriff.addEventListener('click', function () {
+    const offen = testDrawer.classList.toggle('offen');
+    testDrawerGriff.setAttribute('aria-expanded', offen ? 'true' : 'false');
+  });
+
+
   // ═══════════════════════════════════════════════════════════════
   //  MAPPING-FUNKTION
   //  Wandelt 4 Rohwerte (je 100–900) in typografische Parameter um.
@@ -859,7 +1001,19 @@
     // Kalt/neutral (100) = 0° · warm/persönlich (900) = 20°
     const oblique = umrechnen(rohwerte.tonalitaet, 100, 900, 0, 20);
 
-    return { wght, spacing, einblendDauer, wobble, wobbleRot, oblique };
+    // ══ TEST/DEMO – Schlafqualität → Unschärfe (filter: blur) ══════
+    // Simulierte Eingabe, kein Live-Sensor. Niedrig/"müde" (100) = unscharf,
+    // hoch/"wach" (900) = scharf. Siehe Matrix: Unschärfe-Dimension.
+    const BLUR_MAX = 1.4; // ← nachjustieren (px): Maximum bei Schlafqualität 100 – bewusst dezent, Text bleibt lesbar
+    const blur = umrechnen(rohwerte.schlafqualitaet, 100, 900, BLUR_MAX, 0);
+
+    // ══ TEST/DEMO – Atemfrequenz → Transparenz (opacity) ═══════════
+    // Simulierte Eingabe, kein Live-Sensor. Niedrig/"aufgewühlt" (100) = blass,
+    // hoch/"gefasst" (900) = deckend. Siehe Matrix: Transparenz-Dimension.
+    const TRANSPARENZ_MIN = 0.35; // ← nachjustieren: Minimum bei Atemfrequenz 100
+    const transparenz = umrechnen(rohwerte.atemfrequenz, 100, 900, TRANSPARENZ_MIN, 1);
+
+    return { wght, spacing, einblendDauer, wobble, wobbleRot, oblique, blur, transparenz };
   }
 
   function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
@@ -958,6 +1112,12 @@
       buchstabenAnimieren(element, achsen);
     }
     // Kein transform/animation auf dem Container-Element selbst
+
+    // ══ TEST/DEMO – Schlafqualität → Unschärfe (filter: blur) ══════
+    element.style.filter = achsen.blur > 0.05 ? `blur(${achsen.blur.toFixed(2)}px)` : 'none';
+
+    // ══ TEST/DEMO – Atemfrequenz → Transparenz (opacity) ═══════════
+    element.style.opacity = achsen.transparenz.toFixed(2);
   }
 
   // Setzt ein Element auf den neutralen "leblosen" Zustand zurück
@@ -969,6 +1129,8 @@
     element.style.fontStyle             = 'normal';
     element.style.transform             = 'none';
     element.style.animation             = 'none';
+    element.style.filter                = 'none';
+    element.style.opacity               = '1';
   }
 
   // Eingabefeld bleibt beim Tippen IMMER neutral.
@@ -1176,12 +1338,20 @@
   const balkenTempo            = document.getElementById('balken-tempo');
   const balkenStabilitaet      = document.getElementById('balken-stabilitaet');
 
+  // Test-/Demo-Regler (simulierte Eingaben, kein Live-Sensor)
+  const sliderSchlafqualitaet  = document.getElementById('slider-schlafqualitaet');
+  const sliderAtemfrequenz     = document.getElementById('slider-atemfrequenz');
+  const wertSchlafqualitaet    = document.getElementById('wert-schlafqualitaet');
+  const wertAtemfrequenz       = document.getElementById('wert-atemfrequenz');
+
   // ── Startzustand ──────────────────────────────────────────────
   let aktuelleRohwerte = {
-    intensitaet: Number(sliderIntensitaet.value),
-    tempo:       100,
-    stabilitaet: 500,
-    tonalitaet:  Number(sliderTonalitaet.value)
+    intensitaet:     Number(sliderIntensitaet.value),
+    tempo:           100,
+    stabilitaet:     500,
+    tonalitaet:      Number(sliderTonalitaet.value),
+    schlafqualitaet: Number(sliderSchlafqualitaet.value),
+    atemfrequenz:    Number(sliderAtemfrequenz.value)
   };
 
   let aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
@@ -1345,16 +1515,22 @@
   });
 
   function sliderAktualisieren() {
-    aktuelleRohwerte.intensitaet = Number(sliderIntensitaet.value);
-    aktuelleRohwerte.tonalitaet  = Number(sliderTonalitaet.value);
-    wertIntensitaet.textContent  = aktuelleRohwerte.intensitaet;
-    wertTonalitaet.textContent   = aktuelleRohwerte.tonalitaet;
+    aktuelleRohwerte.intensitaet     = Number(sliderIntensitaet.value);
+    aktuelleRohwerte.tonalitaet      = Number(sliderTonalitaet.value);
+    aktuelleRohwerte.schlafqualitaet = Number(sliderSchlafqualitaet.value);
+    aktuelleRohwerte.atemfrequenz    = Number(sliderAtemfrequenz.value);
+    wertIntensitaet.textContent      = aktuelleRohwerte.intensitaet;
+    wertTonalitaet.textContent       = aktuelleRohwerte.tonalitaet;
+    wertSchlafqualitaet.textContent  = aktuelleRohwerte.schlafqualitaet;
+    wertAtemfrequenz.textContent     = aktuelleRohwerte.atemfrequenz;
     aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
     vorschauAktualisieren();
   }
 
   sliderIntensitaet.addEventListener('input', sliderAktualisieren);
   sliderTonalitaet.addEventListener('input',  sliderAktualisieren);
+  sliderSchlafqualitaet.addEventListener('input', sliderAktualisieren);
+  sliderAtemfrequenz.addEventListener('input',    sliderAktualisieren);
 
   antwortBtn.addEventListener('click', function () {
     if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) return;
