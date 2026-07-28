@@ -35,6 +35,7 @@
       --toggle-on:    #444444;   /* Toggle-Schiene, Emotion AN */
       --placeholder:  #c0bdb8;   /* Eingabefeld-Platzhalter */
       --bubble-outline: rgba(0, 0, 0, 0.75);   /* Sprechblasen-Outline, heller Modus */
+      --scrollbar-farbe: rgba(0, 0, 0, 0.22);  /* Scroll-Indikator, heller Modus */
     }
 
     .phone-frame.emotion-an {
@@ -52,6 +53,59 @@
       --toggle-on:    #aaaaaa;   /* Toggle-Schiene, Emotion AN */
       --placeholder:  #484848;   /* Eingabefeld-Platzhalter */
       --bubble-outline: var(--bubble-outline);  /* Sprechblasen-Outline, dunkler Modus */
+      --scrollbar-farbe: rgba(255, 255, 255, 0.22); /* Scroll-Indikator, dunkler Modus */
+    }
+
+
+    /* ══════════════════════════════════════════════════════════════
+       SCROLLBALKEN – einheitlicher, dezenter Stil für alle
+       scrollbaren Bereiche der App (Kontaktliste, Chat-Verlauf,
+       Eingabefeld, Overlay-Karte, Kontaktauswahl in "Neue Gruppe").
+       Schmale Linie statt System-Balken, kein sichtbarer Track,
+       abgerundete Enden, Farbe folgt dem aktuellen Modus über
+       --scrollbar-farbe (siehe oben). Rein optisch – betrifft keine
+       Typografie-/Zustandslogik.
+       ══════════════════════════════════════════════════════════════ */
+    .gespraechs-liste,
+    .chat-bereich,
+    .overlay-karte,
+    .kontakt-auswahl-liste,
+    #eingabe {
+      scrollbar-width: thin;                              /* Firefox */
+      scrollbar-color: var(--scrollbar-farbe) transparent; /* Firefox */
+    }
+
+    .gespraechs-liste::-webkit-scrollbar,
+    .chat-bereich::-webkit-scrollbar,
+    .overlay-karte::-webkit-scrollbar,
+    .kontakt-auswahl-liste::-webkit-scrollbar,
+    #eingabe::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .gespraechs-liste::-webkit-scrollbar-track,
+    .chat-bereich::-webkit-scrollbar-track,
+    .overlay-karte::-webkit-scrollbar-track,
+    .kontakt-auswahl-liste::-webkit-scrollbar-track,
+    #eingabe::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .gespraechs-liste::-webkit-scrollbar-thumb,
+    .chat-bereich::-webkit-scrollbar-thumb,
+    .overlay-karte::-webkit-scrollbar-thumb,
+    .kontakt-auswahl-liste::-webkit-scrollbar-thumb,
+    #eingabe::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-farbe);
+      border-radius: 999px;
+    }
+
+    .gespraechs-liste::-webkit-scrollbar-button,
+    .chat-bereich::-webkit-scrollbar-button,
+    .overlay-karte::-webkit-scrollbar-button,
+    .kontakt-auswahl-liste::-webkit-scrollbar-button,
+    #eingabe::-webkit-scrollbar-button {
+      display: none;
     }
 
 
@@ -120,11 +174,328 @@
       text-transform: uppercase;
     }
 
+    /* ── Suchfeld: schlicht, Outline, keine Farbe ────────────── */
+    .suche-bereich {
+      flex-shrink: 0;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .suche-eingabe {
+      width: 100%;
+      background: none;
+      border: 1px solid var(--border);
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: #222;
+      font-variation-settings: 'wght' 400;
+      padding: 7px 10px;
+    }
+
+    .suche-eingabe:focus { border-color: var(--text-2); }
+
+    .suche-eingabe::placeholder { color: var(--placeholder); }
+
+    /* ── Filter-Chips: Outline-Pillen, aktiver Chip gefüllt ──────
+       Rein schwarz/weiß-basiert (var(--accent) / var(--bg)) –
+       kein Grün, keine fremde Markenfarbe. ── */
+    .filter-leiste {
+      flex-shrink: 0;
+      display: flex;
+      gap: 8px;
+      padding: 0 20px 10px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .filter-chip {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-variation-settings: 'wght' 400;
+      letter-spacing: 0.02em;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .filter-chip:hover { border-color: var(--text-2); }
+
+    .filter-chip--aktiv {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+      font-variation-settings: 'wght' 500;
+    }
+
+    .filter-chip--aktiv:hover { border-color: var(--accent); }
+
+    /* ── Tab-Panels: Chats / Gruppen ──────────────────────────────
+       Jeweils genau eines der beiden Panels ist sichtbar; beide sind
+       selbst flex-column-Container, damit ihre Listen (flex:1,
+       overflow-y:auto) wie gehabt scrollen. ── */
+    .tab-inhalt {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .tab-inhalt.aktiv { display: flex; }
+
+    /* ── Tab-Leiste: Chats / Gruppen (unten, wie Bottom-Nav) ──────── */
+    .tab-leiste {
+      flex-shrink: 0;
+      display: flex;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-variation-settings: 'wght' 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      padding: 12px 0;
+      cursor: pointer;
+    }
+
+    .tab-btn:hover { color: var(--text-2); }
+
+    .tab-btn--aktiv {
+      color: #222;
+      font-variation-settings: 'wght' 600;
+    }
+
+    .phone-frame.emotion-an .tab-btn--aktiv { color: #d8d6d1; }
+
+    /* ── Gruppen-Kopf: Titel + "+"-Button ──────────────────────── */
+    .gruppen-kopf {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .gruppen-kopf-label {
+      font-size: 12px;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .neue-gruppe-btn {
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--text-2);
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .neue-gruppe-btn:hover { border-color: var(--text-2); }
+
+    /* ── Kontextmenü: Long-Press auf einen Chat-Eintrag ──────────── */
+    .kontext-menu {
+      position: fixed;
+      z-index: 20;
+      display: none;
+      min-width: 200px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    }
+
+    .kontext-menu.sichtbar { display: block; }
+
+    .kontext-menu-eintrag {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--text-2);
+      padding: 12px 16px;
+      cursor: pointer;
+    }
+
+    .kontext-menu-eintrag:hover { background: var(--bg-hover); }
+
+    /* ── Overlay: Neue Gruppe erstellen ──────────────────────────
+       Schlichtes Bottom-Sheet innerhalb des Phone-Frames, passend
+       zum reduzierten Look – keine Farbverläufe, nur Outline. ── */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 30;
+    }
+
+    .overlay.sichtbar { display: flex; }
+
+    .overlay-karte {
+      width: 100%;
+      max-height: 78%;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 16px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+    }
+
+    .overlay-kopf {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .overlay-titel {
+      font-size: 12px;
+      color: var(--text-3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .overlay-schliessen {
+      background: none;
+      border: none;
+      font-size: 20px;
+      line-height: 1;
+      color: var(--text-3);
+      cursor: pointer;
+    }
+
+    .overlay-schliessen:hover { color: var(--text-2); }
+
+    .kontakt-auswahl-liste {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid var(--border-light);
+    }
+
+    .kontakt-auswahl-eintrag {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text-2);
+      cursor: pointer;
+    }
+
+    .kontakt-auswahl-eintrag:hover { background: var(--bg-hover); }
+
+    .kontakt-auswahl-eintrag input[type="checkbox"] {
+      width: 14px; height: 14px;
+      accent-color: var(--accent);
+    }
+
+    .overlay-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-variation-settings: 'wght' 400;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .overlay-btn:hover { border-color: var(--text-2); }
+
+    /* Destruktive Aktion (z. B. "Gruppe löschen"): dünne rote Outline
+       statt schwarz/weiß, signalisiert Endgültigkeit – bewusst die
+       einzige Farbabweichung vom sonst rein monochromen Look. */
+    .overlay-btn--gefahr {
+      border-color: rgba(196, 60, 48, 0.55);
+      color: rgba(196, 60, 48, 0.9);
+    }
+
+    .overlay-btn--gefahr:hover {
+      border-color: rgba(196, 60, 48, 0.85);
+      background: rgba(196, 60, 48, 0.08);
+    }
+
+    /* ── Gruppeninfo: Mitgliederzeile mit Entfernen-"×" ──────────── */
+    .gruppenmitglied-zeile {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .gruppenmitglied-entfernen-btn {
+      background: none;
+      border: none;
+      font-size: 16px;
+      line-height: 1;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: 4px 6px;
+    }
+
+    .gruppenmitglied-entfernen-btn:hover { color: var(--text-2); }
+
+    /* ── Bestätigungs-Dialog: zentriert statt Bottom-Sheet ───────── */
+    .overlay--zentriert {
+      align-items: center;
+    }
+
+    .bestaetigung-karte {
+      width: 260px;
+      max-width: 82%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .bestaetigung-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-2);
+      text-align: center;
+    }
+
+    .bestaetigung-aktionen {
+      display: flex;
+      gap: 10px;
+    }
+
+    .bestaetigung-aktionen .overlay-btn { flex: 1; }
+
     .gespraechs-liste {
       flex: 1;
       overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
     }
 
     .gespraechs-eintrag {
@@ -142,6 +513,12 @@
       background: var(--bg-hover);
     }
 
+    /* ── Profilbild: Kreis mit Anfangsbuchstabe ──────────────────
+       Keine Farbe, kein Foto – nur Outline (passend zum Bubble-Look)
+       und der Buchstabe. Die Strichstärke (font-variation-settings)
+       wird per JS gesetzt: sie zeigt den gleitenden Mittelwert der
+       für diese Person erfassten Puls-/Zustandswerte, nicht den
+       aktuellen Moment. ── */
     .avatar {
       flex-shrink: 0;
       width: 42px; height: 42px;
@@ -150,8 +527,18 @@
       align-items: center;
       justify-content: center;
       font-size: 16px;
-      color: #666;
+      color: #444;
+      background: transparent;
+      border: 1px solid var(--bubble-outline);
       font-variation-settings: 'wght' 500;
+      transition: border-color 0.4s ease, color 0.4s ease;
+    }
+
+    /* Kleinere Variante für die Chat-Kopfzeile */
+    .avatar--chat {
+      width: 28px; height: 28px;
+      font-size: 12px;
+      margin-right: 2px;
     }
 
     .gespraechs-info {
@@ -220,6 +607,22 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
+
+    /* Avatar + Name als ein tippbares Element – öffnet bei Gruppen
+       die Gruppeninfo; bei 1:1-Chats rein visuell (kein Cursor/Hover). */
+    .chat-partner-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: inherit;
+      cursor: default;
+    }
+
+    .chat-partner-btn--gruppe { cursor: pointer; }
+    .chat-partner-btn--gruppe:hover .kopfzeile-titel { color: var(--text-2); }
 
     .sensor-hinweis {
       font-size: 10px;
@@ -404,8 +807,6 @@
       flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
       padding: 28px 32px;
       display: flex;
       flex-direction: column;
@@ -613,37 +1014,10 @@
 
     #eingabe::placeholder { color: var(--placeholder); }
 
-    /* ── Scrollbalken im Eingabefeld ─────────────────────
-       Nur sichtbar, wenn der Text die Max-Höhe übersteigt.
-       Firefox: scrollbar-width / scrollbar-color
-       Chrome / Edge / Safari: ::-webkit-scrollbar-*       */
-
-    /* Firefox – schmale Variante, Farbe: Daumen / Spur */
-    #eingabe {
-      scrollbar-width: thin;
-      scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
-    }
-
-    /* Breite der Scrollleiste */
-    #eingabe::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    /* Spur: vollständig transparent */
-    #eingabe::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    /* Ziehbalken: schmale, leicht abgerundete Linie */
-    #eingabe::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.18);
-      border-radius: 2px;
-    }
-
-    /* Pfeil-Buttons entfernen */
-    #eingabe::-webkit-scrollbar-button {
-      display: none;
-    }
+    /* Scrollbalken im Eingabefeld (nur sichtbar, wenn der Text die
+       Max-Höhe übersteigt): siehe einheitlichen SCROLLBALKEN-Block
+       oben – #eingabe ist dort mit den übrigen scrollbaren Bereichen
+       zusammengefasst. */
 
     /* ── Emotion-Toggle ───────────────────────────────── */
     .emotion-schalter {
@@ -723,7 +1097,8 @@
     .phone-frame.emotion-an .nachricht-ich .text            { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an .nachricht-ich .text::before    { border-top-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an #eingabe                { color: #d8d6d1; }
-    .phone-frame.emotion-an .avatar                 { background: #282828 !important; color: #777777; }
+    .phone-frame.emotion-an .suche-eingabe          { color: #d8d6d1; }
+    .phone-frame.emotion-an .avatar                 { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
 
     /* ── Bluetooth-Band-Steuerung ─────────────────────────────── */
     .band-steuerung {
@@ -766,36 +1141,145 @@
   <div class="ansicht" id="ansicht-uebersicht">
 
     <header class="kopfzeile-uebersicht">
-      <span class="seitentitel">Gespräche</span>
+      <span class="seitentitel" id="uebersicht-titel">Chats</span>
     </header>
 
-    <main class="gespraechs-liste">
+    <!-- ── Tab-Panel: Chats (1:1-Gespräche) ── -->
+    <div class="tab-inhalt aktiv" id="tab-chats">
 
-      <div class="gespraechs-eintrag" data-name="Anna">
-        <div class="avatar" style="background: #dedad4;">A</div>
+    <div class="suche-bereich">
+      <input class="suche-eingabe" type="text" id="kontakt-suche"
+        placeholder="Kontakt suchen …" autocomplete="off">
+    </div>
+
+    <div class="filter-leiste" id="filter-leiste">
+      <button class="filter-chip filter-chip--aktiv" data-filter="alle">Alle</button>
+      <button class="filter-chip" data-filter="ungelesen">Ungelesen</button>
+      <button class="filter-chip" data-filter="favoriten">Favoriten</button>
+    </div>
+
+    <main class="gespraechs-liste" id="gespraechs-liste">
+
+      <div class="gespraechs-eintrag" data-name="Anna" data-ungelesen data-favorit>
+        <div class="avatar" data-name="Anna">A</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name">Anna</span>
           <span class="gespraechs-vorschau">Schick mir mal einen Screenshot, wenn's fertig ist.</span>
         </div>
       </div>
 
-      <div class="gespraechs-eintrag" data-name="Luca">
-        <div class="avatar" style="background: #d4d9de;">L</div>
+      <div class="gespraechs-eintrag" data-name="Ben" data-ungelesen>
+        <div class="avatar" data-name="Ben">B</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Ben</span>
+          <span class="gespraechs-vorschau">Bin gleich so weit, gib mir 5 Minuten.</span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Clara" data-favorit>
+        <div class="avatar" data-name="Clara">C</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Clara</span>
+          <span class="gespraechs-vorschau">Das klingt nach einem guten Plan.</span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="David">
+        <div class="avatar" data-name="David">D</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">David</span>
+          <span class="gespraechs-vorschau">Wann sollen wir starten?</span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Elena" data-ungelesen data-favorit>
+        <div class="avatar" data-name="Elena">E</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Elena</span>
+          <span class="gespraechs-vorschau">Ich schau's mir heute Abend an.</span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Felix">
+        <div class="avatar" data-name="Felix">F</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Felix</span>
+          <span class="gespraechs-vorschau">Perfekt, bis später!</span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Luca" data-favorit>
+        <div class="avatar" data-name="Luca">L</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name">Luca</span>
           <span class="gespraechs-vorschau">Klingt interessant – wie funktioniert das genau?</span>
         </div>
       </div>
 
-      <div class="gespraechs-eintrag" data-name="Mia">
-        <div class="avatar" style="background: #d4d9d6;">M</div>
+      <div class="gespraechs-eintrag" data-name="Mia" data-ungelesen>
+        <div class="avatar" data-name="Mia">M</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name">Mia</span>
           <span class="gespraechs-vorschau">Hast du schon was zum Zeigen?</span>
         </div>
       </div>
 
+      <div class="gespraechs-eintrag" data-name="Noah">
+        <div class="avatar" data-name="Noah">N</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Noah</span>
+          <span class="gespraechs-vorschau">Können wir das morgen besprechen?</span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Sophie" data-favorit>
+        <div class="avatar" data-name="Sophie">S</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Sophie</span>
+          <span class="gespraechs-vorschau">Danke, hilft mir sehr weiter.</span>
+        </div>
+      </div>
+
     </main>
+    </div><!-- /#tab-chats -->
+
+    <!-- ── Tab-Panel: Gruppen ── -->
+    <div class="tab-inhalt" id="tab-gruppen">
+
+    <div class="gruppen-kopf">
+      <span class="gruppen-kopf-label">Gruppen</span>
+      <button class="neue-gruppe-btn" id="neue-gruppe-oeffnen-btn" title="Neue Gruppe erstellen">+</button>
+    </div>
+
+    <main class="gespraechs-liste" id="gruppen-liste"></main>
+
+    </div><!-- /#tab-gruppen -->
+
+    <!-- ── Tab-Leiste: Chats / Gruppen ── -->
+    <nav class="tab-leiste">
+      <button class="tab-btn tab-btn--aktiv" data-tab="chats">Chats</button>
+      <button class="tab-btn" data-tab="gruppen">Gruppen</button>
+    </nav>
+
+    <!-- ── Kontextmenü: Long-Press auf einen Chat-Eintrag ── -->
+    <div class="kontext-menu" id="kontext-menu">
+      <button class="kontext-menu-eintrag" id="kontext-favorit-btn">Zu Favoriten hinzufügen</button>
+    </div>
+
+    <!-- ── Overlay: Neue Gruppe erstellen ── -->
+    <div class="overlay" id="neue-gruppe-overlay">
+      <div class="overlay-karte">
+        <div class="overlay-kopf">
+          <span class="overlay-titel">Neue Gruppe</span>
+          <button class="overlay-schliessen" id="neue-gruppe-schliessen" aria-label="Schließen">&times;</button>
+        </div>
+        <input class="suche-eingabe" type="text" id="neue-gruppe-name"
+          placeholder="Gruppenname (optional)" autocomplete="off">
+        <div class="kontakt-auswahl-liste" id="kontakt-auswahl-liste"></div>
+        <button class="overlay-btn" id="neue-gruppe-erstellen-btn">Gruppe erstellen</button>
+      </div>
+    </div>
+
   </div>
 
 
@@ -808,7 +1292,10 @@
       <div class="kopfzeile-titelzeile">
         <div class="kopfzeile-links">
           <button class="zurueck-btn" id="zurueck-btn">&#8592;</button>
-          <span class="kopfzeile-titel" id="chat-partner-name">–</span>
+          <button class="chat-partner-btn" id="chat-partner-btn" title="Gruppeninfo anzeigen">
+            <div class="avatar avatar--chat" id="chat-partner-avatar">–</div>
+            <span class="kopfzeile-titel" id="chat-partner-name">–</span>
+          </button>
         </div>
         <div class="band-steuerung">
           <span id="band-bpm-live" class="band-bpm-live" hidden></span>
@@ -921,6 +1408,29 @@
       </div>
     </footer>
 
+    <!-- ── Gruppeninfo: Mitgliederliste + Gruppe löschen ── -->
+    <div class="overlay" id="gruppeninfo-overlay">
+      <div class="overlay-karte">
+        <div class="overlay-kopf">
+          <span class="overlay-titel">Gruppeninfo</span>
+          <button class="overlay-schliessen" id="gruppeninfo-schliessen" aria-label="Schließen">&times;</button>
+        </div>
+        <div class="kontakt-auswahl-liste" id="gruppeninfo-mitglieder-liste"></div>
+        <button class="overlay-btn overlay-btn--gefahr" id="gruppe-loeschen-btn">Gruppe löschen</button>
+      </div>
+    </div>
+
+    <!-- ── Bestätigungs-Dialog: für Mitglied entfernen / Gruppe löschen ── -->
+    <div class="overlay overlay--zentriert" id="bestaetigung-overlay">
+      <div class="bestaetigung-karte">
+        <p class="bestaetigung-text" id="bestaetigung-text">Wirklich?</p>
+        <div class="bestaetigung-aktionen">
+          <button class="overlay-btn" id="bestaetigung-abbrechen-btn">Abbrechen</button>
+          <button class="overlay-btn overlay-btn--gefahr" id="bestaetigung-bestaetigen-btn">Entfernen</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
 </div><!-- /.phone-frame -->
@@ -931,7 +1441,16 @@
   const ansichtUebersicht = document.getElementById('ansicht-uebersicht');
   const ansichtChat       = document.getElementById('ansicht-chat');
   const chatPartnerName   = document.getElementById('chat-partner-name');
+  const chatPartnerAvatar = document.getElementById('chat-partner-avatar');
+  const chatPartnerBtn    = document.getElementById('chat-partner-btn');
   const phoneFrame        = document.getElementById('phone-frame');
+
+  // true, solange die aktuell geöffnete Chat-Ansicht eine Gruppe ist
+  // (statt einer 1:1-Person) – siehe zeigeGruppenChat() weiter unten.
+  // Steuert u. a., ob der Profilbild-Mittelwert aktualisiert wird und
+  // wer beim simulierten "Antwort"-Button als Absender erscheint.
+  let aktuellerChatIstGruppe = false;
+  let aktuelleGruppe         = null;
 
   function zeigeUebersicht() {
     ansichtChat.classList.add('ansicht--versteckt');
@@ -939,18 +1458,494 @@
   }
 
   function zeigeChat(name) {
-    chatPartnerName.textContent = name;
+    aktuellerChatIstGruppe        = false;
+    aktuelleGruppe                = null;
+    chatPartnerName.textContent   = name;
+    chatPartnerAvatar.textContent = name.charAt(0).toUpperCase();
+    chatPartnerAvatar.dataset.name = name;
+    chatPartnerBtn.classList.remove('chat-partner-btn--gruppe');
+    avatarDarstellungAktualisieren(name);
     ansichtUebersicht.classList.add('ansicht--versteckt');
     ansichtChat.classList.remove('ansicht--versteckt');
     // Höhe anpassen, sobald die Ansicht sichtbar ist (scrollHeight = 0 wenn unsichtbar)
     setTimeout(() => { eingabeFeldAnpassen(); eingabe.focus(); }, 210);
   }
 
-  document.querySelectorAll('.gespraechs-eintrag').forEach(function (el) {
-    el.addEventListener('click', function () { zeigeChat(this.dataset.name); });
+  document.getElementById('zurueck-btn').addEventListener('click', zeigeUebersicht);
+
+
+  // ── Chat-Einträge: öffnen per Klick, Kontextmenü per Long-Press ──
+  // Long-Press (Pointer gedrückt halten, ohne zu bewegen) öffnet ein
+  // kleines Menü mit "Zu Favoriten hinzufügen/entfernen" – verknüpft
+  // mit dem data-favorit-Attribut und damit dem Favoriten-Filter oben.
+  // Ein normaler (kurzer) Klick öffnet wie gehabt den Chat.
+  const LANG_DRUCK_MS = 550;
+  let langDruckTimer     = null;
+  let langDruckAusgeloest = false;
+
+  const kontextMenu       = document.getElementById('kontext-menu');
+  const kontextFavoritBtn = document.getElementById('kontext-favorit-btn');
+  let kontextZiel         = null;
+
+  function kontextMenuOeffnen(el, x, y) {
+    kontextZiel = el;
+    kontextFavoritBtn.textContent = el.hasAttribute('data-favorit')
+      ? 'Von Favoriten entfernen'
+      : 'Zu Favoriten hinzufügen';
+    // Innerhalb des Phone-Frames positionieren, nicht über den Rand hinaus
+    const rahmen = phoneFrame.getBoundingClientRect();
+    const menuBreite = 200;
+    kontextMenu.style.left = Math.min(x, rahmen.right - menuBreite - 8) + 'px';
+    kontextMenu.style.top  = Math.min(y, rahmen.bottom - 60) + 'px';
+    kontextMenu.classList.add('sichtbar');
+  }
+
+  function kontextMenuSchliessen() {
+    kontextMenu.classList.remove('sichtbar');
+    kontextZiel = null;
+  }
+
+  kontextFavoritBtn.addEventListener('click', function () {
+    if (!kontextZiel) return;
+    if (kontextZiel.hasAttribute('data-favorit')) {
+      kontextZiel.removeAttribute('data-favorit');
+    } else {
+      kontextZiel.setAttribute('data-favorit', '');
+    }
+    kontextMenuSchliessen();
+    kontaktlisteFiltern(); // Favoriten-Filter sofort aktualisieren, falls aktiv
   });
 
-  document.getElementById('zurueck-btn').addEventListener('click', zeigeUebersicht);
+  document.addEventListener('click', function (e) {
+    if (kontextMenu.classList.contains('sichtbar') && !kontextMenu.contains(e.target)) {
+      kontextMenuSchliessen();
+    }
+  });
+
+  document.querySelectorAll('#gespraechs-liste .gespraechs-eintrag').forEach(function (el) {
+    el.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0 && e.pointerType === 'mouse') return; // nur linke Maustaste
+      langDruckAusgeloest = false;
+      clearTimeout(langDruckTimer);
+      langDruckTimer = setTimeout(function () {
+        langDruckAusgeloest = true;
+        kontextMenuOeffnen(el, e.clientX, e.clientY);
+      }, LANG_DRUCK_MS);
+    });
+
+    el.addEventListener('pointerup', function () { clearTimeout(langDruckTimer); });
+    el.addEventListener('pointerleave', function () { clearTimeout(langDruckTimer); });
+    el.addEventListener('pointercancel', function () { clearTimeout(langDruckTimer); });
+    el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+    el.addEventListener('click', function (e) {
+      if (langDruckAusgeloest) {
+        // Verhindert Öffnen des Chats + Schließen des gerade geöffneten
+        // Kontextmenüs durch den document-weiten Außenklick-Listener.
+        e.stopPropagation();
+        langDruckAusgeloest = false;
+        return;
+      }
+      zeigeChat(this.dataset.name);
+    });
+  });
+
+
+  // ── Kontaktsuche + Filter-Chips: kombinierte Live-Filterung ─────
+  // Reine Anzeige-Filterung (display: none) – ändert weder Reihenfolge
+  // noch Zustand der Einträge, keine Auswirkung auf Profilbild- oder
+  // Typografie-Logik. Suchtext UND aktiver Chip müssen beide passen.
+  const kontaktSuche = document.getElementById('kontakt-suche');
+  let aktiverListenFilter = 'alle'; // 'alle' | 'ungelesen' | 'favoriten'
+
+  function kontaktlisteFiltern() {
+    const suchtext = kontaktSuche.value.trim().toLowerCase();
+    document.querySelectorAll('#gespraechs-liste .gespraechs-eintrag').forEach(function (el) {
+      const passtSuche = el.dataset.name.toLowerCase().includes(suchtext);
+      const passtFilter =
+        aktiverListenFilter === 'ungelesen' ? el.hasAttribute('data-ungelesen') :
+        aktiverListenFilter === 'favoriten' ? el.hasAttribute('data-favorit') :
+        true; // 'alle'
+      el.style.display = (passtSuche && passtFilter) ? '' : 'none';
+    });
+  }
+
+  kontaktSuche.addEventListener('input', kontaktlisteFiltern);
+
+  document.querySelectorAll('#filter-leiste .filter-chip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      document.querySelectorAll('#filter-leiste .filter-chip').forEach(function (c) {
+        c.classList.remove('filter-chip--aktiv');
+      });
+      chip.classList.add('filter-chip--aktiv');
+      aktiverListenFilter = chip.dataset.filter;
+      kontaktlisteFiltern();
+    });
+  });
+
+
+  // ── Tab-Leiste: Chats / Gruppen ─────────────────────────────────
+  // Schaltet nur um, welches der beiden Panels innerhalb der
+  // Übersicht sichtbar ist – keine Auswirkung auf Such-/Filter- oder
+  // Typografie-Logik.
+  const uebersichtTitel = document.getElementById('uebersicht-titel');
+  const tabChats        = document.getElementById('tab-chats');
+  const tabGruppen      = document.getElementById('tab-gruppen');
+
+  function tabAnzeigen(tabName) {
+    const istChats = tabName === 'chats';
+    document.querySelectorAll('.tab-btn').forEach(function (b) {
+      b.classList.toggle('tab-btn--aktiv', b.dataset.tab === tabName);
+    });
+    tabChats.classList.toggle('aktiv', istChats);
+    tabGruppen.classList.toggle('aktiv', !istChats);
+    uebersichtTitel.textContent = istChats ? 'Chats' : 'Gruppen';
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { tabAnzeigen(btn.dataset.tab); });
+  });
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  GRUPPEN – separate Gruppen-Übersicht + Gruppen-Erstellung
+  //
+  //  Eine Gruppe ist { name, mitglieder: [Kontaktname, ...] }. Der
+  //  Gruppen-Avatar zeigt bewusst NUR die Initialen der ersten zwei
+  //  Mitglieder in neutraler Strichstärke – anders als bei 1:1-Chats
+  //  gibt es hier keine EINE Person, deren Puls gemittelt werden
+  //  könnte, darum bleibt das Profilbild-Prinzip (gemittelte
+  //  Strichstärke pro PERSON) unangetastet und wird nicht auf
+  //  Gruppen ausgeweitet.
+  // ═══════════════════════════════════════════════════════════════
+  const gruppenListe = document.getElementById('gruppen-liste');
+
+  let gruppen = [
+    { name: 'Projektteam', mitglieder: ['Anna', 'Luca', 'Mia'] },
+    { name: 'Wochenende',  mitglieder: ['Ben', 'Clara', 'Sophie'] }
+  ];
+
+  function gruppenInitialen(mitglieder) {
+    return mitglieder.slice(0, 2).map(function (n) { return n.charAt(0).toUpperCase(); }).join('');
+  }
+
+  // Baut einen Gruppen-Eintrag (gleiches Markup/Styling wie ein
+  // 1:1-Kontakt) und hängt ihn an die Gruppen-Liste an.
+  function gruppenEintragErstellen(gruppe) {
+    const eintrag = document.createElement('div');
+    eintrag.className = 'gespraechs-eintrag';
+    eintrag.dataset.name   = gruppe.name;
+    eintrag.dataset.gruppe = 'true';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.style.fontSize = '13px';
+    avatar.style.fontVariationSettings = "'wght' 500"; // neutral – keine Personen-Mittelung
+    avatar.textContent = gruppenInitialen(gruppe.mitglieder);
+    eintrag.appendChild(avatar);
+
+    const info = document.createElement('div');
+    info.className = 'gespraechs-info';
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'gespraechs-name';
+    nameEl.textContent = gruppe.name;
+
+    const vorschauEl = document.createElement('span');
+    vorschauEl.className = 'gespraechs-vorschau';
+    vorschauEl.textContent = gruppe.mitglieder.join(', ');
+
+    info.appendChild(nameEl);
+    info.appendChild(vorschauEl);
+    eintrag.appendChild(info);
+
+    eintrag.addEventListener('click', function () { zeigeGruppenChat(gruppe); });
+
+    gruppenListe.appendChild(eintrag);
+  }
+
+  gruppen.forEach(gruppenEintragErstellen);
+
+  // Aktualisiert Avatar-Initialen + Vorschau-Text eines bestehenden
+  // Gruppen-Eintrags in der Übersicht (z. B. nachdem ein Mitglied in
+  // der Gruppeninfo entfernt wurde).
+  function gruppeneintragAktualisieren(gruppe) {
+    const eintrag = gruppenListe.querySelector('.gespraechs-eintrag[data-name="' + CSS.escape(gruppe.name) + '"]');
+    if (!eintrag) return;
+    eintrag.querySelector('.avatar').textContent = gruppenInitialen(gruppe.mitglieder);
+    eintrag.querySelector('.gespraechs-vorschau').textContent = gruppe.mitglieder.join(', ');
+  }
+
+  // Öffnet die bestehende Chat-Ansicht im Gruppen-Modus: Titel und
+  // Avatar zeigen die Gruppe, die reagierende Nachrichten-Typografie
+  // beim Schreiben bleibt exakt dieselbe wie im 1:1-Chat.
+  function zeigeGruppenChat(gruppe) {
+    aktuellerChatIstGruppe = true;
+    aktuelleGruppe         = gruppe;
+    gruppenAntwortIndex    = 0;
+
+    chatPartnerName.textContent   = gruppe.name;
+    chatPartnerAvatar.textContent = gruppenInitialen(gruppe.mitglieder);
+    chatPartnerAvatar.style.fontVariationSettings = "'wght' 500";
+    chatPartnerAvatar.style.fontWeight            = 500;
+    delete chatPartnerAvatar.dataset.name; // keine Zuordnung zu einer Einzelperson
+    chatPartnerBtn.classList.add('chat-partner-btn--gruppe');
+
+    ansichtUebersicht.classList.add('ansicht--versteckt');
+    ansichtChat.classList.remove('ansicht--versteckt');
+    setTimeout(() => { eingabeFeldAnpassen(); eingabe.focus(); }, 210);
+  }
+
+  // Index für die Rotation der simulierten Absender innerhalb einer
+  // Gruppe (siehe antwortBtn-Handler weiter unten).
+  let gruppenAntwortIndex = 0;
+
+
+  // ── Neue Gruppe erstellen: Overlay mit Kontaktauswahl ───────────
+  const neueGruppeOeffnenBtn   = document.getElementById('neue-gruppe-oeffnen-btn');
+  const neueGruppeOverlay      = document.getElementById('neue-gruppe-overlay');
+  const neueGruppeSchliessenBtn = document.getElementById('neue-gruppe-schliessen');
+  const neueGruppeName         = document.getElementById('neue-gruppe-name');
+  const neueGruppeErstellenBtn = document.getElementById('neue-gruppe-erstellen-btn');
+  const kontaktAuswahlListe    = document.getElementById('kontakt-auswahl-liste');
+
+  // Baut die Kontaktauswahl-Checkboxen jedes Mal frisch aus der
+  // aktuellen 1:1-Kontaktliste auf (bleibt so automatisch konsistent,
+  // auch wenn sich die Kontaktliste künftig ändert).
+  function kontaktAuswahlAufbauen() {
+    kontaktAuswahlListe.innerHTML = '';
+    document.querySelectorAll('#gespraechs-liste .gespraechs-eintrag').forEach(function (el) {
+      const name = el.dataset.name;
+
+      const label = document.createElement('label');
+      label.className = 'kontakt-auswahl-eintrag';
+
+      const checkbox = document.createElement('input');
+      checkbox.type  = 'checkbox';
+      checkbox.value = name;
+
+      const span = document.createElement('span');
+      span.textContent = name;
+
+      label.appendChild(checkbox);
+      label.appendChild(span);
+      kontaktAuswahlListe.appendChild(label);
+    });
+  }
+
+  function neueGruppeOeffnen() {
+    kontaktAuswahlAufbauen();
+    neueGruppeName.value = '';
+    neueGruppeOverlay.classList.add('sichtbar');
+  }
+
+  function neueGruppeSchliessen() {
+    neueGruppeOverlay.classList.remove('sichtbar');
+  }
+
+  neueGruppeOeffnenBtn.addEventListener('click', neueGruppeOeffnen);
+  neueGruppeSchliessenBtn.addEventListener('click', neueGruppeSchliessen);
+
+  // Klick auf den abgedunkelten Hintergrund schließt das Overlay
+  // (nicht aber ein Klick auf die Karte selbst).
+  neueGruppeOverlay.addEventListener('click', function (e) {
+    if (e.target === neueGruppeOverlay) neueGruppeSchliessen();
+  });
+
+  neueGruppeErstellenBtn.addEventListener('click', function () {
+    const ausgewaehlt = Array.from(
+      kontaktAuswahlListe.querySelectorAll('input[type="checkbox"]:checked')
+    ).map(function (cb) { return cb.value; });
+
+    if (ausgewaehlt.length < 2) return; // eine Gruppe braucht mind. 2 Mitglieder
+
+    const name = neueGruppeName.value.trim() || ausgewaehlt.join(', ');
+    const gruppe = { name: name, mitglieder: ausgewaehlt };
+    gruppen.push(gruppe);
+    gruppenEintragErstellen(gruppe);
+
+    neueGruppeSchliessen();
+    zeigeGruppenChat(gruppe);
+  });
+
+
+  // ── Bestätigungs-Dialog: generisch für "Mitglied entfernen" und
+  // "Gruppe löschen" – zentrierte Karte statt Bottom-Sheet, damit sie
+  // sich wie bei WhatsApp deutlich vom normalen Overlay abhebt. ──
+  const bestaetigungOverlay       = document.getElementById('bestaetigung-overlay');
+  const bestaetigungText          = document.getElementById('bestaetigung-text');
+  const bestaetigungAbbrechenBtn  = document.getElementById('bestaetigung-abbrechen-btn');
+  const bestaetigungBestaetigenBtn = document.getElementById('bestaetigung-bestaetigen-btn');
+  let bestaetigungCallback = null;
+
+  function bestaetigungAnzeigen(text, aktionLabel, callback) {
+    bestaetigungText.textContent = text;
+    bestaetigungBestaetigenBtn.textContent = aktionLabel;
+    bestaetigungCallback = callback;
+    bestaetigungOverlay.classList.add('sichtbar');
+  }
+
+  function bestaetigungSchliessen() {
+    bestaetigungOverlay.classList.remove('sichtbar');
+    bestaetigungCallback = null;
+  }
+
+  bestaetigungAbbrechenBtn.addEventListener('click', bestaetigungSchliessen);
+
+  bestaetigungBestaetigenBtn.addEventListener('click', function () {
+    const callback = bestaetigungCallback;
+    bestaetigungSchliessen();
+    if (callback) callback();
+  });
+
+  bestaetigungOverlay.addEventListener('click', function (e) {
+    if (e.target === bestaetigungOverlay) bestaetigungSchliessen();
+  });
+
+
+  // ── Gruppeninfo: Mitgliederliste, Mitglied entfernen, Gruppe löschen ──
+  const gruppeninfoOverlay         = document.getElementById('gruppeninfo-overlay');
+  const gruppeninfoSchliessenBtn   = document.getElementById('gruppeninfo-schliessen');
+  const gruppeninfoMitgliederListe = document.getElementById('gruppeninfo-mitglieder-liste');
+  const gruppeLoeschenBtn          = document.getElementById('gruppe-loeschen-btn');
+
+  // Öffnen: Tippen auf Avatar/Name im Chat-Header – nur bei Gruppen aktiv.
+  chatPartnerBtn.addEventListener('click', function () {
+    if (!aktuellerChatIstGruppe) return;
+    gruppeninfoRendern();
+    gruppeninfoOverlay.classList.add('sichtbar');
+  });
+
+  function gruppeninfoSchliessen() {
+    gruppeninfoOverlay.classList.remove('sichtbar');
+  }
+
+  gruppeninfoSchliessenBtn.addEventListener('click', gruppeninfoSchliessen);
+
+  gruppeninfoOverlay.addEventListener('click', function (e) {
+    if (e.target === gruppeninfoOverlay) gruppeninfoSchliessen();
+  });
+
+  // Baut die Mitgliederliste der aktuell geöffneten Gruppe neu auf –
+  // jede Zeile mit Name + "×"-Button zum Entfernen (mit Bestätigung).
+  function gruppeninfoRendern() {
+    gruppeninfoMitgliederListe.innerHTML = '';
+
+    aktuelleGruppe.mitglieder.forEach(function (name) {
+      const zeile = document.createElement('div');
+      zeile.className = 'gruppenmitglied-zeile';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = name;
+
+      const entfernenBtn = document.createElement('button');
+      entfernenBtn.className = 'gruppenmitglied-entfernen-btn';
+      entfernenBtn.textContent = '×';
+      entfernenBtn.title = name + ' aus der Gruppe entfernen';
+      entfernenBtn.addEventListener('click', function () {
+        bestaetigungAnzeigen(
+          name + ' wirklich aus „' + aktuelleGruppe.name + '“ entfernen?',
+          'Entfernen',
+          function () { gruppenmitgliedEntfernen(name); }
+        );
+      });
+
+      zeile.appendChild(nameSpan);
+      zeile.appendChild(entfernenBtn);
+      gruppeninfoMitgliederListe.appendChild(zeile);
+    });
+  }
+
+  function gruppenmitgliedEntfernen(name) {
+    aktuelleGruppe.mitglieder = aktuelleGruppe.mitglieder.filter(function (m) { return m !== name; });
+    gruppeneintragAktualisieren(aktuelleGruppe);
+    chatPartnerAvatar.textContent = gruppenInitialen(aktuelleGruppe.mitglieder);
+    gruppeninfoRendern();
+  }
+
+  gruppeLoeschenBtn.addEventListener('click', function () {
+    bestaetigungAnzeigen(
+      'Willst du die Gruppe „' + aktuelleGruppe.name + '“ wirklich löschen?',
+      'Löschen',
+      gruppeLoeschen
+    );
+  });
+
+  function gruppeLoeschen() {
+    const geloeschteGruppe = aktuelleGruppe;
+    gruppen = gruppen.filter(function (g) { return g !== geloeschteGruppe; });
+
+    const eintrag = gruppenListe.querySelector('.gespraechs-eintrag[data-name="' + CSS.escape(geloeschteGruppe.name) + '"]');
+    if (eintrag) eintrag.remove();
+
+    gruppeninfoSchliessen();
+    zeigeUebersicht();
+    tabAnzeigen('gruppen'); // zeigt sofort, dass die Gruppe verschwunden ist
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  PROFILBILD – Kreis mit Anfangsbuchstabe pro Person
+  //
+  //  Separates, zusätzliches Element: baut auf denselben Puls-/
+  //  Zustandsdaten auf wie die reagierende Nachrichten-Typografie,
+  //  mittelt sie aber GESONDERT und verändert die Nachrichten-Logik
+  //  oben in keiner Weise.
+  //
+  //  Pro Person wird ein gleitender Mittelwert (EMA) der Puls-/
+  //  Intensitätswerte geführt, die beim Schreiben AN diese Person
+  //  erfasst wurden. Der Anfangsbuchstabe im Kreis wird mit genau
+  //  diesem Mittelwert als Strichstärke (font-variation-settings
+  //  'wght') dargestellt – hoher Schnittwert = fetter, ruhiger
+  //  Schnitt = dünner. Persistiert in localStorage, damit sich das
+  //  Bild über mehrere Sitzungen hinweg langsam entwickelt.
+  // ═══════════════════════════════════════════════════════════════
+  const AVATAR_SPEICHER_KEY = 'situativeTypografie_avatarMittelwerte';
+  const AVATAR_EMA_ALPHA     = 0.15; // niedrig = träge/langsame Angleichung
+  const AVATAR_START_WERT    = 500;  // neutraler Startwert (= Regler-Default)
+
+  function avatarMittelwerteLaden() {
+    try {
+      return JSON.parse(localStorage.getItem(AVATAR_SPEICHER_KEY)) || {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  let avatarMittelwerte = avatarMittelwerteLaden();
+
+  function avatarMittelwertVon(name) {
+    return avatarMittelwerte[name] ?? AVATAR_START_WERT;
+  }
+
+  // Setzt die aktuelle Strichstärke (Mittelwert) auf alle Avatar-
+  // Elemente einer Person (Übersicht + ggf. Chat-Kopfzeile).
+  function avatarDarstellungAktualisieren(name) {
+    const wght = Math.round(avatarMittelwertVon(name));
+    document.querySelectorAll('.avatar[data-name="' + CSS.escape(name) + '"]').forEach(function (el) {
+      el.style.fontVariationSettings = "'wght' " + wght;
+      el.style.fontWeight            = wght;
+    });
+  }
+
+  // Faltet einen neuen Puls-/Zustandswert per gleitendem Mittelwert
+  // (EMA) in den bisherigen Durchschnitt dieser Person ein. Wird bei
+  // jeder VON MIR gesendeten Nachricht aufgerufen (siehe Enter-Handler
+  // weiter unten) – nie bei jedem Tastendruck, damit sich das Bild
+  // erst über mehrere Nachrichten hinweg entwickelt statt bei jeder
+  // einzelnen komplett neu berechnet zu werden.
+  function avatarMittelwertAktualisieren(name, neuerPulsWert) {
+    const bisher = avatarMittelwertVon(name);
+    avatarMittelwerte[name] = bisher + (neuerPulsWert - bisher) * AVATAR_EMA_ALPHA;
+    localStorage.setItem(AVATAR_SPEICHER_KEY, JSON.stringify(avatarMittelwerte));
+    avatarDarstellungAktualisieren(name);
+  }
+
+  // Übersicht: alle Avatare direkt beim Laden mit gespeichertem Mittelwert füllen
+  // (nur 1:1-Kontakte – Gruppen-Avatare zeigen bewusst keinen Personen-Mittelwert)
+  document.querySelectorAll('#gespraechs-liste .gespraechs-eintrag').forEach(function (el) {
+    avatarDarstellungAktualisieren(el.dataset.name);
+  });
 
 
   // ── Test-/Demo-Panel: ein-/ausfahrbare Schublade ────────────────
@@ -1365,7 +2360,14 @@
   // ── Nachricht einfügen ────────────────────────────────────────
   // wortSnapshots: bei eigenen Nachrichten ein Array [{achsen, leblos}, ...],
   // ein Eintrag pro Wort (siehe wortZustaendeSynchronisieren weiter oben).
-  function nachrichtHinzufuegen(text, vonMir, wortSnapshots) {
+  // absenderName: nur bei Gruppen-Chats gesetzt (siehe antwortBtn-Handler
+  // weiter unten) – überschreibt für EMPFANGENE Nachrichten den Namen des
+  // jeweils schreibenden Gruppenmitglieds. Jede Nachricht zeigt dabei
+  // weiterhin nur den (neutralen) Anzeigezustand der Person, die sie
+  // gerade "geschrieben" hat – die reagierende Typografie-Logik selbst
+  // bleibt unverändert und bezieht sich ausschließlich auf VON MIR
+  // gesendete Nachrichten.
+  function nachrichtHinzufuegen(text, vonMir, wortSnapshots, absenderName) {
     const wrapper = document.createElement('div');
     wrapper.classList.add('nachricht', vonMir ? 'nachricht-ich' : 'nachricht-andere');
 
@@ -1376,7 +2378,7 @@
 
     const absenderEl = document.createElement('span');
     absenderEl.classList.add('nachricht-absender');
-    absenderEl.textContent = vonMir ? 'Du' : chatPartnerName.textContent;
+    absenderEl.textContent = vonMir ? 'Du' : (absenderName || chatPartnerName.textContent);
     wrapper.appendChild(absenderEl);
 
     const textEl = document.createElement('p');
@@ -1486,6 +2488,16 @@
     }
 
     nachrichtHinzufuegen(text, true, wortSnapshots);
+
+    // ── Profilbild: Puls-/Zustandswert dieser Nachricht in den
+    // gesonderten, gleitenden Mittelwert der Person einfließen lassen
+    // (unabhängig vom Emotion-Toggle – reiner Rohwert der Person).
+    // Bei Gruppen-Chats bewusst übersprungen: es gibt keine EINE Person,
+    // deren Puls hier gemittelt werden könnte (siehe Gruppen-Abschnitt).
+    if (!aktuellerChatIstGruppe) {
+      avatarMittelwertAktualisieren(chatPartnerName.textContent, aktuelleRohwerte.intensitaet);
+    }
+
     eingabe.value = '';
     eingabeFeldAnpassen();         // Höhe nach dem Leeren zurücksetzen
 
@@ -1534,7 +2546,17 @@
 
   antwortBtn.addEventListener('click', function () {
     if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) return;
-    nachrichtHinzufuegen(vorgegebeneNachrichten[naechsteAntwortIndex], false);
+
+    // In Gruppen rotiert der Absender durch die Mitgliederliste – jede
+    // simulierte Nachricht "gehört" so einer anderen Person der Gruppe,
+    // exakt wie im 1:1-Chat aber ohne festen Gesprächspartner-Namen.
+    let absender;
+    if (aktuellerChatIstGruppe && aktuelleGruppe && aktuelleGruppe.mitglieder.length) {
+      absender = aktuelleGruppe.mitglieder[gruppenAntwortIndex % aktuelleGruppe.mitglieder.length];
+      gruppenAntwortIndex++;
+    }
+
+    nachrichtHinzufuegen(vorgegebeneNachrichten[naechsteAntwortIndex], false, null, absender);
     naechsteAntwortIndex++;
     if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) {
       antwortBtn.disabled    = true;
