@@ -13,6 +13,65 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     /* ══════════════════════════════════════════════════════════════
+       PULS-SCHRIFTSCHNITTE – 7 statische Situra-Schnitte (kein
+       Variable Font). Jeder Schnitt hat einen eigenen font-family-
+       Namen und wird bewusst mit font-weight:400 registriert, damit
+       kein Browser versucht, zusätzlich synthetisch fett/kursiv zu
+       rendern – der jeweilige Schnitt selbst trägt die Strichstärke.
+       Reihenfolge dünn → fett, siehe intensitaetZuSchriftschnitt()
+       weiter unten im Script.
+       ══════════════════════════════════════════════════════════════ */
+    @font-face {
+      font-family: 'Situra-Thin';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Light';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Regular';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Medium';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-SemiBold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Bold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Black';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
        FARBWELTEN – als CSS-Custom-Properties auf .phone-frame
        Zum Anpassen: nur die Werte hier ändern, der Rest folgt.
 
@@ -1964,10 +2023,35 @@
   //  MAPPING-FUNKTION
   //  Wandelt 4 Rohwerte (je 100–900) in typografische Parameter um.
   // ═══════════════════════════════════════════════════════════════
+  // 7 statische Situra-Schnitte, dünn → fett (siehe @font-face oben).
+  // Ersetzt die frühere Variable-Font-Achse 'wght': der 100–900-
+  // Intensitäts-Rohwert (Slider oder Puls-Band, siehe BAND_BPM_MIN/MAX
+  // weiter unten) wird in 7 gleich große Stufen geteilt – jede Stufe
+  // zeigt GENAU einen Schnitt, kein fließendes Überblenden dazwischen.
+  const SITURA_SCHRIFTSCHNITTE = [
+    'Situra-Thin',
+    'Situra-Light',
+    'Situra-Regular',
+    'Situra-Medium',
+    'Situra-SemiBold',
+    'Situra-Bold',
+    'Situra-Black'
+  ];
+
+  function intensitaetZuSchriftschnitt(intensitaet) {
+    const stufenBreite = 800 / SITURA_SCHRIFTSCHNITTE.length; // (900−100) / 7
+    const index = Math.min(
+      SITURA_SCHRIFTSCHNITTE.length - 1,
+      Math.max(0, Math.floor((intensitaet - 100) / stufenBreite))
+    );
+    return SITURA_SCHRIFTSCHNITTE[index];
+  }
+
   function sensorZuSchriftAchse(rohwerte) {
 
-    // Intensität → font-weight (echte Inter-Achse 'wght')
-    const wght = Math.min(900, Math.max(100, Math.round(rohwerte.intensitaet)));
+    // Intensität → statischer Schriftschnitt (echtes Umschalten
+    // zwischen 7 Dateien statt fließender Gewichts-Verschiebung)
+    const schriftschnitt = intensitaetZuSchriftschnitt(rohwerte.intensitaet);
 
     // BEHELF – Tempo → letter-spacing (−0.04 em … 0.12 em)
     const spacing = umrechnen(rohwerte.tempo, 100, 900, -0.04, 0.12);
@@ -2008,7 +2092,7 @@
     const TRANSPARENZ_MIN = 0.35; // ← nachjustieren: Minimum bei Atemfrequenz 100
     const transparenz = umrechnen(rohwerte.atemfrequenz, 100, 900, TRANSPARENZ_MIN, 1);
 
-    return { wght, spacing, einblendDauer, wobble, wobbleRot, oblique, blur, transparenz };
+    return { schriftschnitt, spacing, einblendDauer, wobble, wobbleRot, oblique, blur, transparenz };
   }
 
   function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
@@ -2090,9 +2174,10 @@
   // Alle typografischen Parameter auf ein Element anwenden (Einfrieren beim Senden).
   // Die Werte werden als Snapshot eingefroren – danach nie mehr verändert.
   function stilAnwenden(element, achsen) {
-    // Intensität → font-weight (echte Inter-Achse 'wght')
-    element.style.fontVariationSettings = `'wght' ${achsen.wght}`;
-    element.style.fontWeight            = achsen.wght;
+    // Intensität → statischer Schriftschnitt (7 feste Situra-Dateien,
+    // echtes Umschalten statt Variable-Font-Achse). Fällt auf Inter
+    // zurück, falls eine Datei nicht lädt.
+    element.style.fontFamily = `'${achsen.schriftschnitt}', 'Inter', sans-serif`;
 
     // BEHELF – Tempo → letter-spacing
     // Tempo steuert NICHT das Zittern – nur Laufweite und Einblend-Speed.
@@ -2118,8 +2203,8 @@
   // Setzt ein Element auf den neutralen "leblosen" Zustand zurück
   // (Emotion war AUS oder dieses Wort wurde eingefügt/Paste).
   function stilNeutralAnwenden(element) {
-    element.style.fontVariationSettings = "'wght' 400";
-    element.style.fontWeight            = 400;
+    // Neutraler Zustand entspricht dem mittleren Schnitt der 7-stufigen Skala
+    element.style.fontFamily            = "'Situra-Regular', 'Inter', sans-serif";
     element.style.letterSpacing         = '0em';
     element.style.fontStyle             = 'normal';
     element.style.transform             = 'none';

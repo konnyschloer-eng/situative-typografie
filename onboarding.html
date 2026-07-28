@@ -106,19 +106,6 @@
       transform: scale(1.3);
     }
 
-    #ueberspringen-btn {
-      background: none;
-      border: none;
-      font-family: inherit;
-      font-size: 13px;
-      color: var(--text-2);
-      letter-spacing: 0.02em;
-      cursor: pointer;
-      padding: 4px 2px;
-    }
-
-    #ueberspringen-btn:hover { color: var(--text); }
-
     /* ── Schritt-Bühne ────────────────────────────────────────────── */
     .buehne {
       position: relative;
@@ -306,6 +293,95 @@
     #weiter-btn:hover { opacity: 0.88; }
     #weiter-btn:active { transform: scale(0.98); }
 
+    /* Schlichter Text-Button (Überspringen / Später verbinden) */
+    .link-btn {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text-2);
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      padding: 4px 2px;
+    }
+
+    .link-btn:hover { color: var(--text); }
+
+    /* ══════════════════════════════════════════════════════════════
+       ZUSÄTZLICHER SCREEN – Gerät verbinden (nach dem letzten
+       Erklär-Schritt, vor dem Chat). Eigene volle Ansicht, ersetzt
+       vollständig .onboarding-view (inkl. Fortschritt/Überspringen-
+       Kopf) – analog zum Umschalten zwischen den Erklär-Schritten.
+       ══════════════════════════════════════════════════════════════ */
+    .onboarding-view,
+    .bluetooth-view {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .onboarding-view.aktiv,
+    .bluetooth-view.aktiv { display: flex; }
+
+    .bluetooth-aktionen {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    /* Outline-Variante des primären Buttons – zwei gleichwertige
+       Optionen (Armband/Uhr), keine davon ist "die" Hauptaktion. */
+    .bluetooth-btn {
+      width: 100%;
+      background: none;
+      border: 1px solid var(--btn-rand);
+      color: var(--text);
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 14px;
+      font-variation-settings: 'wght' 500;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      padding: 13px 0;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+    }
+
+    .bluetooth-btn:hover { background: var(--karte-rand); }
+    .bluetooth-btn:active { transform: scale(0.98); }
+    .bluetooth-btn:disabled { opacity: 0.4; cursor: default; }
+
+    .bluetooth-btn.verbunden {
+      border-color: var(--punkt-aktiv);
+      color: var(--punkt-aktiv);
+    }
+
+    .bluetooth-hinweis {
+      font-size: 12px;
+      color: var(--text-2);
+      margin-top: 18px;
+      font-style: italic;
+      min-height: 1.4em;
+    }
+
+    .bluetooth-view .onboarding-fuss { text-align: center; }
+
+    /* Eigene Klasse statt .schritt/.schritt--aktiv: verhindert, dass
+       dieser Screen versehentlich in die Tutorial-Schritt-Logik
+       (schritte-Array, Punkte-Indizes) mit hineingezählt wird –
+       visuell identisch zentriert/positioniert wie ein Erklär-Schritt. */
+    .bt-schritt {
+      position: absolute;
+      inset: 18px 24px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
     /* ── Barrierefreiheit: reduzierte Bewegung ───────────────────── */
     @media (prefers-reduced-motion: reduce) {
       [data-einblenden], .demo-wort, .zittern-buchstabe {
@@ -319,6 +395,8 @@
 <body>
 <div class="phone-frame" id="phone-frame">
 
+  <div class="onboarding-view aktiv" id="onboarding-view">
+
   <div class="onboarding-kopf">
     <div class="fortschritt" id="fortschritt">
       <span class="punkt punkt--aktiv" data-index="0"></span>
@@ -329,7 +407,7 @@
       <span class="punkt" data-index="5"></span>
       <span class="punkt" data-index="6"></span>
     </div>
-    <button id="ueberspringen-btn">Überspringen</button>
+    <button id="ueberspringen-btn" class="link-btn">Überspringen</button>
   </div>
 
   <div class="buehne" id="buehne">
@@ -460,6 +538,49 @@
     <button id="weiter-btn">Weiter</button>
   </div>
 
+  </div><!-- /.onboarding-view -->
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ZUSÄTZLICHER SCREEN – Gerät verbinden
+       Erscheint nach dem letzten Erklär-Schritt (bzw. nach
+       "Überspringen"), bevor es in den Chat geht. Nutzt dieselbe
+       Web-Bluetooth-Verbindungsmethode wie in chat.html (Heart Rate
+       Service) – Armband und Uhr unterscheiden sich nur im Label.
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="bluetooth-view" id="bluetooth-view">
+
+    <div class="buehne">
+      <section class="bt-schritt">
+        <div class="karte">
+          <span class="schritt-eyebrow">Fast geschafft</span>
+          <div class="schritt-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="7" y="7" width="10" height="10" rx="3"/>
+              <path d="M9.5 3.5h5M9.5 20.5h5"/>
+              <path d="M12 10v2.4l1.6 1.1"/>
+            </svg>
+          </div>
+          <h1 class="schritt-titel">Gerät verbinden</h1>
+          <p class="schritt-text">
+            Verbinde dein Armband oder deine Uhr, um loszulegen.
+          </p>
+
+          <div class="bluetooth-aktionen">
+            <button class="bluetooth-btn" id="bt-armband-btn">Armband verbinden</button>
+            <button class="bluetooth-btn" id="bt-uhr-btn">Uhr verbinden</button>
+          </div>
+
+          <p class="bluetooth-hinweis" id="bluetooth-hinweis"></p>
+        </div>
+      </section>
+    </div>
+
+    <div class="onboarding-fuss">
+      <button id="bt-spaeter-btn" class="link-btn">Später verbinden</button>
+    </div>
+
+  </div><!-- /.bluetooth-view -->
+
 </div>
 
 <script>
@@ -537,13 +658,15 @@
 
   weiterBtn.addEventListener('click', function () {
     if (aktuellerIndex === totalSchritte - 1) {
-      zuChat();
+      geraeteVerbindenAnzeigen();
     } else {
       schrittAnzeigen(aktuellerIndex + 1);
     }
   });
 
-  ueberspringenBtn.addEventListener('click', zuChat);
+  // "Überspringen" lässt nur die Erklär-Tour aus – der Verbinden-Schritt
+  // davor bleibt trotzdem bestehen (eigene Entscheidung, siehe unten).
+  ueberspringenBtn.addEventListener('click', geraeteVerbindenAnzeigen);
 
   punkte.forEach((punkt, i) => {
     punkt.addEventListener('click', () => schrittAnzeigen(i));
@@ -556,6 +679,76 @@
 
   // Erste Einblend-Animation auslösen
   schrittAnzeigen(0);
+
+
+  // ══════════════════════════════════════════════════════════════
+  //  ZUSÄTZLICHER SCREEN – Gerät verbinden
+  //
+  //  Ersetzt die Erklär-Tour vollständig durch den Verbinden-Screen.
+  //  Die Verbindungsmethode selbst (Web Bluetooth, Heart-Rate-
+  //  Service) ist exakt dieselbe wie in chat.html: Armband und Uhr
+  //  sind technisch dasselbe Geräteprofil, nur das Label am Button
+  //  unterscheidet sich. Die eigentliche Live-Nutzung der Verbindung
+  //  (BPM-Anzeige, Mapping auf Intensität) bleibt vollständig in
+  //  chat.html – dort muss beim Ankommen ggf. erneut verbunden
+  //  werden, weil Web Bluetooth keine Verbindung über einen
+  //  Seitenwechsel hinweg offen hält.
+  // ══════════════════════════════════════════════════════════════
+  const onboardingView   = document.getElementById('onboarding-view');
+  const bluetoothView    = document.getElementById('bluetooth-view');
+  const btArmbandBtn     = document.getElementById('bt-armband-btn');
+  const btUhrBtn         = document.getElementById('bt-uhr-btn');
+  const btSpaeterBtn     = document.getElementById('bt-spaeter-btn');
+  const bluetoothHinweis = document.getElementById('bluetooth-hinweis');
+
+  function geraeteVerbindenAnzeigen() {
+    onboardingView.classList.remove('aktiv');
+    bluetoothView.classList.add('aktiv');
+  }
+
+  function bluetoothHinweisZeigen(text) {
+    bluetoothHinweis.textContent = text;
+  }
+
+  async function geraetVerbinden(button, anderesBtn) {
+    if (!navigator.bluetooth) {
+      bluetoothHinweisZeigen('Web Bluetooth wird in diesem Browser nicht unterstützt – du kannst später verbinden.');
+      return;
+    }
+
+    button.disabled = true;
+    anderesBtn.disabled = true;
+    bluetoothHinweisZeigen('Suche nach Gerät …');
+
+    try {
+      // Identische Verbindungsmethode wie der "Band verbinden"-Button
+      // im Chat (Heart Rate Service, UUID 0x180D).
+      const geraet = await navigator.bluetooth.requestDevice({
+        filters: [{ services: ['heart_rate'] }]
+      });
+      const server = await geraet.gatt.connect();
+      await server.getPrimaryService('heart_rate');
+
+      button.classList.add('verbunden');
+      button.textContent = 'Verbunden ✓';
+      bluetoothHinweisZeigen('Verbunden – weiter geht’s.');
+      setTimeout(zuChat, 700);
+
+    } catch (err) {
+      button.disabled = false;
+      anderesBtn.disabled = false;
+      if (err.name === 'NotFoundError') {
+        bluetoothHinweisZeigen(''); // Nutzer hat den Geräte-Dialog abgebrochen
+      } else {
+        bluetoothHinweisZeigen('Verbindung fehlgeschlagen – versuch es erneut oder verbinde später.');
+        console.error('[Bluetooth]', err);
+      }
+    }
+  }
+
+  btArmbandBtn.addEventListener('click', function () { geraetVerbinden(btArmbandBtn, btUhrBtn); });
+  btUhrBtn.addEventListener('click', function () { geraetVerbinden(btUhrBtn, btArmbandBtn); });
+  btSpaeterBtn.addEventListener('click', zuChat);
 </script>
 </body>
 </html>
