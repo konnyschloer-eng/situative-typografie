@@ -216,6 +216,42 @@
        ANSICHT 1 – GESPRÄCHSÜBERSICHT
        ══════════════════════════════════════════════════════ */
 
+    /* ── App-Kopfzeile: Name/Logo-Platzhalter + Menü-Symbol ──────
+       Oberste Zeile der Übersicht, sitzt über der bestehenden
+       Chats/Gruppen-Titelzeile. Rein strukturell/Platzhalter –
+       Menü-Button hat bewusst keine Funktion hinterlegt. ── */
+    .app-kopfzeile {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px 6px;
+    }
+
+    .app-name {
+      font-size: 17px;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      color: #222;
+      letter-spacing: -0.01em;
+    }
+
+    .menu-btn {
+      flex-shrink: 0;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: none;
+      background: none;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .menu-btn:hover { background: var(--bg-hover); color: #222; }
+
+    .menu-btn svg { width: 18px; height: 18px; }
+
     .kopfzeile-uebersicht {
       flex-shrink: 0;
       height: 52px;
@@ -284,7 +320,7 @@
       background: var(--accent);
       border-color: var(--accent);
       color: var(--bg);
-      font-family: 'Situra-SemiBold', 'Inter', sans-serif;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
     }
 
     .filter-chip--aktiv:hover { border-color: var(--accent); }
@@ -327,7 +363,7 @@
 
     .tab-btn--aktiv {
       color: #222;
-      font-family: 'Situra-SemiBold', 'Inter', sans-serif;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
     }
 
     .phone-frame.emotion-an .tab-btn--aktiv { color: #d8d6d1; }
@@ -558,7 +594,7 @@
 
     .gespraechs-eintrag {
       display: flex;
-      align-items: center;
+      align-items: stretch;
       gap: 14px;
       padding: 14px 20px;
       border-bottom: 1px solid var(--border-light);
@@ -579,6 +615,7 @@
        nicht den aktuellen Moment. Fallback unten = Wert 500 (Medium). ── */
     .avatar {
       flex-shrink: 0;
+      align-self: center; /* bleibt vertikal zentriert, unabhängig vom stretch der Zeile */
       width: 42px; height: 42px;
       border-radius: 50%;
       display: flex;
@@ -603,13 +640,19 @@
       display: flex;
       flex-direction: column;
       gap: 2px;
+      /* flex:1 1 0 statt nur min-width:0 – füllt IMMER exakt den
+         verbleibenden Platz zwischen Avatar und Meta-Spalte, unabhängig
+         von der Textlänge. Dadurch endet .gespraechs-meta in jeder
+         Zeile an derselben rechten Kante statt je nach Inhalt zu
+         schwanken. */
+      flex: 1 1 0;
       min-width: 0;
     }
 
     .gespraechs-name {
       font-size: 14px;
       color: #222; /* bleibt konstant – Lesbarkeit */
-      font-family: 'Situra-SemiBold', 'Inter', sans-serif;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
     }
 
     .gespraechs-vorschau {
@@ -618,6 +661,41 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    /* ── Rechte Spalte: Uhrzeit der letzten Nachricht + Ungelesen-
+       Punkt darunter. flex-shrink:0 hält die Spalte auf fester
+       Breite, wodurch .gespraechs-info (s.o., min-width:0) den
+       verbleibenden Platz nimmt und korrekt ellipsiert.
+       Durch align-items:stretch auf .gespraechs-eintrag (s.o.) hat
+       diese Spalte dieselbe Höhe wie .gespraechs-info – justify-
+       content:space-between verankert die Uhrzeit fest oben (auf
+       Höhe des Namens) und den Punkt (falls vorhanden) fest unten
+       (auf Höhe der Vorschau), statt frei zu schweben. ── */
+    .gespraechs-meta {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 7px;
+    }
+
+    .gespraechs-zeit {
+      font-size: 11px;
+      color: var(--text-3);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Ungelesen-Indikator: reines Weiß (Vorgabe), mit dünner Outline
+       in var(--border) – dieselbe Outline-Konvention wie Avatar-Kreise
+       und Buttons – damit der Punkt im hellen Modus auf dem hellen
+       Hintergrund nicht in den Konturen verschwindet. */
+    .ungelesen-punkt {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 1px solid var(--border);
     }
 
 
@@ -1144,6 +1222,7 @@
 
     /* ── Invertierter Modus (Emotion AN): helle Schrift auf dunklem Grund ── */
     /* Überschreibt hartcodierte Farben, die nicht über CSS-Variablen laufen.  */
+    .phone-frame.emotion-an .app-name              { color: #d8d6d1; }
     .phone-frame.emotion-an .gespraechs-name       { color: #d8d6d1; }
     .phone-frame.emotion-an .nachricht-andere .text         { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an .nachricht-andere .text::before { border-top-color: rgba(255,255,255,0.7); }
@@ -1192,6 +1271,15 @@
        ══════════════════════════════════════════════════════ -->
   <div class="ansicht" id="ansicht-uebersicht">
 
+    <header class="app-kopfzeile">
+      <span class="app-name">Situative Typografie</span>
+      <button class="menu-btn" aria-label="Menü" title="Menü">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 7h16M4 12h16M4 17h16"/>
+        </svg>
+      </button>
+    </header>
+
     <header class="kopfzeile-uebersicht">
       <span class="seitentitel" id="uebersicht-titel">Chats</span>
     </header>
@@ -1218,6 +1306,10 @@
           <span class="gespraechs-name">Anna</span>
           <span class="gespraechs-vorschau">Schick mir mal einen Screenshot, wenn's fertig ist.</span>
         </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">09:41</span>
+          <span class="ungelesen-punkt"></span>
+        </div>
       </div>
 
       <div class="gespraechs-eintrag" data-name="Ben" data-ungelesen>
@@ -1225,6 +1317,10 @@
         <div class="gespraechs-info">
           <span class="gespraechs-name">Ben</span>
           <span class="gespraechs-vorschau">Bin gleich so weit, gib mir 5 Minuten.</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">09:12</span>
+          <span class="ungelesen-punkt"></span>
         </div>
       </div>
 
@@ -1234,6 +1330,9 @@
           <span class="gespraechs-name">Clara</span>
           <span class="gespraechs-vorschau">Das klingt nach einem guten Plan.</span>
         </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">Gestern</span>
+        </div>
       </div>
 
       <div class="gespraechs-eintrag" data-name="David">
@@ -1241,6 +1340,9 @@
         <div class="gespraechs-info">
           <span class="gespraechs-name">David</span>
           <span class="gespraechs-vorschau">Wann sollen wir starten?</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">Gestern</span>
         </div>
       </div>
 
@@ -1250,6 +1352,10 @@
           <span class="gespraechs-name">Elena</span>
           <span class="gespraechs-vorschau">Ich schau's mir heute Abend an.</span>
         </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">07:58</span>
+          <span class="ungelesen-punkt"></span>
+        </div>
       </div>
 
       <div class="gespraechs-eintrag" data-name="Felix">
@@ -1257,6 +1363,9 @@
         <div class="gespraechs-info">
           <span class="gespraechs-name">Felix</span>
           <span class="gespraechs-vorschau">Perfekt, bis später!</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">Mo</span>
         </div>
       </div>
 
@@ -1266,6 +1375,9 @@
           <span class="gespraechs-name">Luca</span>
           <span class="gespraechs-vorschau">Klingt interessant – wie funktioniert das genau?</span>
         </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">So</span>
+        </div>
       </div>
 
       <div class="gespraechs-eintrag" data-name="Mia" data-ungelesen>
@@ -1273,6 +1385,10 @@
         <div class="gespraechs-info">
           <span class="gespraechs-name">Mia</span>
           <span class="gespraechs-vorschau">Hast du schon was zum Zeigen?</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">08:03</span>
+          <span class="ungelesen-punkt"></span>
         </div>
       </div>
 
@@ -1282,6 +1398,9 @@
           <span class="gespraechs-name">Noah</span>
           <span class="gespraechs-vorschau">Können wir das morgen besprechen?</span>
         </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">Fr</span>
+        </div>
       </div>
 
       <div class="gespraechs-eintrag" data-name="Sophie" data-favorit>
@@ -1289,6 +1408,9 @@
         <div class="gespraechs-info">
           <span class="gespraechs-name">Sophie</span>
           <span class="gespraechs-vorschau">Danke, hilft mir sehr weiter.</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">Do</span>
         </div>
       </div>
 
@@ -1517,10 +1639,28 @@
     chatPartnerAvatar.dataset.name = name;
     chatPartnerBtn.classList.remove('chat-partner-btn--gruppe');
     avatarDarstellungAktualisieren(name);
+    alsGelesenMarkieren(name);
     ansichtUebersicht.classList.add('ansicht--versteckt');
     ansichtChat.classList.remove('ansicht--versteckt');
     // Höhe anpassen, sobald die Ansicht sichtbar ist (scrollHeight = 0 wenn unsichtbar)
     setTimeout(() => { eingabeFeldAnpassen(); eingabe.focus(); }, 210);
+  }
+
+  // Markiert den Kontakt-Eintrag in der Übersicht als gelesen: entfernt
+  // das data-ungelesen-Attribut (Grundlage des "Ungelesen"-Filters) und
+  // den sichtbaren Punkt in der Liste. Wird beim Öffnen des Chats
+  // aufgerufen – rein Listen-Anzeige, keine Auswirkung auf Typografie.
+  function alsGelesenMarkieren(name) {
+    const eintrag = document.querySelector(
+      '#gespraechs-liste .gespraechs-eintrag[data-name="' + CSS.escape(name) + '"]'
+    );
+    if (!eintrag || !eintrag.hasAttribute('data-ungelesen')) return;
+
+    eintrag.removeAttribute('data-ungelesen');
+    const punkt = eintrag.querySelector('.ungelesen-punkt');
+    if (punkt) punkt.remove();
+
+    kontaktlisteFiltern(); // "Ungelesen"-Filter sofort aktualisieren, falls gerade aktiv
   }
 
   document.getElementById('zurueck-btn').addEventListener('click', zeigeUebersicht);
@@ -1710,6 +1850,17 @@
     info.appendChild(nameEl);
     info.appendChild(vorschauEl);
     eintrag.appendChild(info);
+
+    // Rechte Spalte (Uhrzeit) – gleiches Layout wie 1:1-Kontakte, aus
+    // Konsistenzgründen ohne Ungelesen-Punkt (keine Nachrichten-
+    // Historie für neu erstellte Gruppen vorhanden).
+    const meta = document.createElement('div');
+    meta.className = 'gespraechs-meta';
+    const zeitEl = document.createElement('span');
+    zeitEl.className = 'gespraechs-zeit';
+    zeitEl.textContent = 'Jetzt';
+    meta.appendChild(zeitEl);
+    eintrag.appendChild(meta);
 
     eintrag.addEventListener('click', function () { zeigeGruppenChat(gruppe); });
 

@@ -13,6 +13,62 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     /* ══════════════════════════════════════════════════════════════
+       PULS-SCHRIFTSCHNITTE – 7 statische Situra-Schnitte (kein
+       Variable Font), identisch zu chat.html eingebunden, damit die
+       ganze App denselben Font-Stack nutzt. Hier rein statisch für
+       Überschriften/Buttons/Fließtext – keine Puls-Umschaltung auf
+       dieser Seite. ══════════════════════════════════════════════ */
+    @font-face {
+      font-family: 'Situra-Thin';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Light';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Regular';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Medium';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-SemiBold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Bold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Black';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
        FARBWELTEN – reiner Schwarz/Weiß-Kontrast, automatisch nach
        Systemeinstellung (prefers-color-scheme). Hell: schwarze
        Schrift auf Weiß. Dunkel: weiße Schrift auf Schwarz.
@@ -50,7 +106,7 @@
 
     body {
       background: #e8e6e1;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -161,8 +217,7 @@
 
     .schritt-titel {
       font-size: 26px;
-      font-variation-settings: 'wght' 700;
-      font-weight: 700;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
       letter-spacing: -0.01em;
       margin-bottom: 16px;
     }
@@ -171,7 +226,6 @@
       font-size: 16px;
       line-height: 1.55;
       color: var(--text-2);
-      font-variation-settings: 'wght' 400;
       max-width: 30ch;
     }
 
@@ -192,10 +246,16 @@
 
     /* ── Selbst-demonstrierende Wörter ───────────────────────────
        Jedes Wort zeigt beim Erscheinen genau die typografische
-       Eigenschaft, die der Satz ihm zuschreibt. */
+       Eigenschaft, die der Satz ihm zuschreibt. Bewusst explizit auf
+       Inter gepinnt (statt den Situra-Regular-Body-Default zu erben):
+       Situra ist ein statischer Schnitt ohne 'wght'-Achse – die
+       @keyframes unten (demoGewicht, demoForm, …) animieren
+       font-variation-settings/letter-spacing/oblique kontinuierlich
+       und funktionieren nur mit einer echten Variable Font. */
     .demo-wort {
       display: inline-block;
       color: var(--text);
+      font-family: 'Inter', sans-serif;
     }
 
     /* Intensität → Schriftstärke (wght) */
@@ -280,10 +340,8 @@
       color: var(--btn-text);
       border: 1px solid var(--btn-rand);
       border-radius: 999px;
-      font-family: inherit;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
       font-size: 15px;
-      font-variation-settings: 'wght' 600;
-      font-weight: 600;
       letter-spacing: 0.01em;
       padding: 15px 0;
       cursor: pointer;
@@ -340,10 +398,8 @@
       border: 1px solid var(--btn-rand);
       color: var(--text);
       border-radius: 999px;
-      font-family: inherit;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
       font-size: 14px;
-      font-variation-settings: 'wght' 500;
-      font-weight: 500;
       letter-spacing: 0.01em;
       padding: 13px 0;
       cursor: pointer;
