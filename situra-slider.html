@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Situra – Schrift mit Puls</title>
+
+  <style>
+    /* ══════════════════════════════════════════════════════════════
+       PULS-SCHRIFTSCHNITTE – 7 statische Situra-Schnitte (kein
+       Variable Font). Identische Einbindung wie in chat.html: jeder
+       Schnitt ein eigener font-family-Name, bewusst mit font-weight:
+       400 registriert, damit kein Browser zusätzlich synthetisch
+       fett/kursiv rendert – der Schnitt selbst trägt die Strichstärke.
+       ══════════════════════════════════════════════════════════════ */
+    @font-face {
+      font-family: 'Situra-Thin';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Light';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Regular';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Medium';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-SemiBold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Bold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Black';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --bg:     #0a0a0a;
+      --fg:     #ffffff;
+      --grau:   #8a8a8a;
+      --grau-2: #4a4a4a;
+      --linie:  #2a2a2a;
+    }
+
+    html { background: var(--bg); }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Hero: kurzer Claim + Produktbeschreibung ─────────────────
+       Mutig, groß, viel Weißraum – reine Haltung, keine Fremdfarben. */
+    .hero {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: clamp(64px, 14vh, 140px) 28px clamp(48px, 8vh, 88px);
+    }
+
+    .eyebrow {
+      display: block;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--grau);
+      margin-bottom: 22px;
+    }
+
+    .hero h1 {
+      margin: 0 0 26px;
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: clamp(2.6rem, 8vw, 5.2rem);
+      line-height: 0.98;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 54ch;
+      font-size: clamp(1rem, 1.6vw, 1.2rem);
+      line-height: 1.6;
+      color: #cfcfcf;
+    }
+
+    /* ── Sektionen: eine pro Matrix-Dimension ─────────────────────
+       Editorial/Poster-Rhythmus: dünne Trennlinie, große Nummer,
+       großer Titel, kurze Erklärung – dann die Bühne + der Regler. */
+    .dimension {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: clamp(56px, 9vh, 96px) 28px;
+      border-top: 1px solid var(--linie);
+    }
+
+    .dimension-kopf {
+      display: flex;
+      align-items: baseline;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+
+    .dimension-nr {
+      font-family: 'Situra-Light', 'Inter', sans-serif;
+      font-size: 15px;
+      letter-spacing: 0.05em;
+      color: var(--grau-2);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dimension-kopf h2 {
+      margin: 0;
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: clamp(1.8rem, 4.4vw, 2.6rem);
+      letter-spacing: -0.01em;
+    }
+
+    .dimension-text {
+      margin: 0 0 clamp(36px, 6vh, 56px);
+      max-width: 46ch;
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--grau);
+    }
+
+    /* ── Bühne: das reagierende Beispielwort ──────────────────────
+       Feste Mindesthöhe, damit Blur/Zittern/Transform keinen
+       Layout-Sprung verursachen. */
+    .dimension-buehne {
+      min-height: clamp(120px, 20vw, 190px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 0;
+    }
+
+    .dimension-wort {
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: clamp(3.2rem, 11vw, 6.4rem);
+      line-height: 1;
+      letter-spacing: -0.01em;
+      color: var(--fg);
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    /* Einzelbuchstaben im Zitter-Beispiel brauchen inline-block,
+       damit transform auf sie wirkt. */
+    .zitter-buchstabe { display: inline-block; }
+
+    @keyframes situraZittern {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25%      { transform: translate(var(--amp, 0px), calc(var(--amp, 0px) * -1)) rotate(calc(var(--rot, 0deg) * -1)); }
+      50%      { transform: translate(calc(var(--amp, 0px) * -1), var(--amp, 0px)) rotate(var(--rot, 0deg)); }
+      75%      { transform: translate(var(--amp, 0px), var(--amp, 0px)) rotate(calc(var(--rot, 0deg) * -1)); }
+    }
+
+    /* ── Regler-Zeile: Slider + Wert-Anzeige ───────────────────── */
+    .dimension-regler {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .dimension-regler input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      min-width: 0;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--linie);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .dimension-regler input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--fg);
+      cursor: pointer;
+    }
+
+    .dimension-regler input[type="range"]::-moz-range-thumb {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--fg);
+      border: none;
+      cursor: pointer;
+    }
+
+    .dimension-wert {
+      flex-shrink: 0;
+      min-width: 15ch;
+      text-align: right;
+      font-size: 13px;
+      color: var(--grau);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+
+    .dimension-wert strong {
+      color: var(--fg);
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-weight: normal;
+    }
+
+    /* ── Fuß ───────────────────────────────────────────────────── */
+    footer {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 48px 28px 80px;
+      border-top: 1px solid var(--linie);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--grau-2);
+    }
+
+    @media (max-width: 560px) {
+      .dimension-regler { flex-direction: column; align-items: stretch; gap: 10px; }
+      .dimension-wert { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <span class="eyebrow">Situra · Situative Typografie</span>
+    <h1>Schrift mit Puls.</h1>
+    <p>
+      Situra ist eine Schrift, die sich verändert, während du schreibst.
+      Sechs Dimensionen deines Zustands – von Intensität bis Tonalität –
+      werden direkt zu Strichstärke, Abstand, Zittern, Schärfe, Deckkraft
+      und Farbe. Bewege die Regler unten und sieh, wie es sich anfühlt.
+    </p>
+  </header>
+
+  <main>
+
+    <!-- 1 — Intensität → Strichstärke (7 statische Schnitte) -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">01</span>
+        <h2>Intensität</h2>
+      </div>
+      <p class="dimension-text">
+        Wie intensiv du schreibst, bestimmt, wie fett die Schrift
+        erscheint.
+      </p>
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-intensitaet">Hallo</div>
+      </div>
+      <div class="dimension-regler">
+        <input type="range" id="regler-intensitaet" min="100" max="900" step="1" value="400"
+          aria-label="Intensität">
+        <span class="dimension-wert" id="wert-intensitaet"></span>
+      </div>
+    </section>
+
+    <!-- 2 — Tempo → Zeichenabstand (stufenlos) -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">02</span>
+        <h2>Tempo</h2>
+      </div>
+      <p class="dimension-text">
+        Dein Schreibtempo verändert den Zeichenabstand – schnelles
+        Tippen zieht die Buchstaben auseinander.
+      </p>
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-tempo">Hallo</div>
+      </div>
+      <div class="dimension-regler">
+        <input type="range" id="regler-tempo" min="100" max="900" step="1" value="400"
+          aria-label="Tempo">
+        <span class="dimension-wert" id="wert-tempo"></span>
+      </div>
+    </section>
+
+    <!-- 3 — Stabilität → Zitter-Stärke (0–10, stufenlos) -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">03</span>
+        <h2>Stabilität</h2>
+      </div>
+      <p class="dimension-text">
+        Unruhiges Tippen lässt die Schrift sichtbar zittern – ruhiges
+        Tippen hält sie vollkommen still.
+      </p>
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-stabilitaet">Hallo</div>
+      </div>
+      <div class="dimension-regler">
+        <input type="range" id="regler-stabilitaet" min="0" max="10" step="0.5" value="0"
+          aria-label="Stabilität">
+        <span class="dimension-wert" id="wert-stabilitaet"></span>
+      </div>
+    </section>
+
+    <!-- 4 — Wachheit → Unschärfe (blur, stufenlos, dezent) -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">04</span>
+        <h2>Wachheit</h2>
+      </div>
+      <p class="dimension-text">
+        Als Testwert zeigt deine Wachheit, ob der Text scharf oder
+        leicht unscharf wirkt.
+      </p>
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-wachheit">Hallo</div>
+      </div>
+      <div class="dimension-regler">
+        <input type="range" id="regler-wachheit" min="0" max="100" step="1" value="50"
+          aria-label="Wachheit">
+        <span class="dimension-wert" id="wert-wachheit"></span>
+      </div>
+    </section>
+
+    <!-- 5 — Gefasstheit → Deckkraft (opacity, stufenlos) -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">05</span>
+        <h2>Gefasstheit</h2>
+      </div>
+      <p class="dimension-text">
+        Als Testwert lässt deine Gefasstheit den Text kräftig oder
+        blass wirken.
+      </p>
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-gefasstheit">Hallo</div>
+      </div>
+      <div class="dimension-regler">
+        <input type="range" id="regler-gefasstheit" min="0" max="100" step="1" value="50"
+          aria-label="Gefasstheit">
+        <span class="dimension-wert" id="wert-gefasstheit"></span>
+      </div>
+    </section>
+
+    <!-- 6 — Tonalität → Farbverlauf kühl↔warm (einzige bewusste
+         Farb-Ausnahme im sonst rein monochromen Design – zeigt genau
+         die Dimension, um die es hier geht). -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">06</span>
+        <h2>Tonalität</h2>
+      </div>
+      <p class="dimension-text">
+        Eine wärmere Tonalität färbt die Schrift von kühl zu warm.
+      </p>
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-tonalitaet">Hallo</div>
+      </div>
+      <div class="dimension-regler">
+        <input type="range" id="regler-tonalitaet" min="0" max="100" step="1" value="50"
+          aria-label="Tonalität">
+        <span class="dimension-wert" id="wert-tonalitaet"></span>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>Situra — Situative Typografie · Prototyp</footer>
+
+  <script>
+    function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
+      return zuMin + (wert - vonMin) / (vonMax - vonMin) * (zuMax - zuMin);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 1 — INTENSITÄT: 7 statische Situra-Schnitte, dünn → fett.
+    // Exakt dieselbe Stufen-Logik wie intensitaetZuSchriftschnitt()
+    // in chat.html: ein 100–900-Rohwert wird in 7 gleich große
+    // Stufen geteilt – jede Stufe zeigt GENAU einen Schnitt, kein
+    // fließendes Überblenden (Situra ist keine Variable Font).
+    // ═══════════════════════════════════════════════════════════
+    const SITURA_SCHRIFTSCHNITTE = [
+      'Situra-Thin', 'Situra-Light', 'Situra-Regular', 'Situra-Medium',
+      'Situra-SemiBold', 'Situra-Bold', 'Situra-Black'
+    ];
+
+    function intensitaetZuSchriftschnitt(intensitaet) {
+      const stufenBreite = 800 / SITURA_SCHRIFTSCHNITTE.length; // (900−100) / 7
+      const index = Math.min(
+        SITURA_SCHRIFTSCHNITTE.length - 1,
+        Math.max(0, Math.floor((intensitaet - 100) / stufenBreite))
+      );
+      return SITURA_SCHRIFTSCHNITTE[index];
+    }
+
+    const reglerIntensitaet = document.getElementById('regler-intensitaet');
+    const wortIntensitaet   = document.getElementById('wort-intensitaet');
+    const wertIntensitaet   = document.getElementById('wert-intensitaet');
+
+    function intensitaetAktualisieren() {
+      const wert    = Number(reglerIntensitaet.value);
+      const schnitt = intensitaetZuSchriftschnitt(wert);
+      wortIntensitaet.style.fontFamily = `'${schnitt}', 'Inter', sans-serif`;
+      wertIntensitaet.innerHTML = `<strong>${schnitt}</strong> · ${wert}`;
+    }
+    reglerIntensitaet.addEventListener('input', intensitaetAktualisieren);
+    intensitaetAktualisieren();
+
+    // ═══════════════════════════════════════════════════════════
+    // 2 — TEMPO: letter-spacing, stufenlos (−0.04em … 0.12em),
+    // identischer Wertebereich/Mapping wie in chat.html.
+    // ═══════════════════════════════════════════════════════════
+    const reglerTempo = document.getElementById('regler-tempo');
+    const wortTempo    = document.getElementById('wort-tempo');
+    const wertTempo    = document.getElementById('wert-tempo');
+
+    function tempoAktualisieren() {
+      const wert    = Number(reglerTempo.value);
+      const spacing = umrechnen(wert, 100, 900, -0.04, 0.12);
+      wortTempo.style.letterSpacing = `${spacing.toFixed(3)}em`;
+      wertTempo.innerHTML = `<strong>${spacing.toFixed(3)}em</strong> · ${wert}`;
+    }
+    reglerTempo.addEventListener('input', tempoAktualisieren);
+    tempoAktualisieren();
+
+    // ═══════════════════════════════════════════════════════════
+    // 3 — STABILITÄT: Zitter-Stärke, 0 (ruhig) … 10 (stark).
+    // Buchstaben werden EINMALIG in Spans zerlegt; jeder Buchstabe
+    // bekommt eine eigene, leicht zufällige Dauer/Verzögerung für
+    // organisches, asynchrones Zittern (wie in chat.html/onboarding.
+    // html) – die STÄRKE (--amp/--rot) wird direkt vom Regler gesetzt.
+    // ═══════════════════════════════════════════════════════════
+    const reglerStabilitaet = document.getElementById('regler-stabilitaet');
+    const wortStabilitaet   = document.getElementById('wort-stabilitaet');
+    const wertStabilitaet   = document.getElementById('wert-stabilitaet');
+
+    (function buchstabenVorbereiten() {
+      const text = wortStabilitaet.textContent;
+      wortStabilitaet.textContent = '';
+      for (const zeichen of text) {
+        const span = document.createElement('span');
+        span.textContent = zeichen;
+        span.classList.add('zitter-buchstabe');
+        const dauer     = (0.3 + Math.random() * 0.4).toFixed(2);
+        const verzoeger = (-Math.random() * 1.2).toFixed(2);
+        span.style.animationName           = 'situraZittern';
+        span.style.animationDuration       = `${dauer}s`;
+        span.style.animationTimingFunction = 'ease-in-out';
+        span.style.animationIterationCount = 'infinite';
+        span.style.animationDelay          = `${verzoeger}s`;
+        wortStabilitaet.appendChild(span);
+      }
+    })();
+
+    function stabilitaetAktualisieren() {
+      const wert = Number(reglerStabilitaet.value); // 0–10
+      const amp  = wert;              // px – direkt die Reglerstärke
+      const rot  = wert * 1.2;        // Grad – proportional zur Stärke
+
+      wortStabilitaet.querySelectorAll('.zitter-buchstabe').forEach(function (span) {
+        span.style.setProperty('--amp', `${amp}px`);
+        span.style.setProperty('--rot', `${rot}deg`);
+        span.style.animationPlayState = wert > 0 ? 'running' : 'paused';
+      });
+
+      wertStabilitaet.innerHTML = wert <= 0
+        ? `<strong>ruhig</strong> · 0`
+        : `<strong>${amp.toFixed(1)}px</strong> · ${wert}`;
+    }
+    reglerStabilitaet.addEventListener('input', stabilitaetAktualisieren);
+    stabilitaetAktualisieren();
+
+    // ═══════════════════════════════════════════════════════════
+    // 4 — WACHHEIT: Unschärfe (blur), stufenlos, bewusst dezent
+    // (max. 2px) – 0 = müde/unscharf, 100 = wach/scharf.
+    // ═══════════════════════════════════════════════════════════
+    const reglerWachheit = document.getElementById('regler-wachheit');
+    const wortWachheit    = document.getElementById('wort-wachheit');
+    const wertWachheit    = document.getElementById('wert-wachheit');
+    const BLUR_MAX = 2.0;
+
+    function wachheitAktualisieren() {
+      const wert = Number(reglerWachheit.value);
+      const blur = umrechnen(wert, 0, 100, BLUR_MAX, 0);
+      wortWachheit.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
+      wertWachheit.innerHTML = `<strong>${blur.toFixed(2)}px</strong> · ${wert}`;
+    }
+    reglerWachheit.addEventListener('input', wachheitAktualisieren);
+    wachheitAktualisieren();
+
+    // ═══════════════════════════════════════════════════════════
+    // 5 — GEFASSTHEIT: Deckkraft (opacity), stufenlos –
+    // 0 = aufgewühlt/blass (0.35), 100 = gefasst/kräftig (1).
+    // ═══════════════════════════════════════════════════════════
+    const reglerGefasstheit = document.getElementById('regler-gefasstheit');
+    const wortGefasstheit    = document.getElementById('wort-gefasstheit');
+    const wertGefasstheit    = document.getElementById('wert-gefasstheit');
+    const TRANSPARENZ_MIN = 0.35;
+
+    function gefasstheitAktualisieren() {
+      const wert = Number(reglerGefasstheit.value);
+      const deckkraft = umrechnen(wert, 0, 100, TRANSPARENZ_MIN, 1);
+      wortGefasstheit.style.opacity = deckkraft.toFixed(2);
+      wertGefasstheit.innerHTML = `<strong>${deckkraft.toFixed(2)}</strong> · ${wert}`;
+    }
+    reglerGefasstheit.addEventListener('input', gefasstheitAktualisieren);
+    gefasstheitAktualisieren();
+
+    // ═══════════════════════════════════════════════════════════
+    // 6 — TONALITÄT: Farbverlauf kühl → warm, stufenlos.
+    // Einzige bewusste Farb-Ausnahme im sonst rein monochromen
+    // Design – zeigt direkt, was diese eine Dimension bedeutet.
+    // 0 = kühl (gedecktes Blaugrau), 100 = warm (gedecktes Amber).
+    // ═══════════════════════════════════════════════════════════
+    const reglerTonalitaet = document.getElementById('regler-tonalitaet');
+    const wortTonalitaet    = document.getElementById('wort-tonalitaet');
+    const wertTonalitaet    = document.getElementById('wert-tonalitaet');
+    const TON_KUEHL = [124, 167, 201]; // #7ca7c9
+    const TON_WARM  = [224, 138, 79];  // #e08a4f
+
+    function tonalitaetAktualisieren() {
+      const wert = Number(reglerTonalitaet.value);
+      const t = wert / 100;
+      const r = Math.round(umrechnen(t, 0, 1, TON_KUEHL[0], TON_WARM[0]));
+      const g = Math.round(umrechnen(t, 0, 1, TON_KUEHL[1], TON_WARM[1]));
+      const b = Math.round(umrechnen(t, 0, 1, TON_KUEHL[2], TON_WARM[2]));
+      wortTonalitaet.style.color = `rgb(${r}, ${g}, ${b})`;
+      const label = wert < 35 ? 'kühl' : wert > 65 ? 'warm' : 'neutral';
+      wertTonalitaet.innerHTML = `<strong>${label}</strong> · ${wert}`;
+    }
+    reglerTonalitaet.addEventListener('input', tonalitaetAktualisieren);
+    tonalitaetAktualisieren();
+  </script>
+
+</body>
+</html>

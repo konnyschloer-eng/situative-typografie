@@ -298,7 +298,7 @@
       flex-shrink: 0;
       display: flex;
       gap: 8px;
-      padding: 0 20px 10px;
+      padding: 12px 20px 10px;
       border-bottom: 1px solid var(--border-light);
     }
 
@@ -586,6 +586,158 @@
     }
 
     .bestaetigung-aktionen .overlay-btn { flex: 1; }
+
+    /* ══════════════════════════════════════════════════════════════
+       MOMENT – horizontale Story-Leiste + Composer + Story-Ansicht.
+       Separater Bereich: rein visuell eigenständig, die eigentliche
+       Wort-Einfrier-Logik lebt im JS-Abschnitt "MOMENT" und rührt
+       nicht an der Chat-Logik. ══════════════════════════════════ */
+    .moment-leiste {
+      flex-shrink: 0;
+      display: flex;
+      gap: 16px;
+      padding: 16px 20px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      border-bottom: 1px solid var(--border-light);
+      scrollbar-width: thin;
+      scrollbar-color: var(--scrollbar-farbe) transparent;
+    }
+
+    .moment-leiste::-webkit-scrollbar { height: 4px; }
+    .moment-leiste::-webkit-scrollbar-track { background: transparent; }
+    .moment-leiste::-webkit-scrollbar-thumb { background: var(--scrollbar-farbe); border-radius: 999px; }
+    .moment-leiste::-webkit-scrollbar-button { display: none; }
+
+    .moment-kreis-wrapper {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 60px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    /* Größere Variante des bestehenden Profilbild-Kreises für die
+       Story-Leiste – reine Größen-/Layoutanpassung, die Strichstärke
+       (font-family) wird weiterhin vom bestehenden Profilbild-System
+       gesetzt (siehe avatarDarstellungAktualisieren), da hier wie in
+       der Kontaktliste dieselbe data-name-Selektorlogik greift. */
+    .avatar--moment {
+      width: 54px; height: 54px;
+      font-size: 19px;
+    }
+
+    /* Ungesehener Moment: dünner weißer Ring um den Kreis, per
+       box-shadow (kein zusätzlicher Platzverbrauch/Layout-Shift). */
+    .avatar--moment-ungesehen {
+      box-shadow: 0 0 0 2px #ffffff;
+    }
+
+    .moment-kreis-name {
+      font-size: 11px;
+      color: var(--text-2);
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .moment-composer {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+    }
+
+    .moment-eingabe {
+      flex: 1;
+      min-width: 0;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      outline: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 14px;
+      color: #222;
+      padding: 6px 0;
+    }
+
+    .moment-eingabe:focus { border-bottom-color: var(--text-2); }
+
+    .moment-eingabe::placeholder { color: var(--placeholder); }
+
+    .moment-senden-btn {
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+
+    .moment-senden-btn:hover:not(:disabled) {
+      border-color: var(--text-2);
+      color: #222;
+    }
+
+    .moment-senden-btn:disabled { opacity: 0.3; cursor: default; }
+
+    .moment-hinweis {
+      flex-shrink: 0;
+      padding: 0 20px 16px;
+      font-size: 12px;
+      color: var(--text-3);
+      font-style: italic;
+    }
+
+    /* ── Story-Ansicht: großer, eingefrorener Text – dieselbe
+       typografische Sprache wie die Chat-Nachrichten (30px, zentriert),
+       aber als eigene Karte statt Sprechblase. ── */
+    .moment-ansicht-overlay .overlay-schliessen { margin-left: auto; }
+
+    .moment-ansicht-karte {
+      width: 300px;
+      max-width: 86%;
+      max-height: 78%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 24px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+    }
+
+    .moment-ansicht-kopf {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .moment-ansicht-name {
+      font-size: 13px;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      color: var(--text-2);
+      letter-spacing: 0.02em;
+    }
+
+    .moment-ansicht-text {
+      font-size: 26px;
+      line-height: 1.35;
+      text-align: center;
+      color: #111;
+      overflow-wrap: break-word;
+    }
+
+    .phone-frame.emotion-an .moment-ansicht-text { color: #d8d6d1; }
 
     .gespraechs-liste {
       flex: 1;
@@ -1223,13 +1375,14 @@
     /* ── Invertierter Modus (Emotion AN): helle Schrift auf dunklem Grund ── */
     /* Überschreibt hartcodierte Farben, die nicht über CSS-Variablen laufen.  */
     .phone-frame.emotion-an .app-name              { color: #d8d6d1; }
-    .phone-frame.emotion-an .gespraechs-name       { color: #d8d6d1; }
+    .phone-frame.emotion-an .gespraechs-name       { color: #ffffff; }
     .phone-frame.emotion-an .nachricht-andere .text         { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an .nachricht-andere .text::before { border-top-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an .nachricht-ich .text            { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an .nachricht-ich .text::before    { border-top-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an #eingabe                { color: #d8d6d1; }
     .phone-frame.emotion-an .suche-eingabe          { color: #d8d6d1; }
+    .phone-frame.emotion-an .moment-eingabe         { color: #d8d6d1; }
     .phone-frame.emotion-an .avatar                 { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
 
     /* ── Bluetooth-Band-Steuerung ─────────────────────────────── */
@@ -1429,10 +1582,33 @@
 
     </div><!-- /#tab-gruppen -->
 
-    <!-- ── Tab-Leiste: Chats / Gruppen ── -->
+    <!-- ── Tab-Panel: Moment (Story-artige Leiste) ──────────────────
+         Separater Bereich: nutzt denselben Wort-für-Wort-Einfrier-
+         Mechanismus wie der Chat (siehe JS-Abschnitt "MOMENT"), aber
+         mit eigenem Composer/eigenem Zustand – rührt nicht an
+         wortZustaende/eingabe des Chats. ── -->
+    <div class="tab-inhalt" id="tab-moment">
+
+      <div class="gruppen-kopf">
+        <span class="gruppen-kopf-label">Moment</span>
+      </div>
+
+      <div class="moment-leiste" id="moment-leiste"></div>
+
+      <div class="moment-composer" id="moment-composer">
+        <input class="moment-eingabe" type="text" id="moment-eingabe"
+          placeholder="Was ist gerade los?" autocomplete="off" maxlength="140">
+        <button class="moment-senden-btn" id="moment-senden-btn">Senden</button>
+      </div>
+      <p class="moment-hinweis" id="moment-hinweis" hidden>Du hast heute schon einen Moment geteilt.</p>
+
+    </div><!-- /#tab-moment -->
+
+    <!-- ── Tab-Leiste: Chats / Gruppen / Moment ── -->
     <nav class="tab-leiste">
       <button class="tab-btn tab-btn--aktiv" data-tab="chats">Chats</button>
       <button class="tab-btn" data-tab="gruppen">Gruppen</button>
+      <button class="tab-btn" data-tab="moment">Moment</button>
     </nav>
 
     <!-- ── Kontextmenü: Long-Press auf einen Chat-Eintrag ── -->
@@ -1451,6 +1627,18 @@
           placeholder="Gruppenname (optional)" autocomplete="off">
         <div class="kontakt-auswahl-liste" id="kontakt-auswahl-liste"></div>
         <button class="overlay-btn" id="neue-gruppe-erstellen-btn">Gruppe erstellen</button>
+      </div>
+    </div>
+
+    <!-- ── Story-Ansicht: geöffneter Moment einer Person ── -->
+    <div class="overlay overlay--zentriert moment-ansicht-overlay" id="moment-ansicht-overlay">
+      <div class="moment-ansicht-karte">
+        <div class="moment-ansicht-kopf">
+          <div class="avatar avatar--chat" id="moment-ansicht-avatar">–</div>
+          <span class="moment-ansicht-name" id="moment-ansicht-name">–</span>
+          <button class="overlay-schliessen" id="moment-ansicht-schliessen" aria-label="Schließen">&times;</button>
+        </div>
+        <p class="moment-ansicht-text" id="moment-ansicht-text"></p>
       </div>
     </div>
 
@@ -1776,22 +1964,24 @@
   });
 
 
-  // ── Tab-Leiste: Chats / Gruppen ─────────────────────────────────
-  // Schaltet nur um, welches der beiden Panels innerhalb der
-  // Übersicht sichtbar ist – keine Auswirkung auf Such-/Filter- oder
+  // ── Tab-Leiste: Chats / Gruppen / Moment ─────────────────────────
+  // Schaltet nur um, welches der drei Panels innerhalb der Übersicht
+  // sichtbar ist – keine Auswirkung auf Such-/Filter- oder
   // Typografie-Logik.
   const uebersichtTitel = document.getElementById('uebersicht-titel');
   const tabChats        = document.getElementById('tab-chats');
   const tabGruppen      = document.getElementById('tab-gruppen');
+  const tabMoment       = document.getElementById('tab-moment');
+  const TAB_TITEL       = { chats: 'Chats', gruppen: 'Gruppen', moment: 'Moment' };
 
   function tabAnzeigen(tabName) {
-    const istChats = tabName === 'chats';
     document.querySelectorAll('.tab-btn').forEach(function (b) {
       b.classList.toggle('tab-btn--aktiv', b.dataset.tab === tabName);
     });
-    tabChats.classList.toggle('aktiv', istChats);
-    tabGruppen.classList.toggle('aktiv', !istChats);
-    uebersichtTitel.textContent = istChats ? 'Chats' : 'Gruppen';
+    tabChats.classList.toggle('aktiv', tabName === 'chats');
+    tabGruppen.classList.toggle('aktiv', tabName === 'gruppen');
+    tabMoment.classList.toggle('aktiv', tabName === 'moment');
+    uebersichtTitel.textContent = TAB_TITEL[tabName];
   }
 
   document.querySelectorAll('.tab-btn').forEach(function (btn) {
@@ -2967,6 +3157,318 @@
       }
     }, 5000);
   }
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  MOMENT – Story-artige Leiste, separater Bereich
+  //
+  //  Nutzt DENSELBEN Einfrier-Mechanismus wie der Chat (dieselben
+  //  Funktionen sensorZuSchriftAchse/stilAnwenden/stilNeutralAnwenden,
+  //  dasselbe geteilte Tippverhalten über tippAnalysieren), aber mit
+  //  eigenem, komplett getrenntem Zustand:
+  //    - momentWortZustaende  statt wortZustaende (Chat)
+  //    - momentIstEingefuegt  statt istEingefuegt (Chat)
+  //    - momentEingabe        statt eingabe (Chat)
+  //  Verändert an keiner Stelle wortZustaende/eingabe/nachrichtHinzu-
+  //  fuegen des Chats.
+  //
+  //  Da die App nur EINEN echten Live-Puls kennt (den der Person, die
+  //  gerade das Telefon bedient – "Du"), kann realistisch nur "Du"
+  //  einen Moment live einfrieren. Die übrigen Kontakte zeigen fest
+  //  hinterlegte Demo-Momente (wie auch die restliche Kontaktliste
+  //  überall mit statischem Demo-Inhalt gefüllt ist) – jeweils mit
+  //  einem eigenen, plausiblen Achsen-Snapshot, damit die Story-
+  //  Leiste von Anfang an unterschiedliche Strichstärken zeigt.
+  // ═══════════════════════════════════════════════════════════════
+
+  const MOMENT_DEMO_KONTAKTE = [
+    { name: 'Anna',   text: 'Bin gerade im Zug.',
+      rohwerte: { intensitaet: 220, tempo: 300, stabilitaet: 700, tonalitaet: 300, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Ben',    text: 'Endlich Feierabend!',
+      rohwerte: { intensitaet: 780, tempo: 650, stabilitaet: 500, tonalitaet: 700, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Clara',  text: 'Kaffeepause.',
+      rohwerte: null }, // leblos-Demo: neutral/ohne eingefrorene Emotion, zeigt den Kontrastfall
+    { name: 'David',  text: 'Regen den ganzen Tag.',
+      rohwerte: { intensitaet: 300, tempo: 250, stabilitaet: 600, tonalitaet: 250, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Elena',  text: 'Neues Projekt gestartet!',
+      rohwerte: { intensitaet: 650, tempo: 500, stabilitaet: 550, tonalitaet: 650, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Felix',  text: 'Fast geschafft.',
+      rohwerte: { intensitaet: 500, tempo: 400, stabilitaet: 650, tonalitaet: 400, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Luca',   text: 'Sonntagsspaziergang.',
+      rohwerte: { intensitaet: 260, tempo: 200, stabilitaet: 800, tonalitaet: 350, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Mia',    text: 'Deadline heute Abend.',
+      rohwerte: { intensitaet: 850, tempo: 750, stabilitaet: 350, tonalitaet: 500, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Noah',   text: 'Ruhiger Tag bisher.',
+      rohwerte: { intensitaet: 350, tempo: 300, stabilitaet: 750, tonalitaet: 350, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Sophie', text: 'Vorfreude aufs Wochenende!',
+      rohwerte: { intensitaet: 600, tempo: 450, stabilitaet: 600, tonalitaet: 700, schlafqualitaet: 500, atemfrequenz: 500 } }
+  ];
+
+  // momente[name] = { text, wortSnapshots: [{achsen, leblos}, ...], datum? }
+  // "datum" ist nur bei "Du" gesetzt (steuert das "einmal pro Tag").
+  let momente = {};
+
+  function heutigesDatum() {
+    return new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+  }
+
+  // ── Persistenz: welche Momente wurden schon angesehen ───────────
+  const MOMENT_GESEHEN_KEY = 'situativeTypografie_momenteGesehen';
+
+  function momentGesehenLaden() {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(MOMENT_GESEHEN_KEY)) || []);
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  let momentGesehen = momentGesehenLaden();
+
+  function momentGesehenSpeichern() {
+    localStorage.setItem(MOMENT_GESEHEN_KEY, JSON.stringify(Array.from(momentGesehen)));
+  }
+
+  // ── Persistenz: der eigene, heute gepostete Moment ───────────────
+  const MOMENT_DU_KEY = 'situativeTypografie_momentDu';
+
+  function duMomentLaden() {
+    try {
+      return JSON.parse(localStorage.getItem(MOMENT_DU_KEY));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function duMomentSpeichern(moment) {
+    localStorage.setItem(MOMENT_DU_KEY, JSON.stringify(moment));
+  }
+
+  function duHatHeuteGepostet() {
+    return !!(momente['Du'] && momente['Du'].datum === heutigesDatum());
+  }
+
+  // Baut das Ausgangs-Momente-Objekt: feste Demo-Inhalte für die
+  // Kontakte + den eigenen, ggf. bereits heute geposteten Moment.
+  function momenteAufbauen() {
+    MOMENT_DEMO_KONTAKTE.forEach(function (k) {
+      const leblos  = !k.rohwerte;
+      const achsen  = leblos ? null : sensorZuSchriftAchse(k.rohwerte);
+      const woerter = k.text.split(/\s+/).filter(function (w) { return w.length > 0; });
+      momente[k.name] = {
+        text: k.text,
+        wortSnapshots: woerter.map(function () { return { achsen: achsen || {}, leblos: leblos }; })
+      };
+    });
+
+    const duGespeichert = duMomentLaden();
+    if (duGespeichert && duGespeichert.datum === heutigesDatum()) {
+      momente['Du'] = duGespeichert;
+    }
+  }
+
+  // Rendert einen eingefrorenen Moment-Text Wort für Wort – exakt
+  // derselbe Mechanismus wie bei nachrichtHinzufuegen im Chat (siehe
+  // oben), als eigenständige Funktion für den separaten Moment-
+  // Bereich dupliziert, damit der Chat-Renderpfad unangetastet bleibt.
+  function momentTextRendern(container, text, wortSnapshots) {
+    container.innerHTML = '';
+    const woerter = text.split(/\s+/).filter(function (w) { return w.length > 0; });
+    woerter.forEach(function (wort, i) {
+      const snapshot = wortSnapshots[i];
+      const wortSpan = document.createElement('span');
+      wortSpan.className = 'wort';
+      wortSpan.textContent = wort;
+
+      if (snapshot && !snapshot.leblos) {
+        stilAnwenden(wortSpan, snapshot.achsen);
+      } else {
+        stilNeutralAnwenden(wortSpan);
+      }
+
+      container.appendChild(wortSpan);
+      if (i < woerter.length - 1) {
+        container.appendChild(document.createTextNode(' '));
+      }
+    });
+  }
+
+  // ── DOM-Referenzen ────────────────────────────────────────────
+  const momentLeiste          = document.getElementById('moment-leiste');
+  const momentComposer        = document.getElementById('moment-composer');
+  const momentEingabe         = document.getElementById('moment-eingabe');
+  const momentSendenBtn       = document.getElementById('moment-senden-btn');
+  const momentHinweis         = document.getElementById('moment-hinweis');
+  const momentAnsichtOverlay  = document.getElementById('moment-ansicht-overlay');
+  const momentAnsichtAvatar   = document.getElementById('moment-ansicht-avatar');
+  const momentAnsichtName     = document.getElementById('moment-ansicht-name');
+  const momentAnsichtText     = document.getElementById('moment-ansicht-text');
+  const momentAnsichtSchliessenBtn = document.getElementById('moment-ansicht-schliessen');
+
+  const MOMENT_NAMEN = ['Du'].concat(MOMENT_DEMO_KONTAKTE.map(function (k) { return k.name; }));
+
+  // Baut die Story-Leiste aus dem aktuellen momente-Objekt neu auf.
+  function momentLeisteRendern() {
+    momentLeiste.innerHTML = '';
+
+    MOMENT_NAMEN.forEach(function (name) {
+      const hatMoment = !!momente[name];
+
+      const wrapper = document.createElement('button');
+      wrapper.type = 'button';
+      wrapper.className = 'moment-kreis-wrapper';
+
+      const kreis = document.createElement('div');
+      kreis.className = 'avatar avatar--moment';
+      kreis.textContent = name.charAt(0).toUpperCase();
+
+      if (name === 'Du') {
+        // "Du" hat keinen Profilbild-Mittelwert (der beschreibt den
+        // Puls ANDERER Personen) – bleibt beim neutralen CSS-Default.
+      } else {
+        kreis.dataset.name = name;
+        avatarDarstellungAktualisieren(name);
+      }
+
+      const ungesehen = name !== 'Du' && hatMoment && !momentGesehen.has(name);
+      kreis.classList.toggle('avatar--moment-ungesehen', ungesehen);
+
+      const nameEl = document.createElement('span');
+      nameEl.className = 'moment-kreis-name';
+      nameEl.textContent = name;
+
+      wrapper.appendChild(kreis);
+      wrapper.appendChild(nameEl);
+      wrapper.addEventListener('click', function () { momentOeffnen(name); });
+
+      momentLeiste.appendChild(wrapper);
+    });
+  }
+
+  // Zeigt/versteckt Composer bzw. Hinweistext je nachdem, ob "Du"
+  // heute schon gepostet hast (einmal pro Tag).
+  function momentComposerAktualisieren() {
+    const gepostet = duHatHeuteGepostet();
+    momentComposer.hidden = gepostet;
+    momentHinweis.hidden  = !gepostet;
+  }
+
+  // Öffnet die Story-Ansicht für eine Person – oder, falls "Du" noch
+  // keinen Moment gepostet hast, springt stattdessen ins Composer-Feld.
+  function momentOeffnen(name) {
+    if (name === 'Du' && !momente['Du']) {
+      momentEingabe.focus();
+      return;
+    }
+
+    const moment = momente[name];
+    if (!moment) return;
+
+    if (name !== 'Du') {
+      momentGesehen.add(name);
+      momentGesehenSpeichern();
+    }
+
+    momentAnsichtAvatar.textContent = name.charAt(0).toUpperCase();
+    if (name === 'Du') {
+      delete momentAnsichtAvatar.dataset.name;
+      momentAnsichtAvatar.style.fontFamily = "'Situra-Medium', 'Inter', sans-serif";
+    } else {
+      momentAnsichtAvatar.dataset.name = name;
+      avatarDarstellungAktualisieren(name);
+    }
+    momentAnsichtName.textContent = name;
+
+    momentTextRendern(momentAnsichtText, moment.text, moment.wortSnapshots);
+
+    momentAnsichtOverlay.classList.add('sichtbar');
+    momentLeisteRendern(); // Ring-Status (Ungesehen) sofort aktualisieren
+  }
+
+  function momentAnsichtSchliessen() {
+    momentAnsichtOverlay.classList.remove('sichtbar');
+  }
+
+  momentAnsichtSchliessenBtn.addEventListener('click', momentAnsichtSchliessen);
+  momentAnsichtOverlay.addEventListener('click', function (e) {
+    if (e.target === momentAnsichtOverlay) momentAnsichtSchliessen();
+  });
+
+  // ── Composer: eigener, getrennter Wort-für-Wort-Einfrier-Zustand ──
+  let momentWortZustaende  = [];
+  let momentIstEingefuegt  = false;
+
+  function momentWortZustaendeSynchronisieren() {
+    const anzahl = abgeschlosseneWortAnzahl(momentEingabe.value);
+    const leblos = !emotionAktiv || momentIstEingefuegt;
+
+    while (momentWortZustaende.length < anzahl) {
+      momentWortZustaende.push({ achsen: { ...aktuelleAchsen }, leblos: leblos });
+    }
+    if (momentWortZustaende.length > anzahl) {
+      momentWortZustaende.length = anzahl;
+    }
+  }
+
+  // Tippverhalten (Tempo/Stabilität) ist derselbe geteilte Mechanismus
+  // wie im Chat – tippAnalysieren operiert auf dem gemeinsamen globalen
+  // Zustand (aktuelleRohwerte/aktuelleAchsen), unabhängig davon, in
+  // welchem Textfeld gerade getippt wird.
+  momentEingabe.addEventListener('keydown', tippAnalysieren);
+
+  momentEingabe.addEventListener('input', function (e) {
+    if (e.inputType === 'insertFromPaste') {
+      momentIstEingefuegt = true;
+    } else if (momentIstEingefuegt && e.inputType === 'insertText') {
+      momentIstEingefuegt = false;
+    }
+    momentWortZustaendeSynchronisieren();
+  });
+
+  function momentSenden() {
+    if (duHatHeuteGepostet()) return; // Sicherheitsnetz – Composer ist dann ohnehin ausgeblendet
+
+    const text = momentEingabe.value.trim();
+    if (!text) return;
+
+    const woerter = text.split(/\s+/).filter(function (w) { return w.length > 0; });
+    const wortSnapshots = momentWortZustaende.slice(0, woerter.length);
+    if (wortSnapshots.length < woerter.length) {
+      wortSnapshots.push({ achsen: { ...aktuelleAchsen }, leblos: !emotionAktiv || momentIstEingefuegt });
+    }
+
+    momente['Du'] = { text: text, wortSnapshots: wortSnapshots, datum: heutigesDatum() };
+    duMomentSpeichern(momente['Du']);
+
+    momentEingabe.value = '';
+    momentWortZustaende = [];
+    momentIstEingefuegt = false;
+
+    // Gemeinsamer Tempo-/Stabilitäts-Reset – exakt wie nach dem Senden
+    // einer Chat-Nachricht (siehe Enter-Handler des Chat-Eingabefelds).
+    stabilitaet_wert = STAB_START;
+    tipp_zeitstempel = [];
+    aktuelleRohwerte.tempo = 100;
+    wertTempoAnzeige.textContent = 100;
+    balkenTempo.style.width = '0%';
+    stabilitaetUebernehmen();
+
+    momentLeisteRendern();
+    momentComposerAktualisieren();
+  }
+
+  momentEingabe.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    momentSenden();
+  });
+
+  momentSendenBtn.addEventListener('click', momentSenden);
+
+  // ── Initialer Aufbau ──────────────────────────────────────────
+  momenteAufbauen();
+  momentLeisteRendern();
+  momentComposerAktualisieren();
 
 </script>
 </body>
