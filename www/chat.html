@@ -3046,6 +3046,25 @@
   const HEART_RATE_SERVICE     = capacitorCommunityBluetoothLe.numberToUUID(0x180d);
   const HEART_RATE_MEASUREMENT = capacitorCommunityBluetoothLe.numberToUUID(0x2a37);
 
+  // ── Foreground Service (nativer Android-Schutz gegen App-Kill) ──
+  // Eigenes, app-lokales Capacitor-Plugin (NICHT @capacitor-community/
+  // bluetooth-le – ein zusätzliches, selbst geschriebenes natives Plugin,
+  // siehe android/app/src/main/java/com/momentum/app/
+  // MomentumBleServicePlugin.java + MomentumBleForegroundService.java).
+  // Registrierung hier folgt exakt demselben Muster wie bluetooth-le
+  // selbst (capacitorExports.registerPlugin) – "web" liefert No-Ops,
+  // damit diese Seite weiterhin normal im Browser testbar bleibt; in der
+  // Android-App läuft stattdessen der echte native Foreground Service.
+  // Rein additiv: start()/stop() beeinflussen nirgends die BPM-/
+  // Intensitäts-/Strichstärke-Logik, sie laufen nebenher (fire-and-forget,
+  // siehe bandNachVerbindungAktivieren/bandZuruecksetzen unten).
+  const MomentumBleService = capacitorExports.registerPlugin('MomentumBleService', {
+    web: () => ({
+      async start() {},
+      async stop() {}
+    })
+  });
+
   const BAND_BPM_MIN = 75;   // ← nachjustieren: ab diesem Puls dünnste Strichstärke (Minimum)
   const BAND_BPM_MAX = 110;  // ← nachjustieren: ab diesem Puls fetteste Strichstärke (Maximum)
 
@@ -3096,6 +3115,12 @@
     labelIntensitaet.classList.add('dimension-label--live');
 
     try { localStorage.setItem(BAND_DEVICE_ID_KEY, deviceId); } catch (e) {}
+
+    // Foreground Service starten (rein additiv, kein Await/Blocking der
+    // obigen Verbindungs-/UI-Logik – schützt nur zusätzlich davor, dass
+    // Android die Verbindung im Hintergrund/bei gesperrtem Bildschirm
+    // killt, z. B. während einer geplanten Nacht-Messung).
+    MomentumBleService.start().catch(err => console.error('[Bluetooth] Foreground Service konnte nicht gestartet werden:', err));
   }
 
   // ── Verbindungsaufbau per Klick ─────────────────────────────────
@@ -3226,6 +3251,13 @@
   // ── Hilfsfunktionen Verbindungsstatus ───────────────────────────
 
   // Setzt UI und Zustand auf Slider-Fallback zurück (intern + bei Abbruch).
+  // Wird ausschließlich aus zwei Stellen aufgerufen: bandExplizitTrennen()
+  // (Nutzer trennt bewusst) und bandUnerwartetGetrennt() (Verbindung
+  // bricht ab, z. B. Band außer Reichweite) – NIE bei Bildschirmsperre
+  // oder App-Hintergrund allein, dafür gibt es hier keinen Aufruf-Pfad.
+  // Genau deshalb ist das auch der richtige, einzige Ort, um den
+  // Foreground Service zu stoppen: er deckt beide echten "nicht mehr
+  // verbunden"-Fälle ab, ohne je bei bloßem Sperren/Minimieren zu greifen.
   function bandZuruecksetzen() {
     bandVerbunden = false;
     bandDeviceId  = null;
@@ -3241,6 +3273,11 @@
     wertIntensitaet.textContent  = aktuelleRohwerte.intensitaet;
     aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
     vorschauAktualisieren();
+
+    // Foreground Service stoppen (rein additiv, siehe Kommentar oben an
+    // MomentumBleService) – ohne aktive Verbindung gibt es nichts mehr zu
+    // schützen, und die Pflicht-Benachrichtigung soll dann verschwinden.
+    MomentumBleService.stop().catch(err => console.error('[Bluetooth] Foreground Service konnte nicht gestoppt werden:', err));
   }
 
   // Trennt die Verbindung auf Nutzerwunsch (kein Fehlerhinweis).

@@ -33,9 +33,32 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!-- Läuft ausschließlich, solange eine Bluetooth-Verbindung zum
+             Band besteht (Start/Stop über MomentumBleServicePlugin, siehe
+             dort) – schützt die Verbindung davor, dass Android den Prozess
+             im Hintergrund/bei gesperrtem Bildschirm beendet. exported
+             bewusst false: nur die eigene App darf ihn starten/stoppen. -->
+        <service
+            android:name=".MomentumBleForegroundService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
     </application>
 
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Für den Foreground Service, der die Bluetooth-Verbindung zum Band
+         schützt (MomentumBleForegroundService). FOREGROUND_SERVICE ist die
+         allgemeine Grundberechtigung, FOREGROUND_SERVICE_CONNECTED_DEVICE
+         die seit Android 14 zusätzlich geforderte, zum deklarierten
+         android:foregroundServiceType="connectedDevice" passende
+         Typ-Berechtigung. POST_NOTIFICATIONS wird ab Android 13 zur
+         Laufzeit benötigt, damit die Pflicht-Benachrichtigung
+         ("Momentum misst deinen Puls") überhaupt angezeigt wird. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 </manifest>

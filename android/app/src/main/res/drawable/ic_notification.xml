@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Kleines Statusleisten-Icon für die Foreground-Service-Benachrichtigung
+  (MomentumBleForegroundService). Bewusst NICHT dasselbe Drawable wie das
+  App-Icon: Android-Benachrichtigungssymbole müssen eine reine
+  weiße Silhouette auf transparentem Grund sein (das System entfernt/ersetzt
+  Farbe ohnehin automatisch) – ein volles, farbiges Launcher-Icon würde hier
+  nur als unscharfer weißer Klecks erscheinen.
+  Nutzt denselben "M"-Pfad wie assets/Logo/Logo_Momentum_Nur_Logo.svg (auch
+  hier auf dem 1000×1000-Canvas), das großzügige Umfeld um die Form herum
+  entspricht bereits dem von Android empfohlenen Rand für Benachrichtigungs-
+  icons – keine zusätzliche Anpassung nötig.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="1000"
+    android:viewportHeight="1000">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M722.81,670.4h-445.62v-340.79h185.67l37.14,79.44,37.6-79.44h185.21v340.79Z"/>
+</vector>
