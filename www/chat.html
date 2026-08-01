@@ -3046,6 +3046,26 @@
   const HEART_RATE_SERVICE     = capacitorCommunityBluetoothLe.numberToUUID(0x180d);
   const HEART_RATE_MEASUREMENT = capacitorCommunityBluetoothLe.numberToUUID(0x2a37);
 
+  // ── PMD (Polar Measurement Data) – Bewegung für die Nacht-Erfassung ──
+  // Der Beschleunigungssensor liegt beim Verity Sense NICHT hinter einem
+  // Standard-Bluetooth-SIG-Service (wie die Herzfrequenz), sondern hinter
+  // Polars proprietärem PMD-Service. UUIDs und Start-Kommando laut öffentlich
+  // dokumentierter Polar-BLE-SDK-Spezifikation.
+  const PMD_SERVICE       = 'fb005c80-02e7-f387-1cad-8acd2d8df0c8';
+  const PMD_CONTROL_POINT = 'fb005c81-02e7-f387-1cad-8acd2d8df0c8';
+  const PMD_DATA          = 'fb005c82-02e7-f387-1cad-8acd2d8df0c8';
+
+  // Control-Point-Kommando "Messung starten" (0x02), Typ ACC (0x02), gefolgt
+  // von (Einstellungstyp, Länge, Wert…)-Tripeln: Sample-Rate 200 Hz (Typ 0x00),
+  // Auflösung 16 Bit (Typ 0x01), Messbereich ±8G (Typ 0x02) – die für den
+  // Verity Sense belegte, funktionierende Kombination.
+  const PMD_ACC_START_KOMMANDO = new Uint8Array([
+    0x02, 0x02,
+    0x00, 0x01, 0xC8, 0x00,
+    0x01, 0x01, 0x10, 0x00,
+    0x02, 0x01, 0x08, 0x00
+  ]);
+
   // ── Foreground Service (nativer Android-Schutz gegen App-Kill) ──
   // Eigenes, app-lokales Capacitor-Plugin (NICHT @capacitor-community/
   // bluetooth-le – ein zusätzliches, selbst geschriebenes natives Plugin,
@@ -3061,7 +3081,11 @@
   const MomentumBleService = capacitorExports.registerPlugin('MomentumBleService', {
     web: () => ({
       async start() {},
-      async stop() {}
+      async stop() {},
+      async meldeHerzfrequenz() {},
+      async meldeBewegung() {},
+      async holeNachtDaten() { return { summeHerzfrequenz: 0, summeBewegung: 0, anzahlMesspunkte: 0 }; },
+      async nachtDatenZuruecksetzen() {}
     })
   });
 
@@ -3072,6 +3096,11 @@
   let bandDeviceId         = null;  // ersetzt bluetoothGeraet (Web-Bluetooth-Objekt) – bei BleClient reicht die Geräte-ID als String
   let bleBereit             = false; // BleClient.initialize() nur einmal nötig
   let intentionalesTrennen = false;
+
+  // ── Zustand für die Bewegungs-Erfassung (PMD ACC, Nacht-Erfassung) ──
+  let bewegungAkkumuliert   = 0;     // seit der letzten Meldung ans Foreground-Service-Plugin
+  let letzteAccMagnitude    = null;  // vorheriges |Vektor|-Sample, für Delta-Bildung
+  let accErsterFrameGeloggt = false; // einmaliges Debug-Log des Roh-Frames (siehe accDatenEmpfangen)
 
   // Merkt sich die zuletzt verbundene Geräte-ID über einen Seitenwechsel
   // hinweg (localStorage übersteht das, JS-Variablen nicht – die WebView
@@ -3121,6 +3150,20 @@
     // Android die Verbindung im Hintergrund/bei gesperrtem Bildschirm
     // killt, z. B. während einer geplanten Nacht-Messung).
     MomentumBleService.start().catch(err => console.error('[Bluetooth] Foreground Service konnte nicht gestartet werden:', err));
+
+    // Beschleunigungsmessung starten (Bewegungsstärke für die Nacht-
+    // Erfassung, siehe accDatenEmpfangen weiter unten). Rein additiv und
+    // unabhängig von der Herzfrequenz-Verbindung oben – ein Fehlschlag hier
+    // (z. B. unterstützt das verbundene Gerät die Kombination nicht) darf
+    // die normale Puls-Verbindung nicht beeinträchtigen, wird aber laut
+    // geloggt statt still zu scheitern.
+    try {
+      await BleClient.startNotifications(deviceId, PMD_SERVICE, PMD_DATA, accDatenEmpfangen);
+      await BleClient.write(deviceId, PMD_SERVICE, PMD_CONTROL_POINT, new DataView(PMD_ACC_START_KOMMANDO.buffer));
+      console.log('[Bewegung] PMD-Beschleunigungsmessung gestartet.');
+    } catch (err) {
+      console.error('[Bewegung] PMD-Beschleunigungsmessung konnte nicht gestartet werden:', err);
+    }
   }
 
   // ── Verbindungsaufbau per Klick ─────────────────────────────────
@@ -3201,6 +3244,94 @@
 
   bandAutomatischReconnecten();
 
+  // ── Nacht-Erfassung: Morgen-Auswertung ───────────────────────────
+  // Prüft beim Laden von chat.html, ob der native Foreground Service über
+  // Nacht Puls-/Bewegungs-Summen gesammelt hat (siehe
+  // MomentumBleForegroundService, 5-Minuten-Takt), berechnet daraus eine von
+  // 4 Schlafqualitäts-Stufen und speist sie in die bestehende
+  // Schlafqualität-Dimension ein. Rein additiv: die Blur-Berechnung selbst
+  // (siehe BLUR_MAX weiter oben) bleibt komplett unverändert, sie liest nur
+  // aktuelleRohwerte.schlafqualitaet, das hier wie ein normaler Slider-Wert
+  // gesetzt wird.
+  const NACHT_STUFE_KEY = 'situativeTypografie_nachtSchlafstufe';
+
+  // Formel-Konstanten (analog BAND_BPM_MIN/MAX oben, bewusst einfach
+  // gehalten): zwei 0–1-Teil-Scores (Herzfrequenz, Bewegung), gleich
+  // gewichtet gemittelt zu einem Gesamt-Score, der in 4 gleich große Viertel
+  // eingeteilt wird (0–0.25 sehr gut … 0.75–1 schlecht). Je niedriger der
+  // nächtliche Ruhepuls und je weniger Bewegung, desto besser die Stufe.
+  const SCHLAF_HF_GUT            = 55;  // ← durchschnittl. Ruhepuls, gilt als "sehr gut"
+  const SCHLAF_HF_SCHLECHT       = 90;  // ← ab hier gilt der Puls-Teil-Score als "schlecht"
+  // Bewegungs-Schwellwerte: PLATZHALTER. Die Einheit (Summe aus
+  // Magnitude-Deltas pro 5-Min-Tick, siehe accDatenEmpfangen) lässt sich vor
+  // einer ersten echten Nacht mit dem Band nicht sinnvoll beziffern – nach
+  // dem ersten Testlauf anhand der in MomentumBleForegroundService
+  // geloggten "Nacht-Tick"-Werte kalibrieren.
+  const SCHLAF_BEWEGUNG_GUT      = 500;   // ← nachjustieren nach erster echter Nacht
+  const SCHLAF_BEWEGUNG_SCHLECHT = 5000;  // ← nachjustieren nach erster echter Nacht
+
+  // Bildet eine der 4 Stufen auf einen Rohwert der bestehenden 100–900-Skala
+  // ab (Quartils-Mitten, analog zum Slider-Wertebereich).
+  const NACHT_STUFE_ZU_ROHWERT = { schlecht: 150, mittel: 400, gut: 650, 'sehr gut': 850 };
+
+  function schlafStufeAnwenden(stufe) {
+    const rohwert = NACHT_STUFE_ZU_ROHWERT[stufe];
+    if (rohwert == null) return;
+    sliderSchlafqualitaet.value      = rohwert;
+    aktuelleRohwerte.schlafqualitaet = rohwert;
+    wertSchlafqualitaet.textContent  = rohwert;
+    aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+    vorschauAktualisieren();
+  }
+
+  async function nachtAuswertungPruefen() {
+    const heute = new Date().toDateString();
+
+    try {
+      const daten = await MomentumBleService.holeNachtDaten();
+      if (daten && daten.anzahlMesspunkte > 0) {
+        const avgHF       = daten.summeHerzfrequenz / daten.anzahlMesspunkte;
+        const avgBewegung = daten.summeBewegung     / daten.anzahlMesspunkte;
+
+        const hfScore = Math.min(1, Math.max(0,
+          (avgHF - SCHLAF_HF_GUT) / (SCHLAF_HF_SCHLECHT - SCHLAF_HF_GUT)));
+        const bewegungScore = Math.min(1, Math.max(0,
+          (avgBewegung - SCHLAF_BEWEGUNG_GUT) / (SCHLAF_BEWEGUNG_SCHLECHT - SCHLAF_BEWEGUNG_GUT)));
+        const gesamtScore = (hfScore + bewegungScore) / 2; // 0 = sehr gut … 1 = schlecht
+
+        const stufe =
+          gesamtScore <= 0.25 ? 'sehr gut' :
+          gesamtScore <= 0.50 ? 'gut'      :
+          gesamtScore <= 0.75 ? 'mittel'   : 'schlecht';
+
+        console.log('[Schlaf] Nacht-Auswertung: avgHF=' + avgHF.toFixed(1)
+          + ', avgBewegung=' + avgBewegung.toFixed(1) + ', Score=' + gesamtScore.toFixed(2)
+          + ' → Stufe "' + stufe + '" (' + daten.anzahlMesspunkte + ' Messpunkte)');
+
+        schlafStufeAnwenden(stufe);
+        try { localStorage.setItem(NACHT_STUFE_KEY, JSON.stringify({ stufe: stufe, datum: heute })); } catch (e) {}
+
+        await MomentumBleService.nachtDatenZuruecksetzen();
+        return;
+      }
+    } catch (err) {
+      console.error('[Schlaf] Nacht-Auswertung fehlgeschlagen:', err);
+    }
+
+    // Keine neuen Nacht-Daten – ggf. ein am selben Tag bereits berechnetes
+    // Ergebnis erneut anwenden (übersteht einen erneuten Seitenaufruf, auch
+    // wenn der native Service inzwischen beendet wurde und keine Summen
+    // mehr liefert).
+    try {
+      const gespeichert = JSON.parse(localStorage.getItem(NACHT_STUFE_KEY) || 'null');
+      if (gespeichert && gespeichert.datum === heute) {
+        schlafStufeAnwenden(gespeichert.stufe);
+      }
+    } catch (e) {}
+  }
+
+  nachtAuswertungPruefen();
+
   // ── BPM-Daten empfangen und auswerten ───────────────────────────
   // Wird bei jeder neuen Heart Rate Measurement Notification aufgerufen.
   // Parameter "daten" kommt direkt als DataView von BleClient.startNotifications
@@ -3246,6 +3377,61 @@
     wertIntensitaet.textContent  = intensitaetRoh;
     aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
     vorschauAktualisieren();
+
+    // An den Foreground Service melden (für die Nacht-Erfassung, siehe
+    // MomentumBleForegroundService) – rein additiv, fire-and-forget, beeinflusst
+    // die obige Intensitäts-/Strichstärke-Logik in keiner Weise.
+    MomentumBleService.meldeHerzfrequenz({ bpm }).catch(err => console.error('[Bewegung] Herzfrequenz konnte nicht ans Plugin gemeldet werden:', err));
+  }
+
+  // ── Beschleunigungsdaten empfangen (PMD ACC) ────────────────────
+  // Wird bei jeder neuen PMD-Data-Notification aufgerufen, sobald die
+  // ACC-Messung erfolgreich gestartet wurde (siehe bandNachVerbindungAktivieren).
+  // Ziel ist NICHT die exakte Beschleunigung, sondern ein grober
+  // Bewegungsstärke-Wert für die Nacht-Erfassung: pro Sample die
+  // Vektor-Magnitude bilden und die Änderung zum vorherigen Sample
+  // aufsummieren (die durch Erdanziehung ohnehin konstant vorhandene
+  // Magnitude selbst interessiert nicht, nur ihre Veränderung = Bewegung).
+  function accDatenEmpfangen(daten) {
+    if (!accErsterFrameGeloggt) {
+      // Einmaliges Debug-Log der rohen Frame-Bytes – hilft, ein falsches
+      // Frame-Format beim ersten echten Test mit dem Band schnell zu
+      // erkennen (PMD-Kompression ist ohne Gerät nicht blind verifizierbar).
+      const rohBytes = [];
+      for (let i = 0; i < daten.byteLength; i++) rohBytes.push(daten.getUint8(i));
+      console.log('[Bewegung] Erster PMD-ACC-Frame (roh):', rohBytes);
+      accErsterFrameGeloggt = true;
+    }
+
+    const messtyp = daten.getUint8(0);
+    if (messtyp !== 0x02) return; // nur ACC-Frames auswerten (0x02)
+
+    // Byte 0: Messtyp, Byte 1–8: 8-Byte-Timestamp, Byte 9: Frame-Typ, ab
+    // Byte 10: Samples. Frame-Typ 0 = unkomprimiert, je 3×int16 (x,y,z) in
+    // mG. Andere (deltakomprimierte) Frame-Typen werden hier bewusst nicht
+    // unterstützt (siehe Einschränkung im Plan) und übersprungen.
+    const frameTyp = daten.getUint8(9);
+    if (frameTyp !== 0) return;
+
+    for (let i = 10; i + 5 < daten.byteLength; i += 6) {
+      const x = daten.getInt16(i,     true);
+      const y = daten.getInt16(i + 2, true);
+      const z = daten.getInt16(i + 4, true);
+      const magnitude = Math.sqrt(x * x + y * y + z * z);
+
+      if (letzteAccMagnitude != null) {
+        bewegungAkkumuliert += Math.abs(magnitude - letzteAccMagnitude);
+      }
+      letzteAccMagnitude = magnitude;
+    }
+
+    // An den Foreground Service melden (der die Beträge weiter aufsummiert,
+    // siehe MomentumBleForegroundService.meldeBewegung) und lokal zurücksetzen.
+    if (bewegungAkkumuliert > 0) {
+      MomentumBleService.meldeBewegung({ betrag: bewegungAkkumuliert })
+        .catch(err => console.error('[Bewegung] Bewegung konnte nicht ans Plugin gemeldet werden:', err));
+      bewegungAkkumuliert = 0;
+    }
   }
 
   // ── Hilfsfunktionen Verbindungsstatus ───────────────────────────
@@ -3285,8 +3471,10 @@
     intentionalesTrennen = true;
     if (bandDeviceId) {
       try { await BleClient.stopNotifications(bandDeviceId, HEART_RATE_SERVICE, HEART_RATE_MEASUREMENT); } catch (e) {}
+      try { await BleClient.stopNotifications(bandDeviceId, PMD_SERVICE, PMD_DATA); } catch (e) {}
       try { await BleClient.disconnect(bandDeviceId); } catch (e) {}
     }
+    letzteAccMagnitude = null; // nächste Verbindung soll wieder frisch beginnen, kein Sprung-Delta über die Trennung hinweg
     bandDeviceId = null;
     // Explizites Trennen = Nutzerwunsch, keinen automatischen Reconnect
     // mehr versuchen (anders als bei unerwartetem Abbruch, siehe

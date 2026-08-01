@@ -7,7 +7,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -36,6 +38,80 @@ public class MomentumBleForegroundService extends Service {
     private static final String CHANNEL_ID = "momentum_ble_channel";
     private static final int NOTIFICATION_ID = 1001;
     private static final String TAG = "MomentumBleService";
+
+    // ── Nacht-Erfassung (Schlafqualität) ────────────────────────────
+    // Läuft als Handler-Timer INNERHALB dieses Service, bewusst nicht als
+    // JS-setInterval in chat.html: Chromium/WebView drosselt JS-Timer bei
+    // gesperrtem Bildschirm unabhängig vom Foreground-Service-Schutz, ein
+    // Handler in diesem bereits geschützten Prozess dagegen nicht. Felder
+    // sind static, weil MomentumBleServicePlugin nicht an die Service-
+    // Instanz gebunden ist (nur Start-/Stop-Intents) und so trotzdem lesend/
+    // schreibend zugreifen kann. Bewusst nur zwei Summen + ein Zähler im
+    // Arbeitsspeicher – keine Einzelmesspunkte (siehe Plan).
+    private static final long NACHT_TICK_INTERVALL_MS = 5 * 60 * 1000L; // 5 Minuten
+
+    private static volatile int letzteHerzfrequenz     = 0;
+    private static volatile double bewegungSeitTick     = 0;
+    private static volatile long summeHerzfrequenz      = 0;
+    private static volatile double summeBewegung        = 0;
+    private static volatile int anzahlMesspunkte        = 0;
+
+    private Handler nachtHandler;
+    private final Runnable nachtTickRunnable = new Runnable() {
+        @Override
+        public void run() {
+            nachtTick();
+            if (nachtHandler != null) {
+                nachtHandler.postDelayed(this, NACHT_TICK_INTERVALL_MS);
+            }
+        }
+    };
+
+    /** Wird von MomentumBleServicePlugin bei jeder neuen HF-Messung aufgerufen (letzter Wert wird gehalten). */
+    public static synchronized void meldeHerzfrequenz(int bpm) {
+        letzteHerzfrequenz = bpm;
+    }
+
+    /** Wird von MomentumBleServicePlugin nach jeder ausgewerteten ACC-Notification aufgerufen (wird aufsummiert, nicht überschrieben). */
+    public static synchronized void meldeBewegung(double betrag) {
+        bewegungSeitTick += betrag;
+    }
+
+    /** Einfacher Werte-Container für holeNachtDaten() – reine Datenhaltung, keine Logik. */
+    public static final class NachtDaten {
+        public final long summeHerzfrequenz;
+        public final double summeBewegung;
+        public final int anzahlMesspunkte;
+
+        NachtDaten(long summeHerzfrequenz, double summeBewegung, int anzahlMesspunkte) {
+            this.summeHerzfrequenz = summeHerzfrequenz;
+            this.summeBewegung = summeBewegung;
+            this.anzahlMesspunkte = anzahlMesspunkte;
+        }
+    }
+
+    /** Liefert die bisherigen Nacht-Summen (read-only) für die Morgen-Auswertung in chat.html. */
+    public static synchronized NachtDaten holeNachtDaten() {
+        return new NachtDaten(summeHerzfrequenz, summeBewegung, anzahlMesspunkte);
+    }
+
+    /** Verwirft die Nacht-Summen nach erfolgter Morgen-Auswertung. */
+    public static synchronized void nachtDatenZuruecksetzen() {
+        summeHerzfrequenz = 0;
+        summeBewegung = 0;
+        anzahlMesspunkte = 0;
+        Log.d(TAG, "nachtDatenZuruecksetzen: Nacht-Summen verworfen.");
+    }
+
+    private static synchronized void nachtTick() {
+        summeHerzfrequenz += letzteHerzfrequenz;
+        summeBewegung += bewegungSeitTick;
+        anzahlMesspunkte++;
+        Log.d(TAG, "Nacht-Tick #" + anzahlMesspunkte + ": HF=" + letzteHerzfrequenz
+            + ", Bewegung=" + bewegungSeitTick + " (Summen bisher: HF=" + summeHerzfrequenz
+            + ", Bewegung=" + summeBewegung + ")");
+        bewegungSeitTick = 0;
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -76,6 +152,15 @@ public class MomentumBleForegroundService extends Service {
             Log.e(TAG, "onStartCommand: startForeground() ist fehlgeschlagen – Service läuft NICHT im Vordergrund.", e);
         }
 
+        // Nacht-Erfassungstakt starten – nur einmal, onStartCommand kann bei
+        // erneutem MomentumBleService.start() (z. B. Reconnect) mehrfach
+        // aufgerufen werden, solange der Service bereits läuft.
+        if (nachtHandler == null) {
+            nachtHandler = new Handler(Looper.getMainLooper());
+            nachtHandler.postDelayed(nachtTickRunnable, NACHT_TICK_INTERVALL_MS);
+            Log.d(TAG, "onStartCommand: Nacht-Erfassungstakt gestartet (alle " + (NACHT_TICK_INTERVALL_MS / 60000) + " Min).");
+        }
+
         // START_STICKY: Falls das System den Prozess trotz Foreground-Status
         // unter Speicherdruck doch beendet, wird der Service (ohne den
         // ursprünglichen Intent) neu gestartet, sobald wieder Ressourcen frei
@@ -87,6 +172,11 @@ public class MomentumBleForegroundService extends Service {
     @Override
     public void onDestroy() {
         Log.w(TAG, "onDestroy: Service wird beendet/zerstört.");
+        if (nachtHandler != null) {
+            nachtHandler.removeCallbacks(nachtTickRunnable);
+            nachtHandler = null;
+            Log.d(TAG, "onDestroy: Nacht-Erfassungstakt gestoppt.");
+        }
         super.onDestroy();
     }
 

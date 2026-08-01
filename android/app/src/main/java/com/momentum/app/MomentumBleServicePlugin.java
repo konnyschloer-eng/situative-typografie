@@ -7,6 +7,7 @@ import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
+import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -94,5 +95,47 @@ public class MomentumBleServicePlugin extends Plugin {
             Log.e(TAG, "stop(): stopService() fehlgeschlagen.", e);
             call.reject("Foreground Service konnte nicht gestoppt werden: " + e.getMessage(), e);
         }
+    }
+
+    // ── Nacht-Erfassung (Schlafqualität) ────────────────────────────
+    // Reine Weiterleitung an die statischen Felder in
+    // MomentumBleForegroundService (siehe dort für die eigentliche
+    // 5-Minuten-Verdichtungslogik) – dieses Plugin bündelt nur den
+    // JS-seitigen Zugriff darauf.
+
+    @PluginMethod
+    public void meldeHerzfrequenz(PluginCall call) {
+        Integer bpm = call.getInt("bpm");
+        if (bpm != null) {
+            MomentumBleForegroundService.meldeHerzfrequenz(bpm);
+        }
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void meldeBewegung(PluginCall call) {
+        Double betrag = call.getDouble("betrag");
+        if (betrag != null) {
+            MomentumBleForegroundService.meldeBewegung(betrag);
+        }
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void holeNachtDaten(PluginCall call) {
+        MomentumBleForegroundService.NachtDaten daten = MomentumBleForegroundService.holeNachtDaten();
+        JSObject ergebnis = new JSObject();
+        ergebnis.put("summeHerzfrequenz", daten.summeHerzfrequenz);
+        ergebnis.put("summeBewegung", daten.summeBewegung);
+        ergebnis.put("anzahlMesspunkte", daten.anzahlMesspunkte);
+        Log.d(TAG, "holeNachtDaten: summeHerzfrequenz=" + daten.summeHerzfrequenz
+            + ", summeBewegung=" + daten.summeBewegung + ", anzahlMesspunkte=" + daten.anzahlMesspunkte);
+        call.resolve(ergebnis);
+    }
+
+    @PluginMethod
+    public void nachtDatenZuruecksetzen(PluginCall call) {
+        MomentumBleForegroundService.nachtDatenZuruecksetzen();
+        call.resolve();
     }
 }
