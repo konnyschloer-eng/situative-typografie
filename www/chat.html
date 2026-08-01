@@ -1811,6 +1811,8 @@
 
 <script>
 
+  console.log('navigator.bluetooth vorhanden:', typeof navigator.bluetooth);
+
   // ── Navigation ────────────────────────────────────────────────
   const ansichtUebersicht = document.getElementById('ansicht-uebersicht');
   const ansichtChat       = document.getElementById('ansicht-chat');
@@ -2432,8 +2434,13 @@
     // ══ TEST/DEMO – Schlafqualität → Unschärfe (filter: blur) ══════
     // Simulierte Eingabe, kein Live-Sensor. Niedrig/"müde" (100) = unscharf,
     // hoch/"wach" (900) = scharf. Siehe Matrix: Unschärfe-Dimension.
+    // Falls für die aktuelle Sitzung keine Schlafqualität gemessen/
+    // eingegeben wurde (Wert fehlt/ist null/undefined), greift als
+    // Standardwert "wach" (900) statt Fehler oder leerer Anzeige – ergibt
+    // hier scharfen (unverschwommenen) Text, wie bei echtem "wach".
     const BLUR_MAX = 1.4; // ← nachjustieren (px): Maximum bei Schlafqualität 100 – bewusst dezent, Text bleibt lesbar
-    const blur = umrechnen(rohwerte.schlafqualitaet, 100, 900, BLUR_MAX, 0);
+    const schlafqualitaetWert = (rohwerte.schlafqualitaet != null) ? rohwerte.schlafqualitaet : 900;
+    const blur = umrechnen(schlafqualitaetWert, 100, 900, BLUR_MAX, 0);
 
     // ══ TEST/DEMO – Atemfrequenz → Transparenz (opacity) ═══════════
     // Simulierte Eingabe, kein Live-Sensor. Niedrig/"aufgewühlt" (100) = blass,
@@ -3047,9 +3054,49 @@
   let bleBereit             = false; // BleClient.initialize() nur einmal nötig
   let intentionalesTrennen = false;
 
+  // Merkt sich die zuletzt verbundene Geräte-ID über einen Seitenwechsel
+  // hinweg (localStorage übersteht das, JS-Variablen nicht – die WebView
+  // lädt bei jeder HTML-Datei eine neue JS-Umgebung). Damit kann sich
+  // chat.html direkt beim Laden automatisch neu verbinden, ohne dass der
+  // Nutzer nach dem Onboarding nochmal manuell klicken muss.
+  const BAND_DEVICE_ID_KEY = 'situativeTypografie_bandDeviceId';
+
   const bandBtn          = document.getElementById('band-btn');
   const bandBpmLive      = document.getElementById('band-bpm-live');
   const labelIntensitaet = sliderIntensitaet.closest('.sensor-dimension').querySelector('.dimension-label');
+
+  async function bleSicherstellen() {
+    if (bleBereit) return;
+    await BleClient.initialize();
+    bleBereit = true;
+  }
+
+  // Gemeinsame Erfolgs-Logik NACH einem erfolgreichen BleClient.connect() –
+  // genutzt sowohl vom manuellen "Band verbinden"-Klick als auch vom
+  // automatischen Reconnect-Versuch beim Laden der Seite (siehe unten).
+  async function bandNachVerbindungAktivieren(deviceId) {
+    // Characteristic abonnieren – Callback erhält die DataView direkt
+    // (nicht wie bei Web Bluetooth über ein Event-Objekt).
+    await BleClient.startNotifications(
+      deviceId,
+      HEART_RATE_SERVICE,
+      HEART_RATE_MEASUREMENT,
+      bpmEmpfangen
+    );
+
+    bandDeviceId  = deviceId;
+    bandVerbunden = true;
+    bandBtn.textContent = 'Band trennen';
+    bandBtn.classList.add('verbunden');
+    bandBpmLive.hidden = false;
+    bandBpmLive.classList.remove('fehler');
+    sliderIntensitaet.disabled            = true;
+    sliderIntensitaet.style.opacity       = '0.3';
+    sliderIntensitaet.style.pointerEvents = 'none';
+    labelIntensitaet.classList.add('dimension-label--live');
+
+    try { localStorage.setItem(BAND_DEVICE_ID_KEY, deviceId); } catch (e) {}
+  }
 
   // ── Verbindungsaufbau per Klick ─────────────────────────────────
   bandBtn.addEventListener('click', async function () {
@@ -3060,10 +3107,7 @@
     }
 
     try {
-      if (!bleBereit) {
-        await BleClient.initialize();
-        bleBereit = true;
-      }
+      await bleSicherstellen();
     } catch (err) {
       bandFehlerZeigen('Bluetooth ist auf diesem Gerät nicht verfügbar.');
       console.error('[Bluetooth] initialize()', err);
@@ -3075,38 +3119,12 @@
       const geraet = await BleClient.requestDevice({
         services: [HEART_RATE_SERVICE]
       });
-      bandDeviceId = geraet.deviceId;
 
       // Verbindung aufbauen – onDisconnect-Callback übernimmt die Rolle
       // des früheren "gattserverdisconnected"-Events (bei unerwartetem
       // Verbindungsabbruch auf Slider zurückfallen).
-      await BleClient.connect(bandDeviceId, function () {
-        if (!intentionalesTrennen) {
-          bandZuruecksetzen();
-          bandFehlerZeigen('Verbindung zum Band getrennt – Slider aktiv.');
-        }
-        intentionalesTrennen = false;
-      });
-
-      // Characteristic abonnieren – Callback erhält die DataView direkt
-      // (nicht wie bei Web Bluetooth über ein Event-Objekt).
-      await BleClient.startNotifications(
-        bandDeviceId,
-        HEART_RATE_SERVICE,
-        HEART_RATE_MEASUREMENT,
-        bpmEmpfangen
-      );
-
-      // UI: verbunden → Slider sperren, Live-Indikator zeigen
-      bandVerbunden = true;
-      bandBtn.textContent = 'Band trennen';
-      bandBtn.classList.add('verbunden');
-      bandBpmLive.hidden = false;
-      bandBpmLive.classList.remove('fehler');
-      sliderIntensitaet.disabled            = true;
-      sliderIntensitaet.style.opacity       = '0.3';
-      sliderIntensitaet.style.pointerEvents = 'none';
-      labelIntensitaet.classList.add('dimension-label--live');
+      await BleClient.connect(geraet.deviceId, bandUnerwartetGetrennt);
+      await bandNachVerbindungAktivieren(geraet.deviceId);
 
     } catch (err) {
       // Nutzer hat den Geräteauswahl-Dialog abgebrochen → kein Hinweis nötig
@@ -3117,6 +3135,46 @@
       bandDeviceId = null;
     }
   });
+
+  // Callback für BleClient.connect() bei unerwartetem Verbindungsabbruch
+  // (Gerät außer Reichweite, ausgeschaltet o. Ä.) – nicht bei gewolltem
+  // Trennen über bandExplizitTrennen (dafür ist intentionalesTrennen da).
+  function bandUnerwartetGetrennt() {
+    if (!intentionalesTrennen) {
+      bandZuruecksetzen();
+      bandFehlerZeigen('Verbindung zum Band getrennt – Slider aktiv.');
+    }
+    intentionalesTrennen = false;
+  }
+
+  // ── Automatischer Reconnect beim Laden von chat.html ─────────────
+  // Eine Bluetooth-Verbindung übersteht keinen Seitenwechsel (die WebView
+  // lädt bei jeder HTML-Datei eine neue JS-Umgebung, die native
+  // BLE-Verbindung wird dabei mit abgebaut) – auch mit BleClient nicht.
+  // Wurde im Onboarding oder einer früheren Chat-Sitzung bereits ein Gerät
+  // verbunden (Geräte-ID in localStorage gespeichert), wird hier beim
+  // Laden automatisch versucht, OHNE Klick erneut zu verbinden. BleClient
+  // kann auf Android direkt per Geräte-ID (MAC-Adresse) verbinden, ganz
+  // ohne erneuten Auswahl-Dialog. Schlägt das fehl (Gerät außer
+  // Reichweite o. Ä.), gibt es einen klaren, freundlichen Hinweis statt
+  // einer kryptischen Fehlermeldung – der Slider bleibt dabei ganz normal
+  // nutzbar (kein Fehlerzustand, keine leere Anzeige).
+  async function bandAutomatischReconnecten() {
+    let gespeicherteId;
+    try { gespeicherteId = localStorage.getItem(BAND_DEVICE_ID_KEY); } catch (e) { return; }
+    if (!gespeicherteId) return;
+
+    try {
+      await bleSicherstellen();
+      await BleClient.connect(gespeicherteId, bandUnerwartetGetrennt);
+      await bandNachVerbindungAktivieren(gespeicherteId);
+    } catch (err) {
+      console.error('[Bluetooth] automatischer Reconnect fehlgeschlagen', err);
+      bandFehlerZeigen('Sensor nicht gefunden – bitte erneut verbinden.');
+    }
+  }
+
+  bandAutomatischReconnecten();
 
   // ── BPM-Daten empfangen und auswerten ───────────────────────────
   // Wird bei jeder neuen Heart Rate Measurement Notification aufgerufen.
@@ -3193,6 +3251,10 @@
       try { await BleClient.disconnect(bandDeviceId); } catch (e) {}
     }
     bandDeviceId = null;
+    // Explizites Trennen = Nutzerwunsch, keinen automatischen Reconnect
+    // mehr versuchen (anders als bei unerwartetem Abbruch, siehe
+    // bandUnerwartetGetrennt/bandAutomatischReconnecten oben).
+    try { localStorage.removeItem(BAND_DEVICE_ID_KEY); } catch (e) {}
     bandZuruecksetzen();
   }
 

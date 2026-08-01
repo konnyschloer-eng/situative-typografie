@@ -1257,6 +1257,13 @@
       });
       await OnboardingBleClient.connect(geraet.deviceId);
 
+      // Geräte-ID merken, damit chat.html sich beim Ankommen automatisch
+      // neu verbinden kann (dieselbe localStorage-Kennung wie dort) –
+      // eine BLE-Verbindung übersteht den Seitenwechsel selbst nicht,
+      // aber die ID tut es, und mit ihr kann direkt (ohne erneuten
+      // Auswahl-Dialog) neu verbunden werden.
+      try { localStorage.setItem('situativeTypografie_bandDeviceId', geraet.deviceId); } catch (e) {}
+
       button.classList.add('verbunden');
       button.textContent = 'Verbunden ✓';
       bluetoothHinweisZeigen('Verbunden – weiter geht’s.');
