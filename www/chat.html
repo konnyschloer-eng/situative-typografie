@@ -1797,6 +1797,18 @@
 
 </div><!-- /.phone-frame -->
 
+<!-- Natives Bluetooth LE (@capacitor-community/bluetooth-le) statt Web
+     Bluetooth: Android-WebViews (auch das der gebauten Capacitor-App)
+     unterstützen navigator.bluetooth grundsätzlich NICHT – nur "echtes"
+     Chrome tut das. Vendor-Dateien werden von scripts/sync-web.js aus
+     node_modules nach vendor/ (und von dort nach www/vendor/) kopiert,
+     siehe ble-test.html für den ursprünglichen, dort bereits geprüften
+     Umsetzungs-/Lade-Ansatz. Erst Capacitor-Core (global "Capacitor"),
+     dann das Plugin (baut darauf auf, global "capacitorCommunityBluetoothLe"
+     mit "BleClient"). -->
+<script src="vendor/capacitor.js"></script>
+<script src="vendor/bluetooth-le.js"></script>
+
 <script>
 
   // ── Navigation ────────────────────────────────────────────────
@@ -2999,20 +3011,40 @@
   // ══════════════════════════════════════════════════════════════════
   //  BLUETOOTH-HERZFREQUENZ – Polar Verity Sense (oder kompatibles Band)
   //
-  //  Verbindungsaufbau: Heart Rate Service (UUID 0x180D / 'heart_rate')
-  //  Datenquelle:       Heart Rate Measurement (UUID 0x2A37 / 'heart_rate_measurement')
+  //  Nutzt natives Bluetooth LE (@capacitor-community/bluetooth-le,
+  //  BleClient) statt der Web-Bluetooth-API (navigator.bluetooth): Android-
+  //  WebViews – auch das der gebauten Capacitor-App – unterstützen Web
+  //  Bluetooth grundsätzlich NICHT, nur echtes Chrome tut das ("Web
+  //  Bluetooth wird in diesem Browser nicht unterstützt" auf dem Handy).
+  //  BleClient läuft dagegen sowohl im normalen Browser (eigene Web-
+  //  Implementierung on top von Web Bluetooth) als auch – entscheidend –
+  //  in der Android-App (echte native BLE-Bridge). Bereits eigenständig
+  //  geprüft in ble-test.html.
+  //
+  //  Verbindungsaufbau: Heart Rate Service (UUID 0x180D)
+  //  Datenquelle:       Heart Rate Measurement (UUID 0x2A37)
   //
   //  BPM → Intensität:  55 bpm → Rohwert 100 (ruhig, leicht)
   //                    105 bpm → Rohwert 900 (aktiviert, fett)
   //  Werte außerhalb werden auf 100–900 geklemmt.
+  //
+  //  WICHTIG: Ab hier ändert sich NUR, WIE die Verbindung aufgebaut wird
+  //  und WIE bpmEmpfangen() aufgerufen wird (Parameter: direkt die
+  //  DataView statt event.target.value). Die eigentliche Puls-Reaktions-
+  //  Logik in bpmEmpfangen() (BPM-Auswertung, RR-Intervalle, Mapping auf
+  //  Intensität, Strichstärke) ist komplett unverändert.
   // ══════════════════════════════════════════════════════════════════
+
+  const { BleClient } = capacitorCommunityBluetoothLe;
+  const HEART_RATE_SERVICE     = capacitorCommunityBluetoothLe.numberToUUID(0x180d);
+  const HEART_RATE_MEASUREMENT = capacitorCommunityBluetoothLe.numberToUUID(0x2a37);
 
   const BAND_BPM_MIN = 75;   // ← nachjustieren: ab diesem Puls dünnste Strichstärke (Minimum)
   const BAND_BPM_MAX = 110;  // ← nachjustieren: ab diesem Puls fetteste Strichstärke (Maximum)
 
   let bandVerbunden        = false;
-  let bluetoothGeraet      = null;
-  let bandCharacteristic   = null;
+  let bandDeviceId         = null;  // ersetzt bluetoothGeraet (Web-Bluetooth-Objekt) – bei BleClient reicht die Geräte-ID als String
+  let bleBereit             = false; // BleClient.initialize() nur einmal nötig
   let intentionalesTrennen = false;
 
   const bandBtn          = document.getElementById('band-btn');
@@ -3027,19 +3059,28 @@
       return;
     }
 
-    if (!navigator.bluetooth) {
-      bandFehlerZeigen('Web Bluetooth wird in diesem Browser nicht unterstützt.');
+    try {
+      if (!bleBereit) {
+        await BleClient.initialize();
+        bleBereit = true;
+      }
+    } catch (err) {
+      bandFehlerZeigen('Bluetooth ist auf diesem Gerät nicht verfügbar.');
+      console.error('[Bluetooth] initialize()', err);
       return;
     }
 
     try {
-      // Browser-Geräteauswahl-Dialog öffnet sich (nur Heart-Rate-Geräte sichtbar)
-      bluetoothGeraet = await navigator.bluetooth.requestDevice({
-        filters: [{ services: ['heart_rate'] }]
+      // Geräteauswahl-Dialog öffnet sich (nur Heart-Rate-Geräte sichtbar)
+      const geraet = await BleClient.requestDevice({
+        services: [HEART_RATE_SERVICE]
       });
+      bandDeviceId = geraet.deviceId;
 
-      // Bei unerwartetem Verbindungsabbruch auf Slider zurückfallen
-      bluetoothGeraet.addEventListener('gattserverdisconnected', function () {
+      // Verbindung aufbauen – onDisconnect-Callback übernimmt die Rolle
+      // des früheren "gattserverdisconnected"-Events (bei unerwartetem
+      // Verbindungsabbruch auf Slider zurückfallen).
+      await BleClient.connect(bandDeviceId, function () {
         if (!intentionalesTrennen) {
           bandZuruecksetzen();
           bandFehlerZeigen('Verbindung zum Band getrennt – Slider aktiv.');
@@ -3047,12 +3088,14 @@
         intentionalesTrennen = false;
       });
 
-      // GATT-Verbindung aufbauen und Characteristic abonnieren
-      const server  = await bluetoothGeraet.gatt.connect();
-      const service = await server.getPrimaryService('heart_rate');
-      bandCharacteristic = await service.getCharacteristic('heart_rate_measurement');
-      await bandCharacteristic.startNotifications();
-      bandCharacteristic.addEventListener('characteristicvaluechanged', bpmEmpfangen);
+      // Characteristic abonnieren – Callback erhält die DataView direkt
+      // (nicht wie bei Web Bluetooth über ein Event-Objekt).
+      await BleClient.startNotifications(
+        bandDeviceId,
+        HEART_RATE_SERVICE,
+        HEART_RATE_MEASUREMENT,
+        bpmEmpfangen
+      );
 
       // UI: verbunden → Slider sperren, Live-Indikator zeigen
       bandVerbunden = true;
@@ -3066,34 +3109,44 @@
       labelIntensitaet.classList.add('dimension-label--live');
 
     } catch (err) {
-      // NotFoundError = Nutzer hat Dialog abgebrochen → kein Hinweis nötig
-      if (err.name !== 'NotFoundError') {
+      // Nutzer hat den Geräteauswahl-Dialog abgebrochen → kein Hinweis nötig
+      if (!/cancelled/i.test(err.message || '')) {
         bandFehlerZeigen('Verbindung fehlgeschlagen – Slider aktiv.');
         console.error('[Bluetooth]', err);
       }
-      bluetoothGeraet = null;
+      bandDeviceId = null;
     }
   });
 
   // ── BPM-Daten empfangen und auswerten ───────────────────────────
   // Wird bei jeder neuen Heart Rate Measurement Notification aufgerufen.
-  function bpmEmpfangen(event) {
-    const daten    = event.target.value;   // DataView (rohe Bytes der Characteristic)
+  // Parameter "daten" kommt direkt als DataView von BleClient.startNotifications
+  // (anders als bei Web Bluetooth, wo sie über event.target.value kam) – die
+  // gesamte Auswertung darunter ist unverändert.
+  function bpmEmpfangen(daten) {
     const flags    = daten.getUint8(0);    // Byte 0: Flags
     const format16 = flags & 0x01;         // Bit 0: 1 = uint16, 0 = uint8
 
     // Herzfrequenz lesen (1 oder 2 Bytes je nach Format-Flag)
     const bpm = format16 ? daten.getUint16(1, true) : daten.getUint8(1);
 
-    // RR-Intervalle vorhanden? (Bit 4 der Flags) → für spätere HRV-Nutzung loggen
+    // RR-Intervalle vorhanden? (Bit 4 der Flags) → nur zu Testzwecken loggen,
+    // noch keine HRV-Berechnung/UI-Änderung.
     if (flags & 0x10) {
-      const offset  = format16 ? 3 : 2;
+      // Offset der RR-Intervalle: Flags(1) + HR-Wert(1 oder 2, je nach Bit 0)
+      // + optional Energy Expended(2), wenn Bit 3 gesetzt ist (spec-treu,
+      // auch wenn das Polar-Band dieses Feld vermutlich nie sendet).
+      let offset = format16 ? 3 : 2;
+      if (flags & 0x08) offset += 2;
+
       const rrWerte = [];
       for (let i = offset; i + 1 < daten.byteLength; i += 2) {
         // Einheit laut Spec: 1/1024 Sekunde → in ms umrechnen
         rrWerte.push(Math.round(daten.getUint16(i, true) / 1024 * 1000));
       }
-      if (rrWerte.length) console.log('[HRV] RR-Intervalle (ms):', rrWerte);
+      console.log('[HRV] RR-Intervalle (ms):', rrWerte);
+    } else {
+      console.log('[HRV] Keine RR-Intervalle in diesem Datenstrom vorhanden.');
     }
 
     // Live-Anzeige des Rohwerts (sichtbar nach Verbindung)
@@ -3116,8 +3169,8 @@
 
   // Setzt UI und Zustand auf Slider-Fallback zurück (intern + bei Abbruch).
   function bandZuruecksetzen() {
-    bandVerbunden      = false;
-    bandCharacteristic = null;
+    bandVerbunden = false;
+    bandDeviceId  = null;
     bandBtn.textContent = 'Band verbinden';
     bandBtn.classList.remove('verbunden');
     bandBpmLive.hidden = true;
@@ -3135,13 +3188,11 @@
   // Trennt die Verbindung auf Nutzerwunsch (kein Fehlerhinweis).
   async function bandExplizitTrennen() {
     intentionalesTrennen = true;
-    if (bandCharacteristic) {
-      try { await bandCharacteristic.stopNotifications(); } catch (e) {}
+    if (bandDeviceId) {
+      try { await BleClient.stopNotifications(bandDeviceId, HEART_RATE_SERVICE, HEART_RATE_MEASUREMENT); } catch (e) {}
+      try { await BleClient.disconnect(bandDeviceId); } catch (e) {}
     }
-    if (bluetoothGeraet && bluetoothGeraet.gatt.connected) {
-      bluetoothGeraet.gatt.disconnect();
-    }
-    bluetoothGeraet = null;
+    bandDeviceId = null;
     bandZuruecksetzen();
   }
 

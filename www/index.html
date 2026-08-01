@@ -3,127 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Variable Schrift – Schriftstärke</title>
+  <title>Momentum</title>
 
-  <!-- Inter als variable Schrift laden (Gewichtsachse 100–900) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
-
-  <style>
-    /* Seite zentrieren, dunkler Hintergrund */
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background-color: #111;
-      font-family: 'Inter', sans-serif;
-    }
-
-    /* Das große Wort */
-    #wort {
-      color: #fff;
-      font-size: 20vw;
-      line-height: 1;
-      /* Startwert: mittleres Gewicht */
-      font-weight: 400;
-      /* Sorgt dafür, dass die variable Achse genutzt wird */
-      font-variation-settings: 'wght' 400;
-      letter-spacing: -0.02em;
-      user-select: none;
-    }
-
-    /* Bereich für Slider und Beschriftung */
-    .steuerung {
-      margin-top: 6vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    /* Anzeige des aktuellen Gewichtswerts */
-    #gewicht-anzeige {
-      color: #aaa;
-      font-size: 1rem;
-      font-weight: 400;
-      letter-spacing: 0.05em;
-    }
-
-    /* Slider-Styling */
-    #slider {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 60vw;
-      max-width: 500px;
-      height: 3px;
-      border-radius: 2px;
-      background: #444;
-      outline: none;
-      cursor: pointer;
-    }
-
-    /* Thumb (der ziehbare Punkt) */
-    #slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #fff;
-      cursor: pointer;
-    }
-
-    #slider::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #fff;
-      cursor: pointer;
-      border: none;
-    }
-  </style>
+  <!-- Reine Weiterleitungsseite: Startpunkt (App-Root wie öffentlicher
+       Web-Link/GitHub Pages) führt direkt ins Onboarding. Zwei
+       Mechanismen kombiniert, damit die Weiterleitung robust ist:
+       meta-refresh greift auch ohne JavaScript, das Script greift
+       schneller/sofort in modernen Browsern (window.location.replace
+       statt .href, damit index.html NICHT im Verlauf landet – der
+       Zurück-Button springt sonst zurück auf diese leere Zwischenseite
+       statt z. B. auf die vorherige externe Seite). situra-slider.html
+       ist davon bewusst unberührt – eigenständige Showcase-Seite,
+       nicht Teil dieses Onboarding-/Chat-Ablaufs. -->
+  <meta http-equiv="refresh" content="0; url=onboarding.html">
+  <script>
+    window.location.replace('onboarding.html');
+  </script>
 </head>
 <body>
-
-  <!-- Das Wort, dessen Schriftstärke sich ändert -->
-  <div id="wort">Hallo</div>
-
-  <div class="steuerung">
-    <!-- Zeigt den aktuellen font-weight-Wert an -->
-    <span id="gewicht-anzeige">font-weight: 400</span>
-
-    <!-- Slider: min=100 (dünn), max=900 (fett), Schritte von 1 -->
-    <input
-      type="range"
-      id="slider"
-      min="100"
-      max="900"
-      value="400"
-      step="1"
-    >
-  </div>
-
-  <script>
-    const wort    = document.getElementById('wort');
-    const slider  = document.getElementById('slider');
-    const anzeige = document.getElementById('gewicht-anzeige');
-
-    // Wird bei jeder Slider-Bewegung aufgerufen
-    slider.addEventListener('input', function () {
-      const wert = this.value; // aktueller Slider-Wert (100–900)
-
-      // Variable Schriftachse direkt setzen (für maximale Browser-Kompatibilität)
-      wort.style.fontVariationSettings = `'wght' ${wert}`;
-      wort.style.fontWeight = wert;
-
-      // Anzeige aktualisieren
-      anzeige.textContent = `font-weight: ${wert}`;
-    });
-  </script>
-
+  <p>Weiterleitung zu <a href="onboarding.html">onboarding.html</a> …</p>
 </body>
 </html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLE-Test (Machbarkeit) – @capacitor-community/bluetooth-le</title>
+
+<!--
+  ══════════════════════════════════════════════════════════════════
+  REINER MACHBARKEITS-TEST für natives Bluetooth LE über das Plugin
+  @capacitor-community/bluetooth-le. Komplett eigenständig – teilt
+  sich KEINEN Code mit chat.html (insbesondere nicht mit bpmEmpfangen
+  / der bestehenden Puls-Reaktions-/Strichstärke-Logik dort). Diese
+  Seite parst die Heart-Rate-Measurement-Bytes selbst, unabhängig,
+  ausschließlich zum Zweck dieses Tests.
+
+  Lädt das Plugin OHNE Bundler direkt per <script>-Tag (Capacitor-
+  "vanilla"-Muster): erst @capacitor/core (stellt global "Capacitor"
+  bereit), danach das Plugin (baut darauf auf, stellt global
+  "capacitorCommunityBluetoothLe" mit "BleClient" bereit). Beide
+  Dateien liegen unter vendor/ – vom Repo-Root aus per
+  "npm run sync-web" aus node_modules aktualisiert (siehe
+  scripts/sync-web.js), damit diese Seite sowohl lokal im Browser
+  als auch in der gebauten Android-App (webDir "www") funktioniert.
+
+  Auf einer normalen Desktop-Website läuft das Plugin über seine
+  Web-Implementierung (nutzt intern die Web-Bluetooth-API des
+  Browsers – "requestLEScan" ist dort experimentell/oft hinter einem
+  Chrome-Flag). Der eigentliche Sinn dieses Plugins ist die native
+  Android-Bridge (in der gebauten APK), die mehr Kontrolle über den
+  BLE-Stack erlaubt als Web Bluetooth im WebView.
+  ══════════════════════════════════════════════════════════════════
+-->
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #111318;
+    color: #f2f2f0;
+    min-height: 100dvh;
+    padding: 24px 20px 40px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .untertitel {
+    font-size: 13px;
+    color: #9a9a9a;
+    margin-bottom: 24px;
+  }
+
+  section {
+    margin-bottom: 26px;
+  }
+
+  h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9a9a9a;
+    margin-bottom: 10px;
+  }
+
+  .status-zeile {
+    font-size: 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #1c1f26;
+    border: 1px solid #2a2e38;
+    min-height: 1.4em;
+  }
+
+  .status-zeile.status-fehler {
+    color: #ff8a80;
+    border-color: #5a2a26;
+    background: #2a1815;
+  }
+
+  .btn-reihe {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid #3a3e48;
+    background: #1c1f26;
+    color: #f2f2f0;
+    cursor: pointer;
+  }
+
+  button:hover:not(:disabled) { background: #262a33; }
+  button:disabled { opacity: 0.4; cursor: default; }
+
+  button.primaer {
+    background: #f2f2f0;
+    color: #111318;
+    border-color: #f2f2f0;
+  }
+  button.primaer:hover:not(:disabled) { opacity: 0.9; background: #f2f2f0; }
+
+  #geraete-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .geraet-eintrag {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    width: 100%;
+    text-align: left;
+    padding: 12px 14px;
+    border-radius: 10px;
+  }
+
+  .geraet-eintrag.geraet-verbunden {
+    border-color: #4caf82;
+    background: #14261d;
+  }
+
+  .geraet-name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .geraet-id, .geraet-rssi {
+    font-size: 11px;
+    color: #9a9a9a;
+    font-family: 'Consolas', monospace;
+  }
+
+  .leer-hinweis {
+    font-size: 13px;
+    color: #6a6a6a;
+    font-style: italic;
+  }
+
+  .bpm-anzeige {
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .bpm-einheit {
+    font-size: 15px;
+    color: #9a9a9a;
+    margin-top: 4px;
+  }
+
+  #log {
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    color: #7a7f8a;
+    background: #14161b;
+    border: 1px solid #22252c;
+    border-radius: 8px;
+    padding: 10px 12px;
+    max-height: 160px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+</style>
+</head>
+<body>
+
+  <h1>BLE-Test (Machbarkeit)</h1>
+  <p class="untertitel">@capacitor-community/bluetooth-le · Heart Rate Service 0x180D · unabhängig von chat.html</p>
+
+  <section>
+    <h2>Status</h2>
+    <div class="status-zeile" id="status">Lädt …</div>
+  </section>
+
+  <section>
+    <h2>Scan</h2>
+    <div class="btn-reihe">
+      <button id="scan-btn" class="primaer" disabled>Scannen (10 s)</button>
+      <button id="scan-stop-btn" disabled>Scan stoppen</button>
+    </div>
+    <div id="geraete-liste">
+      <p class="leer-hinweis" id="geraete-leer-hinweis">Noch keine Geräte gefunden – auf „Scannen“ tippen.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Herzfrequenz (live)</h2>
+    <div class="bpm-anzeige" id="bpm-anzeige">–</div>
+    <div class="bpm-einheit">bpm</div>
+  </section>
+
+  <section>
+    <h2>Log</h2>
+    <div id="log"></div>
+  </section>
+
+  <script src="vendor/capacitor.js"></script>
+  <script src="vendor/bluetooth-le.js"></script>
+  <script>
+    const { BleClient, numberToUUID } = window.capacitorCommunityBluetoothLe;
+
+    // Standard-Characteristics laut Bluetooth-Spec (Assigned Numbers),
+    // in volle 128-Bit-UUIDs umgewandelt – identisch zu den UUIDs, die
+    // auch chat.html verwendet, aber hier komplett eigenständig genutzt.
+    const HEART_RATE_SERVICE       = numberToUUID(0x180d);
+    const HEART_RATE_MEASUREMENT   = numberToUUID(0x2a37);
+
+    const statusEl          = document.getElementById('status');
+    const scanBtn            = document.getElementById('scan-btn');
+    const scanStopBtn        = document.getElementById('scan-stop-btn');
+    const geraeteListeEl     = document.getElementById('geraete-liste');
+    const geraeteLeerHinweis = document.getElementById('geraete-leer-hinweis');
+    const bpmAnzeigeEl       = document.getElementById('bpm-anzeige');
+    const logEl              = document.getElementById('log');
+
+    let scanning            = false;
+    let verbundenesGeraet   = null; // deviceId, sobald verbunden
+    const gefundeneGeraete  = new Map(); // deviceId -> { element, ...ScanResult }
+
+    function loggen(text) {
+      const zeit = new Date().toLocaleTimeString('de-DE');
+      logEl.textContent += `[${zeit}] ${text}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+      console.log('[BLE-Test]', text);
+    }
+
+    function statusZeigen(text, istFehler) {
+      statusEl.textContent = text;
+      statusEl.classList.toggle('status-fehler', !!istFehler);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ── 1) Plugin initialisieren ─────────────────────────────────────
+    async function init() {
+      statusZeigen('Initialisiere BLE-Plugin …');
+      try {
+        await BleClient.initialize();
+        statusZeigen('BLE-Plugin bereit. Scannen kann gestartet werden.');
+        loggen('BleClient.initialize() erfolgreich.');
+        scanBtn.disabled = false;
+      } catch (err) {
+        statusZeigen('Initialisierung fehlgeschlagen: ' + err.message, true);
+        loggen('FEHLER bei initialize(): ' + err.message);
+        console.error('[BLE-Test] initialize()', err);
+      }
+    }
+
+    // ── 2) Scannen und Liste anzeigen ────────────────────────────────
+    async function scanStarten() {
+      geraeteListeEl.querySelectorAll('.geraet-eintrag').forEach(el => el.remove());
+      gefundeneGeraete.clear();
+      geraeteLeerHinweis.hidden = false;
+      geraeteLeerHinweis.textContent = 'Suche läuft …';
+
+      scanning = true;
+      scanBtn.disabled = true;
+      scanStopBtn.disabled = false;
+      statusZeigen('Scanne nach BLE-Geräten (10 Sekunden) …');
+      loggen('Scan gestartet.');
+
+      try {
+        await BleClient.requestLEScan({}, geraetGefunden);
+        setTimeout(() => { if (scanning) scanStoppen(); }, 10000);
+      } catch (err) {
+        statusZeigen('Scan fehlgeschlagen: ' + err.message, true);
+        loggen('FEHLER bei requestLEScan(): ' + err.message);
+        console.error('[BLE-Test] requestLEScan()', err);
+        scanning = false;
+        scanBtn.disabled = false;
+        scanStopBtn.disabled = true;
+      }
+    }
+
+    async function scanStoppen() {
+      if (!scanning) return;
+      scanning = false;
+      try {
+        await BleClient.stopLEScan();
+        loggen('Scan gestoppt.');
+      } catch (err) {
+        loggen('FEHLER bei stopLEScan(): ' + err.message);
+        console.error('[BLE-Test] stopLEScan()', err);
+      }
+      scanBtn.disabled = false;
+      scanStopBtn.disabled = true;
+      if (!verbundenesGeraet) statusZeigen('Scan beendet. Gerät aus der Liste zum Verbinden antippen.');
+    }
+
+    function geraetGefunden(result) {
+      const { device, localName, rssi } = result;
+      if (gefundeneGeraete.has(device.deviceId)) return; // schon gelistet
+
+      loggen(`Gerät gefunden: ${localName || device.name || '(ohne Namen)'} [${device.deviceId}] ${rssi != null ? rssi + ' dBm' : ''}`);
+      geraeteLeerHinweis.hidden = true;
+
+      const eintrag = document.createElement('button');
+      eintrag.className = 'geraet-eintrag';
+      eintrag.innerHTML =
+        `<span class="geraet-name">${escapeHtml(localName || device.name || '(ohne Namen)')}</span>` +
+        `<span class="geraet-id">${escapeHtml(device.deviceId)}</span>` +
+        (rssi != null ? `<span class="geraet-rssi">${rssi} dBm</span>` : '');
+      eintrag.addEventListener('click', () => geraetVerbinden(device.deviceId, localName || device.name));
+
+      geraeteListeEl.appendChild(eintrag);
+      gefundeneGeraete.set(device.deviceId, { element: eintrag, ...result });
+    }
+
+    // ── 3) Verbinden mit ausgewähltem Gerät (z. B. das Polar-Band) ───
+    async function geraetVerbinden(deviceId, name) {
+      await scanStoppen();
+      statusZeigen(`Verbinde mit „${name || deviceId}“ …`);
+      loggen(`Verbindungsversuch zu ${deviceId} …`);
+
+      try {
+        await BleClient.connect(deviceId, geraetGetrennt);
+        verbundenesGeraet = deviceId;
+        statusZeigen(`Verbunden mit „${name || deviceId}“.`);
+        loggen('Verbunden: ' + deviceId);
+
+        const eintrag = gefundeneGeraete.get(deviceId);
+        if (eintrag) eintrag.element.classList.add('geraet-verbunden');
+
+        // ── 4) Herzfrequenz auslesen und live anzeigen ────────────
+        await herzfrequenzAbonnieren(deviceId);
+      } catch (err) {
+        statusZeigen('Verbindung fehlgeschlagen: ' + err.message, true);
+        loggen('FEHLER bei connect(): ' + err.message);
+        console.error('[BLE-Test] connect()', err);
+      }
+    }
+
+    function geraetGetrennt(deviceId) {
+      loggen('Verbindung getrennt: ' + deviceId);
+      statusZeigen('Verbindung getrennt.');
+      verbundenesGeraet = null;
+      bpmAnzeigeEl.textContent = '–';
+      const eintrag = gefundeneGeraete.get(deviceId);
+      if (eintrag) eintrag.element.classList.remove('geraet-verbunden');
+    }
+
+    async function herzfrequenzAbonnieren(deviceId) {
+      try {
+        await BleClient.startNotifications(
+          deviceId,
+          HEART_RATE_SERVICE,
+          HEART_RATE_MEASUREMENT,
+          wertEmpfangen
+        );
+        loggen('Herzfrequenz-Benachrichtigungen gestartet (0x2A37).');
+      } catch (err) {
+        statusZeigen('Konnte Herzfrequenz nicht abonnieren: ' + err.message, true);
+        loggen('FEHLER bei startNotifications(): ' + err.message);
+        console.error('[BLE-Test] startNotifications()', err);
+      }
+    }
+
+    // Eigenständige, minimale Parsing-Funktion NUR für diesen Test –
+    // absichtlich unabhängig von bpmEmpfangen() in chat.html, um die
+    // dortige Puls-/Strichstärke-Logik in keiner Weise zu berühren.
+    function herzfrequenzAusWert(value) {
+      const flags    = value.getUint8(0);
+      const format16 = flags & 0x01; // Bit 0: 1 = uint16, 0 = uint8
+      return format16 ? value.getUint16(1, true) : value.getUint8(1);
+    }
+
+    function wertEmpfangen(value) {
+      const bpm = herzfrequenzAusWert(value);
+      bpmAnzeigeEl.textContent = bpm;
+      loggen('Herzfrequenz: ' + bpm + ' bpm');
+    }
+
+    scanBtn.addEventListener('click', scanStarten);
+    scanStopBtn.addEventListener('click', scanStoppen);
+
+    init();
+  </script>
+</body>
+</html>

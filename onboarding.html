@@ -1024,6 +1024,14 @@
 
 </div>
 
+<!-- Natives Bluetooth LE (@capacitor-community/bluetooth-le) statt Web
+     Bluetooth – siehe Kommentar am "Gerät verbinden"-Screen weiter unten
+     und ble-test.html für den ursprünglichen, dort geprüften Ansatz.
+     Vendor-Dateien werden von scripts/sync-web.js aus node_modules
+     aktualisiert. -->
+<script src="vendor/capacitor.js"></script>
+<script src="vendor/bluetooth-le.js"></script>
+
 <script>
   const schritte      = Array.from(document.querySelectorAll('.schritt'));
   const punkte        = Array.from(document.querySelectorAll('.punkt'));
@@ -1195,14 +1203,21 @@
   //  ZUSÄTZLICHER SCREEN – Gerät verbinden
   //
   //  Ersetzt die Erklär-Tour vollständig durch den Verbinden-Screen.
-  //  Die Verbindungsmethode selbst (Web Bluetooth, Heart-Rate-
-  //  Service) ist exakt dieselbe wie in chat.html: Armband und Uhr
-  //  sind technisch dasselbe Geräteprofil, nur das Label am Button
-  //  unterscheidet sich. Die eigentliche Live-Nutzung der Verbindung
-  //  (BPM-Anzeige, Mapping auf Intensität) bleibt vollständig in
-  //  chat.html – dort muss beim Ankommen ggf. erneut verbunden
-  //  werden, weil Web Bluetooth keine Verbindung über einen
-  //  Seitenwechsel hinweg offen hält.
+  //  Nutzt natives Bluetooth LE (@capacitor-community/bluetooth-le,
+  //  BleClient) statt der Web-Bluetooth-API (navigator.bluetooth) –
+  //  Android-WebViews (auch das der gebauten Capacitor-App) unter-
+  //  stützen Web Bluetooth grundsätzlich NICHT, nur echtes Chrome tut
+  //  das. BleClient läuft dagegen auf beiden (eigene Web-Implementierung
+  //  im Browser, echte native Bridge in der App) – identisch zur
+  //  Umsetzung im "Band verbinden"-Button in chat.html (Heart Rate
+  //  Service, UUID 0x180D). Armband und Uhr sind technisch dasselbe
+  //  Geräteprofil, nur das Label am Button unterscheidet sich. Die
+  //  eigentliche Live-Nutzung der Verbindung (BPM-Anzeige, Mapping auf
+  //  Intensität) bleibt vollständig in chat.html – dort muss beim
+  //  Ankommen erneut verbunden werden, weil weder Web Bluetooth noch
+  //  BleClient eine Verbindung über einen Seitenwechsel hinweg offen
+  //  halten (die JS-Umgebung der WebView wird bei jeder HTML-Datei neu
+  //  geladen).
   // ══════════════════════════════════════════════════════════════
   const onboardingView   = document.getElementById('onboarding-view');
   const bluetoothView    = document.getElementById('bluetooth-view');
@@ -1210,6 +1225,10 @@
   const btUhrBtn         = document.getElementById('bt-uhr-btn');
   const btSpaeterBtn     = document.getElementById('bt-spaeter-btn');
   const bluetoothHinweis = document.getElementById('bluetooth-hinweis');
+
+  const { BleClient: OnboardingBleClient } = window.capacitorCommunityBluetoothLe;
+  const ONBOARDING_HEART_RATE_SERVICE = window.capacitorCommunityBluetoothLe.numberToUUID(0x180d);
+  let onboardingBleBereit = false;
 
   function geraeteVerbindenAnzeigen() {
     onboardingView.classList.remove('aktiv');
@@ -1221,23 +1240,22 @@
   }
 
   async function geraetVerbinden(button, anderesBtn) {
-    if (!navigator.bluetooth) {
-      bluetoothHinweisZeigen('Web Bluetooth wird in diesem Browser nicht unterstützt – du kannst später verbinden.');
-      return;
-    }
-
     button.disabled = true;
     anderesBtn.disabled = true;
     bluetoothHinweisZeigen('Suche nach Gerät …');
 
     try {
+      if (!onboardingBleBereit) {
+        await OnboardingBleClient.initialize();
+        onboardingBleBereit = true;
+      }
+
       // Identische Verbindungsmethode wie der "Band verbinden"-Button
       // im Chat (Heart Rate Service, UUID 0x180D).
-      const geraet = await navigator.bluetooth.requestDevice({
-        filters: [{ services: ['heart_rate'] }]
+      const geraet = await OnboardingBleClient.requestDevice({
+        services: [ONBOARDING_HEART_RATE_SERVICE]
       });
-      const server = await geraet.gatt.connect();
-      await server.getPrimaryService('heart_rate');
+      await OnboardingBleClient.connect(geraet.deviceId);
 
       button.classList.add('verbunden');
       button.textContent = 'Verbunden ✓';
@@ -1247,7 +1265,7 @@
     } catch (err) {
       button.disabled = false;
       anderesBtn.disabled = false;
-      if (err.name === 'NotFoundError') {
+      if (/cancelled/i.test(err.message || '')) {
         bluetoothHinweisZeigen(''); // Nutzer hat den Geräte-Dialog abgebrochen
       } else {
         bluetoothHinweisZeigen('Verbindung fehlgeschlagen – versuch es erneut oder verbinde später.');
