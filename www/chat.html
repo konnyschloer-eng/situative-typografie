@@ -1,0 +1,3475 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat – Situative Typografie</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ══════════════════════════════════════════════════════════════
+       PULS-SCHRIFTSCHNITTE – 7 statische Situra-Schnitte (kein
+       Variable Font). Jeder Schnitt hat einen eigenen font-family-
+       Namen und wird bewusst mit font-weight:400 registriert, damit
+       kein Browser versucht, zusätzlich synthetisch fett/kursiv zu
+       rendern – der jeweilige Schnitt selbst trägt die Strichstärke.
+       Reihenfolge dünn → fett, siehe intensitaetZuSchriftschnitt()
+       weiter unten im Script.
+       ══════════════════════════════════════════════════════════════ */
+    @font-face {
+      font-family: 'Situra-Thin';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Light';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Regular';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Medium';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-SemiBold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Bold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Black';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       FARBWELTEN – als CSS-Custom-Properties auf .phone-frame
+       Zum Anpassen: nur die Werte hier ändern, der Rest folgt.
+
+       NEUTRAL (Emotion AUS): kühl, sachlich, nüchtern
+       DUNKEL  (Emotion AN):  invertiert, schwarz, direkt
+       ══════════════════════════════════════════════════════════════ */
+
+    .phone-frame {
+      /* ── Neutral (Standardzustand, Emotion AUS) ── */
+      --bg:           #f2f2f0;   /* Haupthintergrund */
+      --bg-surface:   #eceae7;   /* Header, Footer, Flächen */
+      --bg-hover:     #e8e5e1;   /* Hover auf Listenelementen */
+      --border:       #d6d3cc;   /* Kräftigere Linien */
+      --border-light: #e4e1da;   /* Feine Trennlinien */
+      --text-2:       #888888;   /* Sekundärtext */
+      --text-3:       #aaaaaa;   /* Labels, schwacher Text */
+      --text-4:       #bbbbbb;   /* Sehr schwacher Text, Wertanzeigen */
+      --accent:       #555555;   /* Slider-Thumb, Fortschrittsbalken */
+      --toggle-off:   #c4c2bb;   /* Toggle-Schiene, Emotion AUS */
+      --toggle-on:    #444444;   /* Toggle-Schiene, Emotion AN */
+      --placeholder:  #c0bdb8;   /* Eingabefeld-Platzhalter */
+      --bubble-outline: rgba(0, 0, 0, 0.75);   /* Sprechblasen-Outline, heller Modus */
+      --scrollbar-farbe: rgba(0, 0, 0, 0.22);  /* Scroll-Indikator, heller Modus */
+    }
+
+    .phone-frame.emotion-an {
+      /* ── Invertiert/Dunkel (Emotion AN) ── */
+      --bg:           #111111;   /* Haupthintergrund – fast schwarz */
+      --bg-surface:   #1a1a1a;   /* Header, Footer, Flächen */
+      --bg-hover:     #222222;   /* Hover auf Listenelementen */
+      --border:       #383838;   /* Kräftigere Linien */
+      --border-light: #2a2a2a;   /* Feine Trennlinien */
+      --text-2:       #999999;   /* Sekundärtext */
+      --text-3:       #666666;   /* Labels, schwacher Text */
+      --text-4:       #505050;   /* Sehr schwacher Text, Wertanzeigen */
+      --accent:       #888888;   /* Slider-Thumb, Fortschrittsbalken */
+      --toggle-off:   #383838;   /* Toggle-Schiene, Emotion AUS */
+      --toggle-on:    #aaaaaa;   /* Toggle-Schiene, Emotion AN */
+      --placeholder:  #484848;   /* Eingabefeld-Platzhalter */
+      --bubble-outline: var(--bubble-outline);  /* Sprechblasen-Outline, dunkler Modus */
+      --scrollbar-farbe: rgba(255, 255, 255, 0.22); /* Scroll-Indikator, dunkler Modus */
+    }
+
+
+    /* ══════════════════════════════════════════════════════════════
+       SCROLLBALKEN – einheitlicher, dezenter Stil für alle
+       scrollbaren Bereiche der App (Kontaktliste, Chat-Verlauf,
+       Eingabefeld, Overlay-Karte, Kontaktauswahl in "Neue Gruppe").
+       Schmale Linie statt System-Balken, kein sichtbarer Track,
+       abgerundete Enden, Farbe folgt dem aktuellen Modus über
+       --scrollbar-farbe (siehe oben). Rein optisch – betrifft keine
+       Typografie-/Zustandslogik.
+       ══════════════════════════════════════════════════════════════ */
+    .gespraechs-liste,
+    .chat-bereich,
+    .overlay-karte,
+    .kontakt-auswahl-liste,
+    #eingabe {
+      scrollbar-width: thin;                              /* Firefox */
+      scrollbar-color: var(--scrollbar-farbe) transparent; /* Firefox */
+    }
+
+    .gespraechs-liste::-webkit-scrollbar,
+    .chat-bereich::-webkit-scrollbar,
+    .overlay-karte::-webkit-scrollbar,
+    .kontakt-auswahl-liste::-webkit-scrollbar,
+    #eingabe::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .gespraechs-liste::-webkit-scrollbar-track,
+    .chat-bereich::-webkit-scrollbar-track,
+    .overlay-karte::-webkit-scrollbar-track,
+    .kontakt-auswahl-liste::-webkit-scrollbar-track,
+    #eingabe::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .gespraechs-liste::-webkit-scrollbar-thumb,
+    .chat-bereich::-webkit-scrollbar-thumb,
+    .overlay-karte::-webkit-scrollbar-thumb,
+    .kontakt-auswahl-liste::-webkit-scrollbar-thumb,
+    #eingabe::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-farbe);
+      border-radius: 999px;
+    }
+
+    .gespraechs-liste::-webkit-scrollbar-button,
+    .chat-bereich::-webkit-scrollbar-button,
+    .overlay-karte::-webkit-scrollbar-button,
+    .kontakt-auswahl-liste::-webkit-scrollbar-button,
+    #eingabe::-webkit-scrollbar-button {
+      display: none;
+    }
+
+
+    /* ── Äußerer Rahmen ───────────────────────────────── */
+    body {
+      background: #e8e6e1;  /* bleibt konstant (außerhalb des Frames) */
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100dvh;
+    }
+
+    /* ── Phone-Frame ──────────────────────────────────── */
+    .phone-frame {
+      position: relative;
+      width: 390px;
+      height: 844px;
+      max-height: 100dvh;
+      background: var(--bg);
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,.12);
+    }
+
+    @media (max-width: 440px) {
+      body { background: var(--bg); }
+      .phone-frame { width: 100%; height: 100dvh; box-shadow: none; }
+    }
+
+    /* ── Ansichten (Übersicht / Chat) ─────────────────── */
+    .ansicht {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      transition: opacity 0.2s ease;
+    }
+
+    .ansicht--versteckt {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+
+    /* ══════════════════════════════════════════════════════
+       ANSICHT 1 – GESPRÄCHSÜBERSICHT
+       ══════════════════════════════════════════════════════ */
+
+    /* ── App-Kopfzeile: Name/Logo-Platzhalter + Menü-Symbol ──────
+       Oberste Zeile der Übersicht, sitzt über der bestehenden
+       Chats/Gruppen-Titelzeile. Rein strukturell/Platzhalter –
+       Menü-Button hat bewusst keine Funktion hinterlegt. ── */
+    .app-kopfzeile {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px 6px;
+    }
+
+    .app-name {
+      font-size: 17px;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      color: #222;
+      letter-spacing: -0.01em;
+    }
+
+    .menu-btn {
+      flex-shrink: 0;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: none;
+      background: none;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .menu-btn:hover { background: var(--bg-hover); color: #222; }
+
+    .menu-btn svg { width: 18px; height: 18px; }
+
+    .kopfzeile-uebersicht {
+      flex-shrink: 0;
+      height: 52px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+    }
+
+    .seitentitel {
+      font-size: 12px;
+      color: var(--text-3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ── Suchfeld: schlicht, Outline, keine Farbe ────────────── */
+    .suche-bereich {
+      flex-shrink: 0;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .suche-eingabe {
+      width: 100%;
+      background: none;
+      border: 1px solid var(--border);
+      outline: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 13px;
+      color: #222;
+      padding: 7px 10px;
+    }
+
+    .suche-eingabe:focus { border-color: var(--text-2); }
+
+    .suche-eingabe::placeholder { color: var(--placeholder); }
+
+    /* ── Filter-Chips: Outline-Pillen, aktiver Chip gefüllt ──────
+       Rein schwarz/weiß-basiert (var(--accent) / var(--bg)) –
+       kein Grün, keine fremde Markenfarbe. ── */
+    .filter-leiste {
+      flex-shrink: 0;
+      display: flex;
+      gap: 8px;
+      padding: 12px 20px 10px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .filter-chip {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .filter-chip:hover { border-color: var(--text-2); }
+
+    .filter-chip--aktiv {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+    }
+
+    .filter-chip--aktiv:hover { border-color: var(--accent); }
+
+    /* ── Tab-Panels: Chats / Gruppen ──────────────────────────────
+       Jeweils genau eines der beiden Panels ist sichtbar; beide sind
+       selbst flex-column-Container, damit ihre Listen (flex:1,
+       overflow-y:auto) wie gehabt scrollen. ── */
+    .tab-inhalt {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .tab-inhalt.aktiv { display: flex; }
+
+    /* ── Tab-Leiste: Chats / Gruppen (unten, wie Bottom-Nav) ──────── */
+    .tab-leiste {
+      flex-shrink: 0;
+      display: flex;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      padding: 12px 0;
+      cursor: pointer;
+    }
+
+    .tab-btn:hover { color: var(--text-2); }
+
+    .tab-btn--aktiv {
+      color: #222;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+    }
+
+    .phone-frame.emotion-an .tab-btn--aktiv { color: #d8d6d1; }
+
+    /* ── Gruppen-Kopf: Titel + "+"-Button ──────────────────────── */
+    .gruppen-kopf {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .gruppen-kopf-label {
+      font-size: 12px;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .neue-gruppe-btn {
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--text-2);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .neue-gruppe-btn:hover { border-color: var(--text-2); }
+
+    /* ── Kontextmenü: Long-Press auf einen Chat-Eintrag ──────────── */
+    .kontext-menu {
+      position: fixed;
+      z-index: 20;
+      display: none;
+      min-width: 200px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    }
+
+    .kontext-menu.sichtbar { display: block; }
+
+    .kontext-menu-eintrag {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--text-2);
+      padding: 12px 16px;
+      cursor: pointer;
+    }
+
+    .kontext-menu-eintrag:hover { background: var(--bg-hover); }
+
+    /* ── Overlay: Neue Gruppe erstellen ──────────────────────────
+       Schlichtes Bottom-Sheet innerhalb des Phone-Frames, passend
+       zum reduzierten Look – keine Farbverläufe, nur Outline. ── */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 30;
+    }
+
+    .overlay.sichtbar { display: flex; }
+
+    .overlay-karte {
+      width: 100%;
+      max-height: 78%;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 16px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+    }
+
+    .overlay-kopf {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .overlay-titel {
+      font-size: 12px;
+      color: var(--text-3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .overlay-schliessen {
+      background: none;
+      border: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 20px;
+      line-height: 1;
+      color: var(--text-3);
+      cursor: pointer;
+    }
+
+    .overlay-schliessen:hover { color: var(--text-2); }
+
+    .kontakt-auswahl-liste {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid var(--border-light);
+    }
+
+    .kontakt-auswahl-eintrag {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text-2);
+      cursor: pointer;
+    }
+
+    .kontakt-auswahl-eintrag:hover { background: var(--bg-hover); }
+
+    .kontakt-auswahl-eintrag input[type="checkbox"] {
+      width: 14px; height: 14px;
+      accent-color: var(--accent);
+    }
+
+    .overlay-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 13px;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .overlay-btn:hover { border-color: var(--text-2); }
+
+    /* Destruktive Aktion (z. B. "Gruppe löschen"): dünne rote Outline
+       statt schwarz/weiß, signalisiert Endgültigkeit – bewusst die
+       einzige Farbabweichung vom sonst rein monochromen Look. */
+    .overlay-btn--gefahr {
+      border-color: rgba(196, 60, 48, 0.55);
+      color: rgba(196, 60, 48, 0.9);
+    }
+
+    .overlay-btn--gefahr:hover {
+      border-color: rgba(196, 60, 48, 0.85);
+      background: rgba(196, 60, 48, 0.08);
+    }
+
+    /* ── Gruppeninfo: Mitgliederzeile mit Entfernen-"×" ──────────── */
+    .gruppenmitglied-zeile {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .gruppenmitglied-entfernen-btn {
+      background: none;
+      border: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: 4px 6px;
+    }
+
+    .gruppenmitglied-entfernen-btn:hover { color: var(--text-2); }
+
+    /* ── Bestätigungs-Dialog: zentriert statt Bottom-Sheet ───────── */
+    .overlay--zentriert {
+      align-items: center;
+    }
+
+    .bestaetigung-karte {
+      width: 260px;
+      max-width: 82%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .bestaetigung-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-2);
+      text-align: center;
+    }
+
+    .bestaetigung-aktionen {
+      display: flex;
+      gap: 10px;
+    }
+
+    .bestaetigung-aktionen .overlay-btn { flex: 1; }
+
+    /* ══════════════════════════════════════════════════════════════
+       MOMENT – horizontale Story-Leiste + Composer + Story-Ansicht.
+       Separater Bereich: rein visuell eigenständig, die eigentliche
+       Wort-Einfrier-Logik lebt im JS-Abschnitt "MOMENT" und rührt
+       nicht an der Chat-Logik. ══════════════════════════════════ */
+    .moment-leiste {
+      flex-shrink: 0;
+      display: flex;
+      gap: 16px;
+      padding: 16px 20px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      border-bottom: 1px solid var(--border-light);
+      scrollbar-width: thin;
+      scrollbar-color: var(--scrollbar-farbe) transparent;
+    }
+
+    .moment-leiste::-webkit-scrollbar { height: 4px; }
+    .moment-leiste::-webkit-scrollbar-track { background: transparent; }
+    .moment-leiste::-webkit-scrollbar-thumb { background: var(--scrollbar-farbe); border-radius: 999px; }
+    .moment-leiste::-webkit-scrollbar-button { display: none; }
+
+    .moment-kreis-wrapper {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 60px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    /* Größere Variante des bestehenden Profilbild-Kreises für die
+       Story-Leiste – reine Größen-/Layoutanpassung, die Strichstärke
+       (font-family) wird weiterhin vom bestehenden Profilbild-System
+       gesetzt (siehe avatarDarstellungAktualisieren), da hier wie in
+       der Kontaktliste dieselbe data-name-Selektorlogik greift. */
+    .avatar--moment {
+      width: 54px; height: 54px;
+      font-size: 19px;
+    }
+
+    /* Ungesehener Moment: dünner weißer Ring um den Kreis, per
+       box-shadow (kein zusätzlicher Platzverbrauch/Layout-Shift). */
+    .avatar--moment-ungesehen {
+      box-shadow: 0 0 0 2px #ffffff;
+    }
+
+    .moment-kreis-name {
+      font-size: 11px;
+      color: var(--text-2);
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .moment-composer {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+    }
+
+    .moment-eingabe {
+      flex: 1;
+      min-width: 0;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      outline: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 14px;
+      color: #222;
+      padding: 6px 0;
+    }
+
+    .moment-eingabe:focus { border-bottom-color: var(--text-2); }
+
+    .moment-eingabe::placeholder { color: var(--placeholder); }
+
+    .moment-senden-btn {
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+
+    .moment-senden-btn:hover:not(:disabled) {
+      border-color: var(--text-2);
+      color: #222;
+    }
+
+    .moment-senden-btn:disabled { opacity: 0.3; cursor: default; }
+
+    .moment-hinweis {
+      flex-shrink: 0;
+      padding: 0 20px 16px;
+      font-size: 12px;
+      color: var(--text-3);
+      font-style: italic;
+    }
+
+    /* ── Story-Ansicht: großer, eingefrorener Text – dieselbe
+       typografische Sprache wie die Chat-Nachrichten (30px, zentriert),
+       aber als eigene Karte statt Sprechblase. ── */
+    .moment-ansicht-overlay .overlay-schliessen { margin-left: auto; }
+
+    .moment-ansicht-karte {
+      width: 300px;
+      max-width: 86%;
+      max-height: 78%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 24px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+    }
+
+    .moment-ansicht-kopf {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .moment-ansicht-name {
+      font-size: 13px;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      color: var(--text-2);
+      letter-spacing: 0.02em;
+    }
+
+    .moment-ansicht-text {
+      font-size: 26px;
+      line-height: 1.35;
+      text-align: center;
+      color: #111;
+      overflow-wrap: break-word;
+    }
+
+    .phone-frame.emotion-an .moment-ansicht-text { color: #d8d6d1; }
+
+    .gespraechs-liste {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .gespraechs-eintrag {
+      display: flex;
+      align-items: stretch;
+      gap: 14px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-light);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .gespraechs-eintrag:hover,
+    .gespraechs-eintrag:active {
+      background: var(--bg-hover);
+    }
+
+    /* ── Profilbild: Kreis mit Anfangsbuchstabe ──────────────────
+       Keine Farbe, kein Foto – nur Outline (passend zum Bubble-Look)
+       und der Buchstabe. Der Situra-Schnitt (font-family) wird per JS
+       gesetzt: er zeigt den auf die 7 Stufen gerundeten, gleitenden
+       Mittelwert der für diese Person erfassten Puls-/Zustandswerte,
+       nicht den aktuellen Moment. Fallback unten = Wert 500 (Medium). ── */
+    .avatar {
+      flex-shrink: 0;
+      align-self: center; /* bleibt vertikal zentriert, unabhängig vom stretch der Zeile */
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #444;
+      background: transparent;
+      border: 1px solid var(--bubble-outline);
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      transition: border-color 0.4s ease, color 0.4s ease;
+    }
+
+    /* Kleinere Variante für die Chat-Kopfzeile */
+    .avatar--chat {
+      width: 28px; height: 28px;
+      font-size: 12px;
+      margin-right: 2px;
+    }
+
+    .gespraechs-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      /* flex:1 1 0 statt nur min-width:0 – füllt IMMER exakt den
+         verbleibenden Platz zwischen Avatar und Meta-Spalte, unabhängig
+         von der Textlänge. Dadurch endet .gespraechs-meta in jeder
+         Zeile an derselben rechten Kante statt je nach Inhalt zu
+         schwanken. */
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    .gespraechs-name {
+      font-size: 14px;
+      color: #222; /* bleibt konstant – Lesbarkeit */
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+    }
+
+    .gespraechs-vorschau {
+      font-size: 13px;
+      color: var(--text-3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Rechte Spalte: Uhrzeit der letzten Nachricht + Ungelesen-
+       Punkt darunter. flex-shrink:0 hält die Spalte auf fester
+       Breite, wodurch .gespraechs-info (s.o., min-width:0) den
+       verbleibenden Platz nimmt und korrekt ellipsiert.
+       Durch align-items:stretch auf .gespraechs-eintrag (s.o.) hat
+       diese Spalte dieselbe Höhe wie .gespraechs-info – justify-
+       content:space-between verankert die Uhrzeit fest oben (auf
+       Höhe des Namens) und den Punkt (falls vorhanden) fest unten
+       (auf Höhe der Vorschau), statt frei zu schweben. ── */
+    .gespraechs-meta {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 7px;
+    }
+
+    .gespraechs-zeit {
+      font-size: 11px;
+      color: var(--text-3);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Ungelesen-Indikator: reines Weiß (Vorgabe), mit dünner Outline
+       in var(--border) – dieselbe Outline-Konvention wie Avatar-Kreise
+       und Buttons – damit der Punkt im hellen Modus auf dem hellen
+       Hintergrund nicht in den Konturen verschwindet. */
+    .ungelesen-punkt {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 1px solid var(--border);
+    }
+
+
+    /* ══════════════════════════════════════════════════════
+       ANSICHT 2 – CHAT
+       ══════════════════════════════════════════════════════ */
+
+    .kopfzeile {
+      flex-shrink: 0;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px 12px;
+    }
+
+    .kopfzeile-titelzeile {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .kopfzeile-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .zurueck-btn {
+      background: none;
+      border: none;
+      padding: 0 8px 0 0;
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--text-3);
+      line-height: 1;
+      font-family: inherit;
+    }
+
+    .zurueck-btn:hover { color: var(--text-2); }
+
+    .kopfzeile-titel {
+      font-size: 12px;
+      color: var(--text-3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* Avatar + Name als ein tippbares Element – öffnet bei Gruppen
+       die Gruppeninfo; bei 1:1-Chats rein visuell (kein Cursor/Hover). */
+    .chat-partner-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: inherit;
+      cursor: default;
+    }
+
+    .chat-partner-btn--gruppe { cursor: pointer; }
+    .chat-partner-btn--gruppe:hover .kopfzeile-titel { color: var(--text-2); }
+
+    .sensor-hinweis {
+      font-size: 10px;
+      color: var(--text-4);
+      letter-spacing: 0.04em;
+      font-style: italic;
+    }
+
+    /* 2×2-Raster für die 4 Dimensionen */
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 18px;
+    }
+
+    .sensor-dimension { display: flex; flex-direction: column; gap: 3px; }
+
+    .dimension-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .dimension-label {
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .dimension-label--live { color: var(--text-2); }
+
+    .dimension-label--live::before {
+      content: '';
+      display: inline-block;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--text-3);
+      margin-right: 4px;
+      vertical-align: middle;
+      animation: pulsieren 2s ease-in-out infinite;
+    }
+
+    @keyframes pulsieren {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.25; }
+    }
+
+    .dimension-wert {
+      font-size: 10px;
+      color: var(--text-4);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dimension-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%; height: 2px;
+      background: var(--border);
+      border-radius: 1px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .dimension-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+
+    .dimension-slider::-moz-range-thumb {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      cursor: pointer;
+    }
+
+    .dimension-balken-spur {
+      width: 100%; height: 2px;
+      background: var(--border-light);
+      border-radius: 1px;
+      overflow: hidden;
+    }
+
+    .dimension-balken {
+      height: 100%; width: 0%;
+      background: var(--accent);
+      border-radius: 1px;
+      transition: width 0.15s ease;
+    }
+
+    .dimension-endpunkte {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: var(--text-4);
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Test-/Demo-Panel: ein-/ausfahrbares Dropdown ──────────
+       Beide simulierten Eingaben (kein Live-Sensor) liegen
+       gemeinsam in EINEM Panel. Standardmäßig eingeklappt – nur
+       der Griff unterhalb der Sensor-Anzeigen ist sichtbar. Das
+       Panel fährt von oben (unterhalb des Griffs) sanft nach
+       unten aus (grid-template-rows 0fr → 1fr = flüssige
+       Höhen-Animation ohne feste Pixel-Höhe). ── */
+    .test-drawer {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .test-drawer-griff {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      width: 100%;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: 3px 0;
+    }
+
+    .test-drawer-griff:hover { color: var(--text-2); }
+
+    .test-drawer-griff svg {
+      transition: transform 0.4s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .test-drawer.offen .test-drawer-griff svg {
+      transform: rotate(180deg);
+    }
+
+    .test-drawer-inhalt {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.45s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .test-drawer.offen .test-drawer-inhalt {
+      grid-template-rows: 1fr;
+    }
+
+    /* min-height:0 ist nötig, damit das Grid-Kind auf 0 kollabieren
+       kann (sonst verhindert der Inhalt selbst das Zuklappen). */
+    .test-drawer-inneres {
+      min-height: 0;
+      overflow: hidden;
+      padding-top: 12px;
+    }
+
+    .test-panel-label {
+      display: block;
+      font-size: 9px;
+      color: var(--text-4);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+
+    .test-badge {
+      font-style: italic;
+      font-size: 9px;
+      color: var(--text-4);
+      text-transform: none;
+      letter-spacing: 0;
+      margin-left: 4px;
+    }
+
+    /* ── Chat-Verlauf ─────────────────────────────────── */
+    .chat-bereich {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: safe center;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .nachricht {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
+      /* --einblenden-dauer wird per JS auf eigene Nachrichten gesetzt (Tempo) */
+      animation: einblenden var(--einblenden-dauer, 0.5s) ease-out forwards;
+    }
+
+    /* Einzelne Buchstaben im Zitter-Modus benötigen inline-block,
+       damit transform darauf wirkt (inline-Elemente ignorieren transform). */
+    .zitter-buchstabe {
+      display: inline-block;
+    }
+
+    .nachricht-andere .text {
+      color: #111; /* wie eigene Nachrichten – nur die Outline unterscheidet den Absender */
+      font-variation-settings: 'wght' 400;
+      display: inline-block;
+      max-width: 88%;
+      background: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.7);
+      border-radius: 18px 18px 18px 6px;
+      padding: 18px 24px;
+      position: relative;
+      transition: border-color 0.4s ease, color 0.4s ease;
+    }
+
+    /* Spitze unten links – äußeres Dreieck (Outline-Farbe) */
+    .nachricht-andere .text::before {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 16px;
+      width: 0; height: 0;
+      border-right: 12px solid transparent;
+      border-top: 12px solid rgba(0, 0, 0, 0.7);
+      transition: border-color 0.4s ease;
+    }
+
+    /* Spitze unten links – inneres Dreieck (Hintergrund, erzeugt Hohlraum) */
+    .nachricht-andere .text::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 17px;
+      width: 0; height: 0;
+      border-right: 10px solid transparent;
+      border-top: 10px solid var(--bg);
+      transition: border-color 0.4s ease;
+    }
+
+    .nachricht-ich .text {
+      color: #111; /* bleibt konstant – Lesbarkeit */
+      font-variation-settings: 'wght' 400;
+      display: inline-block;
+      max-width: 88%;
+      background: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.7);
+      border-radius: 18px 18px 6px 18px;
+      padding: 18px 24px;
+      position: relative;
+      transition: border-color 0.4s ease, color 0.4s ease;
+    }
+
+    /* Spitze unten rechts – äußeres Dreieck (Outline-Farbe) */
+    .nachricht-ich .text::before {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      right: 16px;
+      width: 0; height: 0;
+      border-left: 12px solid transparent;
+      border-top: 12px solid rgba(0, 0, 0, 0.7);
+      transition: border-color 0.4s ease;
+    }
+
+    /* Spitze unten rechts – inneres Dreieck (Hintergrund, erzeugt Hohlraum) */
+    .nachricht-ich .text::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      right: 17px;
+      width: 0; height: 0;
+      border-left: 10px solid transparent;
+      border-top: 10px solid var(--bg);
+      transition: border-color 0.4s ease;
+    }
+
+    /* Zeilenumbruch + große zentrale Darstellung */
+    .nachricht .text {
+      font-size: 30px;
+      line-height: 1.35;
+      text-align: center;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      min-width: 0;
+    }
+
+    /* Jedes Wort als eigene Box: trägt seinen EIGENEN eingefrorenen
+       Dimensions-Zustand (siehe JS: wortZustaende). inline-block hält
+       das Wort als Einheit zusammen; bricht nur um, wenn es selbst
+       breiter als die verfügbare Zeile ist (z. B. sehr lange Wörter). */
+    .wort {
+      display: inline-block;
+      max-width: 100%;
+      overflow-wrap: break-word;
+    }
+
+    /* Absender-Label oberhalb der Nachricht */
+    .nachricht-absender {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 10px;
+      user-select: none;
+    }
+
+    /* Dezenter Status-Indikator unterhalb jeder eigenen Nachricht.
+       "e" = emotionale Typografie war beim Senden aktiv.
+       Leer = neutral/leblos gesendet (Abwesenheit ist das Signal). */
+    .nachricht-status {
+      font-size: 13px;
+      line-height: 1;
+      margin-top: 16px;
+      color: var(--text-2);          /* sichtbar in beiden Farbmodi */
+      font-style: italic;            /* kleines "e" wirkt leichter als Regular */
+      letter-spacing: 0;
+      user-select: none;
+    }
+
+    .nachricht-ich .nachricht-status { text-align: center; }
+
+    @keyframes einblenden {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Zitter-Keyframes werden dynamisch per JS erzeugt (ein Keyframe pro
+       Buchstabe, zufällige Werte). Kein statischer @keyframes-Block nötig. */
+
+    /* ── Eingabebereich ───────────────────────────────── */
+    .eingabe-bereich {
+      flex-shrink: 0;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+      padding: 10px 14px;
+    }
+
+    .eingabe-innen {
+      display: flex;
+      align-items: flex-end; /* Button + Toggle bleiben unten, wenn Feld wächst */
+      gap: 10px;
+    }
+
+    #antwort-btn {
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-3);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 7px 10px;
+      cursor: pointer;
+    }
+
+    #antwort-btn:hover:not(:disabled) {
+      border-color: var(--text-3);
+      color: var(--text-2);
+    }
+
+    #antwort-btn:disabled { opacity: 0.3; cursor: default; }
+
+    #eingabe {
+      flex: 1;
+      min-width: 0;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      outline: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.5;       /* explizit – Basis für die Höhenberechnung */
+      color: #222;            /* bleibt konstant */
+      padding: 5px 0;
+      resize: none;           /* kein manuelles Ziehen */
+      overflow-y: hidden;     /* wird per JS auf auto gesetzt, wenn Max-Höhe erreicht */
+    }
+
+    #eingabe:focus { border-bottom-color: var(--text-2); }
+
+    #eingabe::placeholder { color: var(--placeholder); }
+
+    /* Scrollbalken im Eingabefeld (nur sichtbar, wenn der Text die
+       Max-Höhe übersteigt): siehe einheitlichen SCROLLBALKEN-Block
+       oben – #eingabe ist dort mit den übrigen scrollbaren Bereichen
+       zusammengefasst. */
+
+    /* ── Emotion-Toggle ───────────────────────────────── */
+    .emotion-schalter {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .emotion-schalter input[type="checkbox"] { display: none; }
+
+    .schalter-visuell {
+      width: 34px; height: 19px;
+      background: var(--toggle-off);
+      border-radius: 10px;
+      position: relative;
+    }
+
+    .schalter-visuell::after {
+      content: '';
+      position: absolute;
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px; left: 3px;
+      transition: transform 0.4s ease;
+    }
+
+    #emotion-toggle:checked + .schalter-visuell {
+      background: var(--toggle-on);
+    }
+
+    #emotion-toggle:checked + .schalter-visuell::after {
+      transform: translateX(15px);
+    }
+
+    .schalter-label {
+      font-size: 9px;
+      color: var(--text-3);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+
+    /* ══════════════════════════════════════════════════════
+       MODUSWECHSEL-TRANSITION
+       Alle Farb-Eigenschaften im Frame wechseln weich (0.4 s).
+       Betrifft NUR background-color, border-color, color –
+       keine Konflikte mit transform/opacity-Animationen.
+       Muss als letztes stehen, damit es nicht überschrieben wird.
+       ══════════════════════════════════════════════════════ */
+    .phone-frame,
+    .phone-frame * {
+      transition-property: background-color, border-color, color;
+      transition-duration: 0.4s;
+      transition-timing-function: ease;
+    }
+
+    /* Slider-Thumb (Pseudo-Elemente brauchen eigene Regel) */
+    .dimension-slider::-webkit-slider-thumb { transition: background-color 0.4s ease; }
+    .dimension-slider::-moz-range-thumb     { transition: background-color 0.4s ease; }
+
+    /* Balken-Breite bleibt schnell (0.15 s) – nur Farbe folgt dem Modus */
+    .dimension-balken { transition: width 0.15s ease, background-color 0.4s ease; }
+
+    /* Toggle-Schieber bewegt sich immer mit 0.4 s (konsistent mit Moduswechsel) */
+    .schalter-visuell::after { transition: transform 0.4s ease; }
+
+    /* ── Invertierter Modus (Emotion AN): helle Schrift auf dunklem Grund ── */
+    /* Überschreibt hartcodierte Farben, die nicht über CSS-Variablen laufen.  */
+    .phone-frame.emotion-an .app-name              { color: #d8d6d1; }
+    .phone-frame.emotion-an .gespraechs-name       { color: #ffffff; }
+    .phone-frame.emotion-an .nachricht-andere .text         { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
+    .phone-frame.emotion-an .nachricht-andere .text::before { border-top-color: rgba(255,255,255,0.7); }
+    .phone-frame.emotion-an .nachricht-ich .text            { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
+    .phone-frame.emotion-an .nachricht-ich .text::before    { border-top-color: rgba(255,255,255,0.7); }
+    .phone-frame.emotion-an #eingabe                { color: #d8d6d1; }
+    .phone-frame.emotion-an .suche-eingabe          { color: #d8d6d1; }
+    .phone-frame.emotion-an .moment-eingabe         { color: #d8d6d1; }
+    .phone-frame.emotion-an .avatar                 { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
+
+    /* ── Bluetooth-Band-Steuerung ─────────────────────────────── */
+    .band-steuerung {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .band-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-3);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    .band-btn.verbunden { color: var(--accent); border-color: var(--accent); }
+
+    .band-bpm-live {
+      font-size: 10px;
+      color: var(--text-4);
+      font-variant-numeric: tabular-nums;
+      font-style: italic;
+    }
+
+    .band-bpm-live.fehler { color: var(--text-2); }
+  </style>
+</head>
+<body>
+<div class="phone-frame" id="phone-frame">
+
+  <!-- ══════════════════════════════════════════════════════
+       ANSICHT 1 – GESPRÄCHSÜBERSICHT
+       ══════════════════════════════════════════════════════ -->
+  <div class="ansicht" id="ansicht-uebersicht">
+
+    <header class="app-kopfzeile">
+      <span class="app-name">Situative Typografie</span>
+      <button class="menu-btn" aria-label="Menü" title="Menü">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 7h16M4 12h16M4 17h16"/>
+        </svg>
+      </button>
+    </header>
+
+    <header class="kopfzeile-uebersicht">
+      <span class="seitentitel" id="uebersicht-titel">Chats</span>
+    </header>
+
+    <!-- ── Tab-Panel: Chats (1:1-Gespräche) ── -->
+    <div class="tab-inhalt aktiv" id="tab-chats">
+
+    <div class="suche-bereich">
+      <input class="suche-eingabe" type="text" id="kontakt-suche"
+        placeholder="Kontakt suchen …" autocomplete="off">
+    </div>
+
+    <div class="filter-leiste" id="filter-leiste">
+      <button class="filter-chip filter-chip--aktiv" data-filter="alle">Alle</button>
+      <button class="filter-chip" data-filter="ungelesen">Ungelesen</button>
+      <button class="filter-chip" data-filter="favoriten">Favoriten</button>
+    </div>
+
+    <main class="gespraechs-liste" id="gespraechs-liste">
+
+      <div class="gespraechs-eintrag" data-name="Anna" data-ungelesen data-favorit>
+        <div class="avatar" data-name="Anna">A</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Anna</span>
+          <span class="gespraechs-vorschau">Schick mir mal einen Screenshot, wenn's fertig ist.</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">09:41</span>
+          <span class="ungelesen-punkt"></span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Ben" data-ungelesen>
+        <div class="avatar" data-name="Ben">B</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Ben</span>
+          <span class="gespraechs-vorschau">Bin gleich so weit, gib mir 5 Minuten.</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">09:12</span>
+          <span class="ungelesen-punkt"></span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Clara" data-favorit>
+        <div class="avatar" data-name="Clara">C</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Clara</span>
+          <span class="gespraechs-vorschau">Das klingt nach einem guten Plan.</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">Gestern</span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="David">
+        <div class="avatar" data-name="David">D</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">David</span>
+          <span class="gespraechs-vorschau">Wann sollen wir starten?</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">Gestern</span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Elena" data-ungelesen data-favorit>
+        <div class="avatar" data-name="Elena">E</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Elena</span>
+          <span class="gespraechs-vorschau">Ich schau's mir heute Abend an.</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">07:58</span>
+          <span class="ungelesen-punkt"></span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Felix">
+        <div class="avatar" data-name="Felix">F</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Felix</span>
+          <span class="gespraechs-vorschau">Perfekt, bis später!</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">Mo</span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Luca" data-favorit>
+        <div class="avatar" data-name="Luca">L</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Luca</span>
+          <span class="gespraechs-vorschau">Klingt interessant – wie funktioniert das genau?</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">So</span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Mia" data-ungelesen>
+        <div class="avatar" data-name="Mia">M</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Mia</span>
+          <span class="gespraechs-vorschau">Hast du schon was zum Zeigen?</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">08:03</span>
+          <span class="ungelesen-punkt"></span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Noah">
+        <div class="avatar" data-name="Noah">N</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Noah</span>
+          <span class="gespraechs-vorschau">Können wir das morgen besprechen?</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">Fr</span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Sophie" data-favorit>
+        <div class="avatar" data-name="Sophie">S</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name">Sophie</span>
+          <span class="gespraechs-vorschau">Danke, hilft mir sehr weiter.</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">Do</span>
+        </div>
+      </div>
+
+    </main>
+    </div><!-- /#tab-chats -->
+
+    <!-- ── Tab-Panel: Gruppen ── -->
+    <div class="tab-inhalt" id="tab-gruppen">
+
+    <div class="gruppen-kopf">
+      <span class="gruppen-kopf-label">Gruppen</span>
+      <button class="neue-gruppe-btn" id="neue-gruppe-oeffnen-btn" title="Neue Gruppe erstellen">+</button>
+    </div>
+
+    <main class="gespraechs-liste" id="gruppen-liste"></main>
+
+    </div><!-- /#tab-gruppen -->
+
+    <!-- ── Tab-Panel: Moment (Story-artige Leiste) ──────────────────
+         Separater Bereich: nutzt denselben Wort-für-Wort-Einfrier-
+         Mechanismus wie der Chat (siehe JS-Abschnitt "MOMENT"), aber
+         mit eigenem Composer/eigenem Zustand – rührt nicht an
+         wortZustaende/eingabe des Chats. ── -->
+    <div class="tab-inhalt" id="tab-moment">
+
+      <div class="gruppen-kopf">
+        <span class="gruppen-kopf-label">Moment</span>
+      </div>
+
+      <div class="moment-leiste" id="moment-leiste"></div>
+
+      <div class="moment-composer" id="moment-composer">
+        <input class="moment-eingabe" type="text" id="moment-eingabe"
+          placeholder="Was ist gerade los?" autocomplete="off" maxlength="140">
+        <button class="moment-senden-btn" id="moment-senden-btn">Senden</button>
+      </div>
+      <p class="moment-hinweis" id="moment-hinweis" hidden>Du hast heute schon einen Moment geteilt.</p>
+
+    </div><!-- /#tab-moment -->
+
+    <!-- ── Tab-Leiste: Chats / Gruppen / Moment ── -->
+    <nav class="tab-leiste">
+      <button class="tab-btn tab-btn--aktiv" data-tab="chats">Chats</button>
+      <button class="tab-btn" data-tab="gruppen">Gruppen</button>
+      <button class="tab-btn" data-tab="moment">Moment</button>
+    </nav>
+
+    <!-- ── Kontextmenü: Long-Press auf einen Chat-Eintrag ── -->
+    <div class="kontext-menu" id="kontext-menu">
+      <button class="kontext-menu-eintrag" id="kontext-favorit-btn">Zu Favoriten hinzufügen</button>
+    </div>
+
+    <!-- ── Overlay: Neue Gruppe erstellen ── -->
+    <div class="overlay" id="neue-gruppe-overlay">
+      <div class="overlay-karte">
+        <div class="overlay-kopf">
+          <span class="overlay-titel">Neue Gruppe</span>
+          <button class="overlay-schliessen" id="neue-gruppe-schliessen" aria-label="Schließen">&times;</button>
+        </div>
+        <input class="suche-eingabe" type="text" id="neue-gruppe-name"
+          placeholder="Gruppenname (optional)" autocomplete="off">
+        <div class="kontakt-auswahl-liste" id="kontakt-auswahl-liste"></div>
+        <button class="overlay-btn" id="neue-gruppe-erstellen-btn">Gruppe erstellen</button>
+      </div>
+    </div>
+
+    <!-- ── Story-Ansicht: geöffneter Moment einer Person ── -->
+    <div class="overlay overlay--zentriert moment-ansicht-overlay" id="moment-ansicht-overlay">
+      <div class="moment-ansicht-karte">
+        <div class="moment-ansicht-kopf">
+          <div class="avatar avatar--chat" id="moment-ansicht-avatar">–</div>
+          <span class="moment-ansicht-name" id="moment-ansicht-name">–</span>
+          <button class="overlay-schliessen" id="moment-ansicht-schliessen" aria-label="Schließen">&times;</button>
+        </div>
+        <p class="moment-ansicht-text" id="moment-ansicht-text"></p>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════
+       ANSICHT 2 – CHAT
+       ══════════════════════════════════════════════════════ -->
+  <div class="ansicht ansicht--versteckt" id="ansicht-chat">
+
+    <header class="kopfzeile">
+      <div class="kopfzeile-titelzeile">
+        <div class="kopfzeile-links">
+          <button class="zurueck-btn" id="zurueck-btn">&#8592;</button>
+          <button class="chat-partner-btn" id="chat-partner-btn" title="Gruppeninfo anzeigen">
+            <div class="avatar avatar--chat" id="chat-partner-avatar">–</div>
+            <span class="kopfzeile-titel" id="chat-partner-name">–</span>
+          </button>
+        </div>
+        <div class="band-steuerung">
+          <span id="band-bpm-live" class="band-bpm-live" hidden></span>
+          <button id="band-btn" class="band-btn">Band verbinden</button>
+        </div>
+      </div>
+
+      <div class="sensor-grid">
+
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label">Intensität</span>
+            <span class="dimension-wert" id="wert-intensitaet">500</span>
+          </div>
+          <input class="dimension-slider" type="range"
+            id="slider-intensitaet" min="100" max="900" value="500" step="1">
+        </div>
+
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label dimension-label--live">Tempo</span>
+            <span class="dimension-wert" id="wert-tempo">—</span>
+          </div>
+          <div class="dimension-balken-spur">
+            <div class="dimension-balken" id="balken-tempo"></div>
+          </div>
+        </div>
+
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label dimension-label--live">Stabilität</span>
+            <span class="dimension-wert" id="wert-stabilitaet">—</span>
+          </div>
+          <div class="dimension-balken-spur">
+            <div class="dimension-balken" id="balken-stabilitaet"></div>
+          </div>
+        </div>
+
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label">Tonalität</span>
+            <span class="dimension-wert" id="wert-tonalitaet">500</span>
+          </div>
+          <input class="dimension-slider" type="range"
+            id="slider-tonalitaet" min="100" max="900" value="500" step="1">
+        </div>
+
+      </div>
+
+      <!-- Ein-/ausfahrbares Test-/Demo-Panel: standardmäßig eingeklappt,
+           nur der Griff unterhalb der Sensor-Anzeigen ist sichtbar.
+           Beide Testregler liegen gemeinsam in diesem einen Panel und
+           fahren beim Öffnen sanft von oben nach unten aus. ── -->
+      <div class="test-drawer" id="test-drawer">
+        <button class="test-drawer-griff" id="test-drawer-griff"
+          aria-expanded="false" aria-controls="test-drawer-inhalt"
+          title="Test-Eingaben ein-/ausblenden">
+          <span>Test-Eingaben</span>
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </button>
+
+        <div class="test-drawer-inhalt" id="test-drawer-inhalt">
+          <div class="test-drawer-inneres">
+            <span class="test-panel-label">Test-Eingaben · simuliert, kein Live-Sensor</span>
+            <div class="sensor-grid">
+
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label">Schlafqualität<em class="test-badge">Testwert</em></span>
+                  <span class="dimension-wert" id="wert-schlafqualitaet">500</span>
+                </div>
+                <input class="dimension-slider" type="range"
+                  id="slider-schlafqualitaet" min="100" max="900" value="500" step="1">
+                <div class="dimension-endpunkte"><span>müde</span><span>wach</span></div>
+              </div>
+
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label">Atemfrequenz<em class="test-badge">Testwert</em></span>
+                  <span class="dimension-wert" id="wert-atemfrequenz">500</span>
+                </div>
+                <input class="dimension-slider" type="range"
+                  id="slider-atemfrequenz" min="100" max="900" value="500" step="1">
+                <div class="dimension-endpunkte"><span>aufgewühlt</span><span>gefasst</span></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="chat-bereich" id="chat"></main>
+
+    <footer class="eingabe-bereich">
+      <div class="eingabe-innen">
+        <button id="antwort-btn">&#8592; Antwort</button>
+        <!-- textarea statt input: wächst automatisch nach oben -->
+        <textarea id="eingabe" rows="1"
+          placeholder="Nachricht schreiben …"
+          autocomplete="off"></textarea>
+        <label class="emotion-schalter" title="Emotionale Typografie an/aus">
+          <input type="checkbox" id="emotion-toggle" checked>
+          <span class="schalter-visuell"></span>
+          <span class="schalter-label">Emotion</span>
+        </label>
+      </div>
+    </footer>
+
+    <!-- ── Gruppeninfo: Mitgliederliste + Gruppe löschen ── -->
+    <div class="overlay" id="gruppeninfo-overlay">
+      <div class="overlay-karte">
+        <div class="overlay-kopf">
+          <span class="overlay-titel">Gruppeninfo</span>
+          <button class="overlay-schliessen" id="gruppeninfo-schliessen" aria-label="Schließen">&times;</button>
+        </div>
+        <div class="kontakt-auswahl-liste" id="gruppeninfo-mitglieder-liste"></div>
+        <button class="overlay-btn overlay-btn--gefahr" id="gruppe-loeschen-btn">Gruppe löschen</button>
+      </div>
+    </div>
+
+    <!-- ── Bestätigungs-Dialog: für Mitglied entfernen / Gruppe löschen ── -->
+    <div class="overlay overlay--zentriert" id="bestaetigung-overlay">
+      <div class="bestaetigung-karte">
+        <p class="bestaetigung-text" id="bestaetigung-text">Wirklich?</p>
+        <div class="bestaetigung-aktionen">
+          <button class="overlay-btn" id="bestaetigung-abbrechen-btn">Abbrechen</button>
+          <button class="overlay-btn overlay-btn--gefahr" id="bestaetigung-bestaetigen-btn">Entfernen</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /.phone-frame -->
+
+<script>
+
+  // ── Navigation ────────────────────────────────────────────────
+  const ansichtUebersicht = document.getElementById('ansicht-uebersicht');
+  const ansichtChat       = document.getElementById('ansicht-chat');
+  const chatPartnerName   = document.getElementById('chat-partner-name');
+  const chatPartnerAvatar = document.getElementById('chat-partner-avatar');
+  const chatPartnerBtn    = document.getElementById('chat-partner-btn');
+  const phoneFrame        = document.getElementById('phone-frame');
+
+  // true, solange die aktuell geöffnete Chat-Ansicht eine Gruppe ist
+  // (statt einer 1:1-Person) – siehe zeigeGruppenChat() weiter unten.
+  // Steuert u. a., ob der Profilbild-Mittelwert aktualisiert wird und
+  // wer beim simulierten "Antwort"-Button als Absender erscheint.
+  let aktuellerChatIstGruppe = false;
+  let aktuelleGruppe         = null;
+
+  function zeigeUebersicht() {
+    ansichtChat.classList.add('ansicht--versteckt');
+    ansichtUebersicht.classList.remove('ansicht--versteckt');
+  }
+
+  function zeigeChat(name) {
+    aktuellerChatIstGruppe        = false;
+    aktuelleGruppe                = null;
+    chatPartnerName.textContent   = name;
+    chatPartnerAvatar.textContent = name.charAt(0).toUpperCase();
+    chatPartnerAvatar.dataset.name = name;
+    chatPartnerBtn.classList.remove('chat-partner-btn--gruppe');
+    avatarDarstellungAktualisieren(name);
+    alsGelesenMarkieren(name);
+    ansichtUebersicht.classList.add('ansicht--versteckt');
+    ansichtChat.classList.remove('ansicht--versteckt');
+    // Höhe anpassen, sobald die Ansicht sichtbar ist (scrollHeight = 0 wenn unsichtbar)
+    setTimeout(() => { eingabeFeldAnpassen(); eingabe.focus(); }, 210);
+  }
+
+  // Markiert den Kontakt-Eintrag in der Übersicht als gelesen: entfernt
+  // das data-ungelesen-Attribut (Grundlage des "Ungelesen"-Filters) und
+  // den sichtbaren Punkt in der Liste. Wird beim Öffnen des Chats
+  // aufgerufen – rein Listen-Anzeige, keine Auswirkung auf Typografie.
+  function alsGelesenMarkieren(name) {
+    const eintrag = document.querySelector(
+      '#gespraechs-liste .gespraechs-eintrag[data-name="' + CSS.escape(name) + '"]'
+    );
+    if (!eintrag || !eintrag.hasAttribute('data-ungelesen')) return;
+
+    eintrag.removeAttribute('data-ungelesen');
+    const punkt = eintrag.querySelector('.ungelesen-punkt');
+    if (punkt) punkt.remove();
+
+    kontaktlisteFiltern(); // "Ungelesen"-Filter sofort aktualisieren, falls gerade aktiv
+  }
+
+  document.getElementById('zurueck-btn').addEventListener('click', zeigeUebersicht);
+
+
+  // ── Chat-Einträge: öffnen per Klick, Kontextmenü per Long-Press ──
+  // Long-Press (Pointer gedrückt halten, ohne zu bewegen) öffnet ein
+  // kleines Menü mit "Zu Favoriten hinzufügen/entfernen" – verknüpft
+  // mit dem data-favorit-Attribut und damit dem Favoriten-Filter oben.
+  // Ein normaler (kurzer) Klick öffnet wie gehabt den Chat.
+  const LANG_DRUCK_MS = 550;
+  let langDruckTimer     = null;
+  let langDruckAusgeloest = false;
+
+  const kontextMenu       = document.getElementById('kontext-menu');
+  const kontextFavoritBtn = document.getElementById('kontext-favorit-btn');
+  let kontextZiel         = null;
+
+  function kontextMenuOeffnen(el, x, y) {
+    kontextZiel = el;
+    kontextFavoritBtn.textContent = el.hasAttribute('data-favorit')
+      ? 'Von Favoriten entfernen'
+      : 'Zu Favoriten hinzufügen';
+    // Innerhalb des Phone-Frames positionieren, nicht über den Rand hinaus
+    const rahmen = phoneFrame.getBoundingClientRect();
+    const menuBreite = 200;
+    kontextMenu.style.left = Math.min(x, rahmen.right - menuBreite - 8) + 'px';
+    kontextMenu.style.top  = Math.min(y, rahmen.bottom - 60) + 'px';
+    kontextMenu.classList.add('sichtbar');
+  }
+
+  function kontextMenuSchliessen() {
+    kontextMenu.classList.remove('sichtbar');
+    kontextZiel = null;
+  }
+
+  kontextFavoritBtn.addEventListener('click', function () {
+    if (!kontextZiel) return;
+    if (kontextZiel.hasAttribute('data-favorit')) {
+      kontextZiel.removeAttribute('data-favorit');
+    } else {
+      kontextZiel.setAttribute('data-favorit', '');
+    }
+    kontextMenuSchliessen();
+    kontaktlisteFiltern(); // Favoriten-Filter sofort aktualisieren, falls aktiv
+  });
+
+  document.addEventListener('click', function (e) {
+    if (kontextMenu.classList.contains('sichtbar') && !kontextMenu.contains(e.target)) {
+      kontextMenuSchliessen();
+    }
+  });
+
+  document.querySelectorAll('#gespraechs-liste .gespraechs-eintrag').forEach(function (el) {
+    el.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0 && e.pointerType === 'mouse') return; // nur linke Maustaste
+      langDruckAusgeloest = false;
+      clearTimeout(langDruckTimer);
+      langDruckTimer = setTimeout(function () {
+        langDruckAusgeloest = true;
+        kontextMenuOeffnen(el, e.clientX, e.clientY);
+      }, LANG_DRUCK_MS);
+    });
+
+    el.addEventListener('pointerup', function () { clearTimeout(langDruckTimer); });
+    el.addEventListener('pointerleave', function () { clearTimeout(langDruckTimer); });
+    el.addEventListener('pointercancel', function () { clearTimeout(langDruckTimer); });
+    el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+    el.addEventListener('click', function (e) {
+      if (langDruckAusgeloest) {
+        // Verhindert Öffnen des Chats + Schließen des gerade geöffneten
+        // Kontextmenüs durch den document-weiten Außenklick-Listener.
+        e.stopPropagation();
+        langDruckAusgeloest = false;
+        return;
+      }
+      zeigeChat(this.dataset.name);
+    });
+  });
+
+
+  // ── Kontaktsuche + Filter-Chips: kombinierte Live-Filterung ─────
+  // Reine Anzeige-Filterung (display: none) – ändert weder Reihenfolge
+  // noch Zustand der Einträge, keine Auswirkung auf Profilbild- oder
+  // Typografie-Logik. Suchtext UND aktiver Chip müssen beide passen.
+  const kontaktSuche = document.getElementById('kontakt-suche');
+  let aktiverListenFilter = 'alle'; // 'alle' | 'ungelesen' | 'favoriten'
+
+  function kontaktlisteFiltern() {
+    const suchtext = kontaktSuche.value.trim().toLowerCase();
+    document.querySelectorAll('#gespraechs-liste .gespraechs-eintrag').forEach(function (el) {
+      const passtSuche = el.dataset.name.toLowerCase().includes(suchtext);
+      const passtFilter =
+        aktiverListenFilter === 'ungelesen' ? el.hasAttribute('data-ungelesen') :
+        aktiverListenFilter === 'favoriten' ? el.hasAttribute('data-favorit') :
+        true; // 'alle'
+      el.style.display = (passtSuche && passtFilter) ? '' : 'none';
+    });
+  }
+
+  kontaktSuche.addEventListener('input', kontaktlisteFiltern);
+
+  document.querySelectorAll('#filter-leiste .filter-chip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      document.querySelectorAll('#filter-leiste .filter-chip').forEach(function (c) {
+        c.classList.remove('filter-chip--aktiv');
+      });
+      chip.classList.add('filter-chip--aktiv');
+      aktiverListenFilter = chip.dataset.filter;
+      kontaktlisteFiltern();
+    });
+  });
+
+
+  // ── Tab-Leiste: Chats / Gruppen / Moment ─────────────────────────
+  // Schaltet nur um, welches der drei Panels innerhalb der Übersicht
+  // sichtbar ist – keine Auswirkung auf Such-/Filter- oder
+  // Typografie-Logik.
+  const uebersichtTitel = document.getElementById('uebersicht-titel');
+  const tabChats        = document.getElementById('tab-chats');
+  const tabGruppen      = document.getElementById('tab-gruppen');
+  const tabMoment       = document.getElementById('tab-moment');
+  const TAB_TITEL       = { chats: 'Chats', gruppen: 'Gruppen', moment: 'Moment' };
+
+  function tabAnzeigen(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(function (b) {
+      b.classList.toggle('tab-btn--aktiv', b.dataset.tab === tabName);
+    });
+    tabChats.classList.toggle('aktiv', tabName === 'chats');
+    tabGruppen.classList.toggle('aktiv', tabName === 'gruppen');
+    tabMoment.classList.toggle('aktiv', tabName === 'moment');
+    uebersichtTitel.textContent = TAB_TITEL[tabName];
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { tabAnzeigen(btn.dataset.tab); });
+  });
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  GRUPPEN – separate Gruppen-Übersicht + Gruppen-Erstellung
+  //
+  //  Eine Gruppe ist { name, mitglieder: [Kontaktname, ...] }. Der
+  //  Gruppen-Avatar zeigt bewusst NUR die Initialen der ersten zwei
+  //  Mitglieder in neutraler Strichstärke – anders als bei 1:1-Chats
+  //  gibt es hier keine EINE Person, deren Puls gemittelt werden
+  //  könnte, darum bleibt das Profilbild-Prinzip (gemittelte
+  //  Strichstärke pro PERSON) unangetastet und wird nicht auf
+  //  Gruppen ausgeweitet.
+  // ═══════════════════════════════════════════════════════════════
+  const gruppenListe = document.getElementById('gruppen-liste');
+
+  let gruppen = [
+    { name: 'Projektteam', mitglieder: ['Anna', 'Luca', 'Mia'] },
+    { name: 'Wochenende',  mitglieder: ['Ben', 'Clara', 'Sophie'] }
+  ];
+
+  function gruppenInitialen(mitglieder) {
+    return mitglieder.slice(0, 2).map(function (n) { return n.charAt(0).toUpperCase(); }).join('');
+  }
+
+  // Baut einen Gruppen-Eintrag (gleiches Markup/Styling wie ein
+  // 1:1-Kontakt) und hängt ihn an die Gruppen-Liste an.
+  function gruppenEintragErstellen(gruppe) {
+    const eintrag = document.createElement('div');
+    eintrag.className = 'gespraechs-eintrag';
+    eintrag.dataset.name   = gruppe.name;
+    eintrag.dataset.gruppe = 'true';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.style.fontSize = '13px';
+    avatar.style.fontVariationSettings = "'wght' 500"; // neutral – keine Personen-Mittelung
+    avatar.textContent = gruppenInitialen(gruppe.mitglieder);
+    eintrag.appendChild(avatar);
+
+    const info = document.createElement('div');
+    info.className = 'gespraechs-info';
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'gespraechs-name';
+    nameEl.textContent = gruppe.name;
+
+    const vorschauEl = document.createElement('span');
+    vorschauEl.className = 'gespraechs-vorschau';
+    vorschauEl.textContent = gruppe.mitglieder.join(', ');
+
+    info.appendChild(nameEl);
+    info.appendChild(vorschauEl);
+    eintrag.appendChild(info);
+
+    // Rechte Spalte (Uhrzeit) – gleiches Layout wie 1:1-Kontakte, aus
+    // Konsistenzgründen ohne Ungelesen-Punkt (keine Nachrichten-
+    // Historie für neu erstellte Gruppen vorhanden).
+    const meta = document.createElement('div');
+    meta.className = 'gespraechs-meta';
+    const zeitEl = document.createElement('span');
+    zeitEl.className = 'gespraechs-zeit';
+    zeitEl.textContent = 'Jetzt';
+    meta.appendChild(zeitEl);
+    eintrag.appendChild(meta);
+
+    eintrag.addEventListener('click', function () { zeigeGruppenChat(gruppe); });
+
+    gruppenListe.appendChild(eintrag);
+  }
+
+  gruppen.forEach(gruppenEintragErstellen);
+
+  // Aktualisiert Avatar-Initialen + Vorschau-Text eines bestehenden
+  // Gruppen-Eintrags in der Übersicht (z. B. nachdem ein Mitglied in
+  // der Gruppeninfo entfernt wurde).
+  function gruppeneintragAktualisieren(gruppe) {
+    const eintrag = gruppenListe.querySelector('.gespraechs-eintrag[data-name="' + CSS.escape(gruppe.name) + '"]');
+    if (!eintrag) return;
+    eintrag.querySelector('.avatar').textContent = gruppenInitialen(gruppe.mitglieder);
+    eintrag.querySelector('.gespraechs-vorschau').textContent = gruppe.mitglieder.join(', ');
+  }
+
+  // Öffnet die bestehende Chat-Ansicht im Gruppen-Modus: Titel und
+  // Avatar zeigen die Gruppe, die reagierende Nachrichten-Typografie
+  // beim Schreiben bleibt exakt dieselbe wie im 1:1-Chat.
+  function zeigeGruppenChat(gruppe) {
+    aktuellerChatIstGruppe = true;
+    aktuelleGruppe         = gruppe;
+    gruppenAntwortIndex    = 0;
+
+    chatPartnerName.textContent   = gruppe.name;
+    chatPartnerAvatar.textContent = gruppenInitialen(gruppe.mitglieder);
+    chatPartnerAvatar.style.fontVariationSettings = "'wght' 500";
+    chatPartnerAvatar.style.fontWeight            = 500;
+    delete chatPartnerAvatar.dataset.name; // keine Zuordnung zu einer Einzelperson
+    chatPartnerBtn.classList.add('chat-partner-btn--gruppe');
+
+    ansichtUebersicht.classList.add('ansicht--versteckt');
+    ansichtChat.classList.remove('ansicht--versteckt');
+    setTimeout(() => { eingabeFeldAnpassen(); eingabe.focus(); }, 210);
+  }
+
+  // Index für die Rotation der simulierten Absender innerhalb einer
+  // Gruppe (siehe antwortBtn-Handler weiter unten).
+  let gruppenAntwortIndex = 0;
+
+
+  // ── Neue Gruppe erstellen: Overlay mit Kontaktauswahl ───────────
+  const neueGruppeOeffnenBtn   = document.getElementById('neue-gruppe-oeffnen-btn');
+  const neueGruppeOverlay      = document.getElementById('neue-gruppe-overlay');
+  const neueGruppeSchliessenBtn = document.getElementById('neue-gruppe-schliessen');
+  const neueGruppeName         = document.getElementById('neue-gruppe-name');
+  const neueGruppeErstellenBtn = document.getElementById('neue-gruppe-erstellen-btn');
+  const kontaktAuswahlListe    = document.getElementById('kontakt-auswahl-liste');
+
+  // Baut die Kontaktauswahl-Checkboxen jedes Mal frisch aus der
+  // aktuellen 1:1-Kontaktliste auf (bleibt so automatisch konsistent,
+  // auch wenn sich die Kontaktliste künftig ändert).
+  function kontaktAuswahlAufbauen() {
+    kontaktAuswahlListe.innerHTML = '';
+    document.querySelectorAll('#gespraechs-liste .gespraechs-eintrag').forEach(function (el) {
+      const name = el.dataset.name;
+
+      const label = document.createElement('label');
+      label.className = 'kontakt-auswahl-eintrag';
+
+      const checkbox = document.createElement('input');
+      checkbox.type  = 'checkbox';
+      checkbox.value = name;
+
+      const span = document.createElement('span');
+      span.textContent = name;
+
+      label.appendChild(checkbox);
+      label.appendChild(span);
+      kontaktAuswahlListe.appendChild(label);
+    });
+  }
+
+  function neueGruppeOeffnen() {
+    kontaktAuswahlAufbauen();
+    neueGruppeName.value = '';
+    neueGruppeOverlay.classList.add('sichtbar');
+  }
+
+  function neueGruppeSchliessen() {
+    neueGruppeOverlay.classList.remove('sichtbar');
+  }
+
+  neueGruppeOeffnenBtn.addEventListener('click', neueGruppeOeffnen);
+  neueGruppeSchliessenBtn.addEventListener('click', neueGruppeSchliessen);
+
+  // Klick auf den abgedunkelten Hintergrund schließt das Overlay
+  // (nicht aber ein Klick auf die Karte selbst).
+  neueGruppeOverlay.addEventListener('click', function (e) {
+    if (e.target === neueGruppeOverlay) neueGruppeSchliessen();
+  });
+
+  neueGruppeErstellenBtn.addEventListener('click', function () {
+    const ausgewaehlt = Array.from(
+      kontaktAuswahlListe.querySelectorAll('input[type="checkbox"]:checked')
+    ).map(function (cb) { return cb.value; });
+
+    if (ausgewaehlt.length < 2) return; // eine Gruppe braucht mind. 2 Mitglieder
+
+    const name = neueGruppeName.value.trim() || ausgewaehlt.join(', ');
+    const gruppe = { name: name, mitglieder: ausgewaehlt };
+    gruppen.push(gruppe);
+    gruppenEintragErstellen(gruppe);
+
+    neueGruppeSchliessen();
+    zeigeGruppenChat(gruppe);
+  });
+
+
+  // ── Bestätigungs-Dialog: generisch für "Mitglied entfernen" und
+  // "Gruppe löschen" – zentrierte Karte statt Bottom-Sheet, damit sie
+  // sich wie bei WhatsApp deutlich vom normalen Overlay abhebt. ──
+  const bestaetigungOverlay       = document.getElementById('bestaetigung-overlay');
+  const bestaetigungText          = document.getElementById('bestaetigung-text');
+  const bestaetigungAbbrechenBtn  = document.getElementById('bestaetigung-abbrechen-btn');
+  const bestaetigungBestaetigenBtn = document.getElementById('bestaetigung-bestaetigen-btn');
+  let bestaetigungCallback = null;
+
+  function bestaetigungAnzeigen(text, aktionLabel, callback) {
+    bestaetigungText.textContent = text;
+    bestaetigungBestaetigenBtn.textContent = aktionLabel;
+    bestaetigungCallback = callback;
+    bestaetigungOverlay.classList.add('sichtbar');
+  }
+
+  function bestaetigungSchliessen() {
+    bestaetigungOverlay.classList.remove('sichtbar');
+    bestaetigungCallback = null;
+  }
+
+  bestaetigungAbbrechenBtn.addEventListener('click', bestaetigungSchliessen);
+
+  bestaetigungBestaetigenBtn.addEventListener('click', function () {
+    const callback = bestaetigungCallback;
+    bestaetigungSchliessen();
+    if (callback) callback();
+  });
+
+  bestaetigungOverlay.addEventListener('click', function (e) {
+    if (e.target === bestaetigungOverlay) bestaetigungSchliessen();
+  });
+
+
+  // ── Gruppeninfo: Mitgliederliste, Mitglied entfernen, Gruppe löschen ──
+  const gruppeninfoOverlay         = document.getElementById('gruppeninfo-overlay');
+  const gruppeninfoSchliessenBtn   = document.getElementById('gruppeninfo-schliessen');
+  const gruppeninfoMitgliederListe = document.getElementById('gruppeninfo-mitglieder-liste');
+  const gruppeLoeschenBtn          = document.getElementById('gruppe-loeschen-btn');
+
+  // Öffnen: Tippen auf Avatar/Name im Chat-Header – nur bei Gruppen aktiv.
+  chatPartnerBtn.addEventListener('click', function () {
+    if (!aktuellerChatIstGruppe) return;
+    gruppeninfoRendern();
+    gruppeninfoOverlay.classList.add('sichtbar');
+  });
+
+  function gruppeninfoSchliessen() {
+    gruppeninfoOverlay.classList.remove('sichtbar');
+  }
+
+  gruppeninfoSchliessenBtn.addEventListener('click', gruppeninfoSchliessen);
+
+  gruppeninfoOverlay.addEventListener('click', function (e) {
+    if (e.target === gruppeninfoOverlay) gruppeninfoSchliessen();
+  });
+
+  // Baut die Mitgliederliste der aktuell geöffneten Gruppe neu auf –
+  // jede Zeile mit Name + "×"-Button zum Entfernen (mit Bestätigung).
+  function gruppeninfoRendern() {
+    gruppeninfoMitgliederListe.innerHTML = '';
+
+    aktuelleGruppe.mitglieder.forEach(function (name) {
+      const zeile = document.createElement('div');
+      zeile.className = 'gruppenmitglied-zeile';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = name;
+
+      const entfernenBtn = document.createElement('button');
+      entfernenBtn.className = 'gruppenmitglied-entfernen-btn';
+      entfernenBtn.textContent = '×';
+      entfernenBtn.title = name + ' aus der Gruppe entfernen';
+      entfernenBtn.addEventListener('click', function () {
+        bestaetigungAnzeigen(
+          name + ' wirklich aus „' + aktuelleGruppe.name + '“ entfernen?',
+          'Entfernen',
+          function () { gruppenmitgliedEntfernen(name); }
+        );
+      });
+
+      zeile.appendChild(nameSpan);
+      zeile.appendChild(entfernenBtn);
+      gruppeninfoMitgliederListe.appendChild(zeile);
+    });
+  }
+
+  function gruppenmitgliedEntfernen(name) {
+    aktuelleGruppe.mitglieder = aktuelleGruppe.mitglieder.filter(function (m) { return m !== name; });
+    gruppeneintragAktualisieren(aktuelleGruppe);
+    chatPartnerAvatar.textContent = gruppenInitialen(aktuelleGruppe.mitglieder);
+    gruppeninfoRendern();
+  }
+
+  gruppeLoeschenBtn.addEventListener('click', function () {
+    bestaetigungAnzeigen(
+      'Willst du die Gruppe „' + aktuelleGruppe.name + '“ wirklich löschen?',
+      'Löschen',
+      gruppeLoeschen
+    );
+  });
+
+  function gruppeLoeschen() {
+    const geloeschteGruppe = aktuelleGruppe;
+    gruppen = gruppen.filter(function (g) { return g !== geloeschteGruppe; });
+
+    const eintrag = gruppenListe.querySelector('.gespraechs-eintrag[data-name="' + CSS.escape(geloeschteGruppe.name) + '"]');
+    if (eintrag) eintrag.remove();
+
+    gruppeninfoSchliessen();
+    zeigeUebersicht();
+    tabAnzeigen('gruppen'); // zeigt sofort, dass die Gruppe verschwunden ist
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  7 statische Situra-Schnitte, dünn → fett (siehe @font-face oben).
+  //  Wird sowohl von der Chat-Nachrichten-Typografie (sensorZuSchrift-
+  //  Achse weiter unten) als auch vom Profilbild-Mittelwert genutzt:
+  //  ein 100–900-Rohwert wird in 7 gleich große Stufen geteilt – jede
+  //  Stufe zeigt GENAU einen Schnitt, kein fließendes Überblenden.
+  // ═══════════════════════════════════════════════════════════════
+  const SITURA_SCHRIFTSCHNITTE = [
+    'Situra-Thin',
+    'Situra-Light',
+    'Situra-Regular',
+    'Situra-Medium',
+    'Situra-SemiBold',
+    'Situra-Bold',
+    'Situra-Black'
+  ];
+
+  function intensitaetZuSchriftschnitt(intensitaet) {
+    const stufenBreite = 800 / SITURA_SCHRIFTSCHNITTE.length; // (900−100) / 7
+    const index = Math.min(
+      SITURA_SCHRIFTSCHNITTE.length - 1,
+      Math.max(0, Math.floor((intensitaet - 100) / stufenBreite))
+    );
+    return SITURA_SCHRIFTSCHNITTE[index];
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  PROFILBILD – Kreis mit Anfangsbuchstabe pro Person
+  //
+  //  Separates, zusätzliches Element: baut auf denselben Puls-/
+  //  Zustandsdaten auf wie die reagierende Nachrichten-Typografie,
+  //  mittelt sie aber GESONDERT und verändert die Nachrichten-Logik
+  //  oben in keiner Weise.
+  //
+  //  Pro Person wird ein gleitender Mittelwert (EMA) der Puls-/
+  //  Intensitätswerte geführt, die beim Schreiben AN diese Person
+  //  erfasst wurden. Der Anfangsbuchstabe im Kreis zeigt den zu
+  //  diesem Mittelwert passenden Situra-Schnitt (dieselbe 7-Stufen-
+  //  Zuordnung wie im Chat) – gerundet auf den nächstgelegenen
+  //  Schnitt. Persistiert in localStorage, damit sich das Bild über
+  //  mehrere Sitzungen hinweg langsam entwickelt.
+  // ═══════════════════════════════════════════════════════════════
+  const AVATAR_SPEICHER_KEY = 'situativeTypografie_avatarMittelwerte';
+  const AVATAR_EMA_ALPHA     = 0.15; // niedrig = träge/langsame Angleichung
+  const AVATAR_START_WERT    = 500;  // neutraler Startwert (= Regler-Default)
+
+  function avatarMittelwerteLaden() {
+    try {
+      return JSON.parse(localStorage.getItem(AVATAR_SPEICHER_KEY)) || {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  let avatarMittelwerte = avatarMittelwerteLaden();
+
+  function avatarMittelwertVon(name) {
+    return avatarMittelwerte[name] ?? AVATAR_START_WERT;
+  }
+
+  // Setzt die aktuelle Strichstärke (Mittelwert) auf alle Avatar-
+  // Elemente einer Person (Übersicht + ggf. Chat-Kopfzeile).
+  function avatarDarstellungAktualisieren(name) {
+    const wght = Math.round(avatarMittelwertVon(name));
+    document.querySelectorAll('.avatar[data-name="' + CSS.escape(name) + '"]').forEach(function (el) {
+      el.style.fontVariationSettings = "'wght' " + wght;
+      el.style.fontWeight            = wght;
+    });
+  }
+
+  // Faltet einen neuen Puls-/Zustandswert per gleitendem Mittelwert
+  // (EMA) in den bisherigen Durchschnitt dieser Person ein. Wird bei
+  // jeder VON MIR gesendeten Nachricht aufgerufen (siehe Enter-Handler
+  // weiter unten) – nie bei jedem Tastendruck, damit sich das Bild
+  // erst über mehrere Nachrichten hinweg entwickelt statt bei jeder
+  // einzelnen komplett neu berechnet zu werden.
+  function avatarMittelwertAktualisieren(name, neuerPulsWert) {
+    const bisher = avatarMittelwertVon(name);
+    avatarMittelwerte[name] = bisher + (neuerPulsWert - bisher) * AVATAR_EMA_ALPHA;
+    localStorage.setItem(AVATAR_SPEICHER_KEY, JSON.stringify(avatarMittelwerte));
+    avatarDarstellungAktualisieren(name);
+  }
+
+  // Übersicht: alle Avatare direkt beim Laden mit gespeichertem Mittelwert füllen
+  // (nur 1:1-Kontakte – Gruppen-Avatare zeigen bewusst keinen Personen-Mittelwert)
+  document.querySelectorAll('#gespraechs-liste .gespraechs-eintrag').forEach(function (el) {
+    avatarDarstellungAktualisieren(el.dataset.name);
+  });
+
+
+  // ── Test-/Demo-Panel: ein-/ausfahrbare Schublade ────────────────
+  // Betrifft nur die Sichtbarkeit der zwei simulierten Test-Regler –
+  // keine Auswirkung auf Puls-, Tipp-Tempo- oder HRV-Logik.
+  const testDrawer      = document.getElementById('test-drawer');
+  const testDrawerGriff = document.getElementById('test-drawer-griff');
+
+  testDrawerGriff.addEventListener('click', function () {
+    const offen = testDrawer.classList.toggle('offen');
+    testDrawerGriff.setAttribute('aria-expanded', offen ? 'true' : 'false');
+  });
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  MAPPING-FUNKTION
+  //  Wandelt 4 Rohwerte (je 100–900) in typografische Parameter um.
+  // ═══════════════════════════════════════════════════════════════
+  function sensorZuSchriftAchse(rohwerte) {
+
+    // Intensität → statischer Schriftschnitt (echtes Umschalten
+    // zwischen 7 Dateien statt fließender Gewichts-Verschiebung)
+    const schriftschnitt = intensitaetZuSchriftschnitt(rohwerte.intensitaet);
+
+    // BEHELF – Tempo → letter-spacing (−0.04 em … 0.12 em)
+    const spacing = umrechnen(rohwerte.tempo, 100, 900, -0.04, 0.12);
+
+    // Tempo → Dauer der Einblend-Animation neuer Nachrichten
+    // Niedrig (100) = langsam/bedächtig (0.5 s) · hoch (900) = schnell/knapp (0.06 s)
+    // Teilt KEINEN Parameter mehr mit Stabilität.
+    const einblendDauer = umrechnen(rohwerte.tempo, 100, 900, 0.5, 0.06);
+
+    // BEHELF – Stabilität → Translations-Amplitude pro Buchstabe
+    // Dezenterer Bereich: spürbar aber nie unleserlich/grotesk
+    const WOBBLE_AMPLITUDE_MAX = 2.0; // ← nachjustieren (px): Maximum bei Stabilität 100
+    const WOBBLE_TOTZONE_PX    = 0.4; // ← nachjustieren (px): darunter = kein Zittern
+    const wobbleRoh = umrechnen(rohwerte.stabilitaet, 100, 900, WOBBLE_AMPLITUDE_MAX, 0);
+    const wobble    = wobbleRoh < WOBBLE_TOTZONE_PX ? 0 : wobbleRoh;
+
+    // BEHELF – Stabilität → Rotations-Amplitude pro Buchstabe (Grad)
+    const WOBBLE_ROT_MAX     = 2.5; // ← nachjustieren (Grad): Maximum
+    const WOBBLE_ROT_TOTZONE = 0.5; // ← nachjustieren (Grad): Totzone
+    const wobbleRotRoh = umrechnen(rohwerte.stabilitaet, 100, 900, WOBBLE_ROT_MAX, 0);
+    const wobbleRot    = wobbleRotRoh < WOBBLE_ROT_TOTZONE ? 0 : wobbleRotRoh;
+
+    // BEHELF – Tonalität → font-style: oblique (0° … 20°)
+    // Ersetzt transform: skewX() – oblique wirkt nur auf die Glyphen,
+    // nicht auf den Element-Container (Scrollbalken, Rahmen bleiben gerade).
+    // Kalt/neutral (100) = 0° · warm/persönlich (900) = 20°
+    const oblique = umrechnen(rohwerte.tonalitaet, 100, 900, 0, 20);
+
+    // ══ TEST/DEMO – Schlafqualität → Unschärfe (filter: blur) ══════
+    // Simulierte Eingabe, kein Live-Sensor. Niedrig/"müde" (100) = unscharf,
+    // hoch/"wach" (900) = scharf. Siehe Matrix: Unschärfe-Dimension.
+    const BLUR_MAX = 1.4; // ← nachjustieren (px): Maximum bei Schlafqualität 100 – bewusst dezent, Text bleibt lesbar
+    const blur = umrechnen(rohwerte.schlafqualitaet, 100, 900, BLUR_MAX, 0);
+
+    // ══ TEST/DEMO – Atemfrequenz → Transparenz (opacity) ═══════════
+    // Simulierte Eingabe, kein Live-Sensor. Niedrig/"aufgewühlt" (100) = blass,
+    // hoch/"gefasst" (900) = deckend. Siehe Matrix: Transparenz-Dimension.
+    const TRANSPARENZ_MIN = 0.35; // ← nachjustieren: Minimum bei Atemfrequenz 100
+    const transparenz = umrechnen(rohwerte.atemfrequenz, 100, 900, TRANSPARENZ_MIN, 1);
+
+    return { schriftschnitt, spacing, einblendDauer, wobble, wobbleRot, oblique, blur, transparenz };
+  }
+
+  function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
+    return zuMin + (wert - vonMin) / (vonMax - vonMin) * (zuMax - zuMin);
+  }
+
+  // ── Dynamisches Stylesheet für Zitter-Keyframes ────────────────
+  // Pro Buchstabe wird ein einzigartiger @keyframes-Block erzeugt
+  // und hier eingefügt, damit jeder Buchstabe zufällig zittert.
+  const zitterStyleEl = document.createElement('style');
+  document.head.appendChild(zitterStyleEl);
+
+  // Erzeugt einen einzigartigen @keyframes-Block für einen Buchstaben.
+  // Gibt den Animations-Namen zurück; fügt den Block ins Stylesheet ein.
+  // BEHELF – später durch echte variable Schrift-Achsen ersetzen.
+  function erstelleZitterAnimation(amplitude, rotAmplitude) {
+    // Eindeutiger Name, damit Buchstaben sich nicht gegenseitig überschreiben
+    const name = 'zb' + Math.random().toString(36).slice(2, 9);
+
+    // Unregelmäßige Zeitstempel (nicht gleichmäßig verteilt) für nervöses Timing
+    const schritte = [0];
+    for (let i = 0; i < 5; i++) {
+      schritte.push(Math.round(10 + Math.random() * 78));
+    }
+    schritte.push(100);
+    schritte.sort((a, b) => a - b);
+
+    let css = `@keyframes ${name}{`;
+    schritte.forEach(pct => {
+      const x   = ((Math.random() * 2 - 1) * amplitude   ).toFixed(2);
+      const y   = ((Math.random() * 2 - 1) * amplitude * 0.8).toFixed(2);
+      const r   = ((Math.random() * 2 - 1) * rotAmplitude).toFixed(2);
+      // Leichte Zufalls-Skalierung: vermittelt Forminstabilität
+      const sx  = (1 + (Math.random() * 2 - 1) * 0.04).toFixed(3);
+      const sy  = (1 + (Math.random() * 2 - 1) * 0.04).toFixed(3);
+      css += `${pct}%{transform:translate(${x}px,${y}px) rotate(${r}deg) scale(${sx},${sy});}`;
+    });
+    css += '}';
+
+    zitterStyleEl.sheet.insertRule(css, zitterStyleEl.sheet.cssRules.length);
+    return name;
+  }
+
+  // Teilt den Text eines Elements in einzelne Buchstaben-Spans auf
+  // und weist jedem Buchstaben eine eigene, zufällige Zitter-Animation zu.
+  // BEHELF – später durch variable Font-Achsen ersetzen.
+  function buchstabenAnimieren(element, achsen) {
+    const text = element.textContent;
+    element.textContent = ''; // Inhalt leeren, dann neu aufbauen
+
+    for (const buchstabe of text) {
+      const span = document.createElement('span');
+      span.textContent = buchstabe;
+
+      if (buchstabe === ' ' || buchstabe === '\n') {
+        // Leer-/Trennzeichen: kein Transform, kein inline-block nötig
+        element.appendChild(span);
+        continue;
+      }
+
+      span.classList.add('zitter-buchstabe'); // display: inline-block per CSS
+
+      // Einzigartiger Keyframe + zufällige Dauer und Startversatz pro Buchstabe
+      // → unregelmäßiges, asynchrones Zittern statt synchronem Takt
+      const animName  = erstelleZitterAnimation(achsen.wobble, achsen.wobbleRot);
+      const dauer     = (0.25 + Math.random() * 0.9).toFixed(2); // 0.25–1.15 s
+      const verzoeger = (-Math.random() * 1.5).toFixed(2);        // negativer Delay = mid-cycle start
+
+      span.style.animationName           = animName;
+      span.style.animationDuration       = `${dauer}s`;
+      span.style.animationTimingFunction = 'ease-in-out';
+      span.style.animationIterationCount = 'infinite';
+      span.style.animationDelay          = `${verzoeger}s`;
+
+      element.appendChild(span);
+    }
+  }
+
+  // Alle typografischen Parameter auf ein Element anwenden (Einfrieren beim Senden).
+  // Die Werte werden als Snapshot eingefroren – danach nie mehr verändert.
+  function stilAnwenden(element, achsen) {
+    // Intensität → statischer Schriftschnitt (7 feste Situra-Dateien,
+    // echtes Umschalten statt Variable-Font-Achse). Fällt auf Inter
+    // zurück, falls eine Datei nicht lädt.
+    element.style.fontFamily = `'${achsen.schriftschnitt}', 'Inter', sans-serif`;
+
+    // BEHELF – Tempo → letter-spacing
+    // Tempo steuert NICHT das Zittern – nur Laufweite und Einblend-Speed.
+    element.style.letterSpacing = `${achsen.spacing.toFixed(3)}em`;
+
+    // BEHELF – Tonalität → font-style: oblique (nur Glyphen, kein Box-Transform)
+    element.style.fontStyle = `oblique ${achsen.oblique.toFixed(1)}deg`;
+
+    // BEHELF – Stabilität → per-Buchstaben-Zittern mit Zufallsanimation
+    // Teilt KEINEN Parameter mit Tempo.
+    if (achsen.wobble > 0) {
+      buchstabenAnimieren(element, achsen);
+    }
+    // Kein transform/animation auf dem Container-Element selbst
+
+    // ══ TEST/DEMO – Schlafqualität → Unschärfe (filter: blur) ══════
+    element.style.filter = achsen.blur > 0.05 ? `blur(${achsen.blur.toFixed(2)}px)` : 'none';
+
+    // ══ TEST/DEMO – Atemfrequenz → Transparenz (opacity) ═══════════
+    element.style.opacity = achsen.transparenz.toFixed(2);
+  }
+
+  // Setzt ein Element auf den neutralen "leblosen" Zustand zurück
+  // (Emotion war AUS oder dieses Wort wurde eingefügt/Paste).
+  function stilNeutralAnwenden(element) {
+    // Neutraler Zustand entspricht dem mittleren Schnitt der 7-stufigen Skala
+    element.style.fontFamily            = "'Situra-Regular', 'Inter', sans-serif";
+    element.style.letterSpacing         = '0em';
+    element.style.fontStyle             = 'normal';
+    element.style.transform             = 'none';
+    element.style.animation             = 'none';
+    element.style.filter                = 'none';
+    element.style.opacity               = '1';
+  }
+
+  // Eingabefeld bleibt beim Tippen IMMER neutral.
+  //
+  // Grund: Ein <textarea> kennt keine Wortgrenzen für Styling – eine
+  // Live-Vorschau würde immer den GESAMTEN Text einfärben und damit
+  // auch bereits BESIEGELTE Wörter sichtbar mitverändern, während am
+  // nächsten Wort getippt wird. Das widerspricht der Regel "ein
+  // besiegeltes Wort verändert sich nicht mehr" (siehe
+  // wortZustaendeSynchronisieren). Darum: keine Live-Effekte im
+  // Eingabefeld. Die pro Wort eingefrorenen Zustände (wortZustaende)
+  // werden ausschließlich beim Anzeigen der GESENDETEN Nachricht
+  // sichtbar – dort jedes Wort einzeln mit seinem eigenen Zustand
+  // (siehe nachrichtHinzufuegen).
+  function vorschauAktualisieren() {
+    eingabe.style.fontVariationSettings = "'wght' 400";
+    eingabe.style.fontWeight            = 400;
+    eingabe.style.letterSpacing         = '0em';
+    eingabe.style.fontStyle             = 'normal';
+  }
+
+
+  // ── Auto-Grow: Eingabefeld an Inhalt anpassen ─────────────────
+  const MAX_EINGABE_HOEHE = 120; // ca. 5 Zeilen (5 × 1.5 × 15 px + Padding)
+
+  function eingabeFeldAnpassen() {
+    eingabe.style.height   = 'auto'; // zurücksetzen, damit scrollHeight stimmt
+    const inhaltsHoehe     = eingabe.scrollHeight;
+    eingabe.style.height   = Math.min(inhaltsHoehe, MAX_EINGABE_HOEHE) + 'px';
+    // Scrollbalken nur zeigen, wenn Max-Höhe überschritten
+    eingabe.style.overflowY = inhaltsHoehe > MAX_EINGABE_HOEHE ? 'auto' : 'hidden';
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  TIPP-ANALYSE  ←  ECHTES TIPPVERHALTEN
+  //
+  //  Tempo:      Zeichen pro Sekunde (rollendes Zeitfenster)
+  //  Stabilität: Ereignis-Modell — Backspace = Unruhe, Space = Ruhe.
+  //              Ruhe ist der Ausgangszustand und die Standardannahme.
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── Tempo ────────────────────────────────────────────────────
+  const TIPP_FENSTER_MS = 4000; // Rollierendes Zeitfenster (ms)
+  const CPS_MAXIMUM     = 8;    // ← nachjustieren: Zeichen/s → Tempo 900
+
+  let tipp_zeitstempel = [];
+
+  // ── Stabilität: Schrittwerte (alle gut sichtbar hier) ─────────
+  const STAB_START              = 900; // Startzustand: vollständige Ruhe
+  const STAB_MIN                = 100; // untere Grenze
+  const STAB_MAX                = 900; // obere Grenze (= Ruhe)
+
+  // Wie stark ein einzelner Backspace/Delete destabilisiert:
+  const STAB_BACKSPACE_ABZUG    = 40;  // ← nachjustieren
+
+  // Wie stark ein Leerzeichen (Wort abgeschlossen) beruhigt:
+  const STAB_LEERZEICHEN_GEWINN = 10;  // ← nachjustieren (war: 20)
+
+  // Zeiterholung: alle X ms erholt sich Stabilität automatisch um Y Punkte.
+  // Niedrigere Werte = trägere Erholung = Unruhe bleibt länger sichtbar.
+  const STAB_ERHOLUNGS_MS       = 500; // ← nachjustieren in ms    (war: 250)
+  const STAB_ERHOLUNG_PRO_TICK  = 3;   // ← nachjustieren in Punkte (war: 6)
+
+  // Aktueller Stabilitätswert als fließende Zahl (für sanfte Übergänge)
+  let stabilitaet_wert = STAB_START;
+
+  // ══ MARKIERUNG: Paste-Zustand ══════════════════════════════════
+  // true  → letzter Input war ein Einfüge-Vorgang (Paste):
+  //         Dimensionen-Effekte deaktiviert, Vorschau neutral.
+  // false → Nutzer schreibt selbst (oder hat nach einem Paste weitergetippt):
+  //         Effekte aktiv wie gewohnt.
+  // Wird in tippAnalysieren (via 'input'-Event) zurückgesetzt.
+  // ══════════════════════════════════════════════════════════════
+  let istEingefuegt = false;
+
+  // ══════════════════════════════════════════════════════════════
+  //  WORT-ZUSTÄNDE  ←  pro Wort EIN eigener eingefrorener Zustand
+  //
+  //  wortZustaende[i] = { achsen, leblos } für das i-te (0-basierte)
+  //  Wort der aktuell getippten Nachricht. "leblos" entspricht der
+  //  bisherigen Nachrichten-weiten Leblos-Regel (Emotion AUS oder
+  //  Paste), nur eben pro Wort eingefroren statt für die ganze
+  //  Nachricht einheitlich.
+  // ══════════════════════════════════════════════════════════════
+  let wortZustaende = [];
+
+  // Zählt, wie viele Wörter im aktuellen Eingabetext bereits
+  // "abgeschlossen" sind, d. h. ein Leerzeichen folgt auf sie.
+  function abgeschlosseneWortAnzahl(text) {
+    const treffer = text.match(/\S+\s/g);
+    return treffer ? treffer.length : 0;
+  }
+
+  // Hält wortZustaende synchron zum Eingabetext.
+  //
+  // ══════════════════════════════════════════════════════════════
+  //  BESIEGELN EINES WORTES (bei Leerzeichen)
+  //  Sobald ein neues Leerzeichen ein Wort abschließt, steigt
+  //  "anzahl" um eins. GENAU in diesem Moment wird unten eine
+  //  KOPIE von aktuelleAchsen für dieses Wort in wortZustaende[]
+  //  abgelegt – nicht erst beim Senden. Da "{ ...aktuelleAchsen }"
+  //  eine eigenständige Kopie der Zahlenwerte erzeugt (keine
+  //  Referenz), ist dieser Zustand ab sofort UNVERÄNDERLICH:
+  //  spätere Änderungen an aktuelleAchsen (Puls, Tippverhalten,
+  //  Slider) betreffen nur noch das NÄCHSTE, noch offene Wort.
+  // ══════════════════════════════════════════════════════════════
+  function wortZustaendeSynchronisieren() {
+    const anzahl = abgeschlosseneWortAnzahl(eingabe.value);
+    const leblos = !emotionAktiv || istEingefuegt;
+
+    // ★★★ BESIEGELUNG: für jedes neu abgeschlossene Wort jetzt   ★★★
+    // ★★★ den aktuellen Zustand einfrieren – danach unangetastet. ★★★
+    while (wortZustaende.length < anzahl) {
+      wortZustaende.push({ achsen: { ...aktuelleAchsen }, leblos });
+    }
+    // Wortgrenze per Backspace wieder aufgehoben → zugehörigen
+    // eingefrorenen Zustand verwerfen (Wort ist wieder "in Arbeit",
+    // also noch nicht besiegelt).
+    if (wortZustaende.length > anzahl) {
+      wortZustaende.length = anzahl;
+    }
+  }
+
+  // Stabilität in Rohwerte + Anzeige + Vorschau übernehmen
+  function stabilitaetUebernehmen() {
+    const gerundet               = Math.round(stabilitaet_wert);
+    aktuelleRohwerte.stabilitaet = gerundet;
+    aktuelleAchsen               = sensorZuSchriftAchse(aktuelleRohwerte);
+    wertStabilitaetAnzeige.textContent = gerundet;
+    balkenStabilitaet.style.width = `${(gerundet - STAB_MIN) / (STAB_MAX - STAB_MIN) * 100}%`;
+    vorschauAktualisieren();
+  }
+
+  // Kontinuierliche Zeiterholung: läuft immer, erholt Stabilität sanft
+  setInterval(() => {
+    if (stabilitaet_wert >= STAB_MAX) return; // schon ruhig, nichts zu tun
+    stabilitaet_wert = Math.min(STAB_MAX, stabilitaet_wert + STAB_ERHOLUNG_PRO_TICK);
+    stabilitaetUebernehmen();
+  }, STAB_ERHOLUNGS_MS);
+
+  function tippAnalysieren(event) {
+    const istTippTaste =
+      event.key.length === 1 ||
+      event.key === 'Backspace' ||
+      event.key === 'Delete';
+    if (!istTippTaste) return;
+
+    const jetzt = Date.now();
+
+    // ── Tempo: Zeitstempel im Fenster verwalten ───────────────
+    tipp_zeitstempel.push(jetzt);
+    tipp_zeitstempel = tipp_zeitstempel.filter(t => t >= jetzt - TIPP_FENSTER_MS);
+
+    // ── Stabilität: Ereignisse auswerten ─────────────────────
+    if (event.key === 'Backspace' || event.key === 'Delete') {
+      // Löschen destabilisiert; mehrere kurz hintereinander wirken kumulativ
+      stabilitaet_wert = Math.max(STAB_MIN, stabilitaet_wert - STAB_BACKSPACE_ABZUG);
+    } else if (event.key === ' ') {
+      // Wort abgeschlossen → beruhigt den Rhythmus
+      stabilitaet_wert = Math.min(STAB_MAX, stabilitaet_wert + STAB_LEERZEICHEN_GEWINN);
+    }
+    // Buchstaben: keine direkte Wirkung; Erholung läuft über den Timer
+
+    // ── Tempo berechnen ──────────────────────────────────────
+    const tempo = tempoBerechnen();
+    aktuelleRohwerte.tempo = tempo;
+
+    wertTempoAnzeige.textContent = tempo;
+    balkenTempo.style.width = `${(tempo - 100) / 800 * 100}%`;
+
+    // Stabilität und Vorschau synchronisieren
+    stabilitaetUebernehmen();
+  }
+
+  function tempoBerechnen() {
+    const cps     = tipp_zeitstempel.length / (TIPP_FENSTER_MS / 1000);
+    const gemappt = Math.round(umrechnen(cps, 0, CPS_MAXIMUM, 100, 900));
+    return Math.min(900, Math.max(100, gemappt));
+  }
+
+
+  // ── Vordefinierte Nachrichten ─────────────────────────────────
+  const vorgegebeneNachrichten = [
+    "Hey, was machst du gerade?",
+    "Ah, klingt interessant – wie funktioniert das genau?",
+    "Also die Schrift verändert sich je nach Kontext?",
+    "Hast du schon was zum Zeigen?",
+    "Schick mir mal einen Screenshot, wenn's fertig ist."
+  ];
+  let naechsteAntwortIndex = 0;
+
+  // ── DOM-Referenzen ────────────────────────────────────────────
+  const chat          = document.getElementById('chat');
+  const eingabe       = document.getElementById('eingabe');
+  const antwortBtn    = document.getElementById('antwort-btn');
+  const emotionToggle = document.getElementById('emotion-toggle');
+
+  const sliderIntensitaet      = document.getElementById('slider-intensitaet');
+  const sliderTonalitaet       = document.getElementById('slider-tonalitaet');
+  const wertIntensitaet        = document.getElementById('wert-intensitaet');
+  const wertTonalitaet         = document.getElementById('wert-tonalitaet');
+  const wertTempoAnzeige       = document.getElementById('wert-tempo');
+  const wertStabilitaetAnzeige = document.getElementById('wert-stabilitaet');
+  const balkenTempo            = document.getElementById('balken-tempo');
+  const balkenStabilitaet      = document.getElementById('balken-stabilitaet');
+
+  // Test-/Demo-Regler (simulierte Eingaben, kein Live-Sensor)
+  const sliderSchlafqualitaet  = document.getElementById('slider-schlafqualitaet');
+  const sliderAtemfrequenz     = document.getElementById('slider-atemfrequenz');
+  const wertSchlafqualitaet    = document.getElementById('wert-schlafqualitaet');
+  const wertAtemfrequenz       = document.getElementById('wert-atemfrequenz');
+
+  // ── Startzustand ──────────────────────────────────────────────
+  let aktuelleRohwerte = {
+    intensitaet:     Number(sliderIntensitaet.value),
+    tempo:           100,
+    stabilitaet:     500,
+    tonalitaet:      Number(sliderTonalitaet.value),
+    schlafqualitaet: Number(sliderSchlafqualitaet.value),
+    atemfrequenz:    Number(sliderAtemfrequenz.value)
+  };
+
+  let aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+  let emotionAktiv   = emotionToggle.checked; // true = AN
+
+  // Interface sofort in den richtigen Modus bringen
+  phoneFrame.classList.toggle('emotion-an', emotionAktiv);
+  vorschauAktualisieren();
+  eingabeFeldAnpassen(); // Starthöhe setzen
+
+  // ── Nachricht einfügen ────────────────────────────────────────
+  // wortSnapshots: bei eigenen Nachrichten ein Array [{achsen, leblos}, ...],
+  // ein Eintrag pro Wort (siehe wortZustaendeSynchronisieren weiter oben).
+  // absenderName: nur bei Gruppen-Chats gesetzt (siehe antwortBtn-Handler
+  // weiter unten) – überschreibt für EMPFANGENE Nachrichten den Namen des
+  // jeweils schreibenden Gruppenmitglieds. Jede Nachricht zeigt dabei
+  // weiterhin nur den (neutralen) Anzeigezustand der Person, die sie
+  // gerade "geschrieben" hat – die reagierende Typografie-Logik selbst
+  // bleibt unverändert und bezieht sich ausschließlich auf VON MIR
+  // gesendete Nachrichten.
+  function nachrichtHinzufuegen(text, vonMir, wortSnapshots, absenderName) {
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('nachricht', vonMir ? 'nachricht-ich' : 'nachricht-andere');
+
+    // Tempo steuert die Dauer der Einblend-Animation eigener Nachrichten
+    if (vonMir && emotionAktiv) {
+      wrapper.style.setProperty('--einblenden-dauer', `${aktuelleAchsen.einblendDauer.toFixed(2)}s`);
+    }
+
+    const absenderEl = document.createElement('span');
+    absenderEl.classList.add('nachricht-absender');
+    absenderEl.textContent = vonMir ? 'Du' : (absenderName || chatPartnerName.textContent);
+    wrapper.appendChild(absenderEl);
+
+    const textEl = document.createElement('p');
+    textEl.classList.add('text');
+
+    if (vonMir) {
+      // ═══════════════════════════════════════════════════════════
+      // WORT-EBENE: Jedes Wort wird als eigenes <span class="wort">
+      // dargestellt und bekommt SEINEN eigenen eingefrorenen Zustand
+      // angewendet (statt eines einzigen Zustands für die ganze
+      // Nachricht). Zwischen den Wörtern steht ein normales
+      // Leerzeichen (Textknoten), damit der Zeilenumbruch dort
+      // weiterhin normal funktioniert.
+      // ═══════════════════════════════════════════════════════════
+      const woerter = text.split(/\s+/).filter(w => w.length > 0);
+
+      woerter.forEach((wort, i) => {
+        const snapshot = wortSnapshots[i];
+
+        const wortSpan = document.createElement('span');
+        wortSpan.classList.add('wort');
+        wortSpan.textContent = wort;
+
+        // ★★★ HIER wird der für dieses Wort eingefrorene Zustand ★★★
+        // ★★★ angewendet (oder die neutrale "leblos"-Darstellung). ★★★
+        if (snapshot && !snapshot.leblos) {
+          stilAnwenden(wortSpan, snapshot.achsen);
+        } else {
+          stilNeutralAnwenden(wortSpan);
+        }
+
+        textEl.appendChild(wortSpan);
+        if (i < woerter.length - 1) {
+          textEl.appendChild(document.createTextNode(' '));
+        }
+      });
+    } else {
+      textEl.textContent = text;
+    }
+
+    wrapper.appendChild(textEl);
+
+    // Status-Indikator: Emotion-Zustand beim Absenden einfrieren
+    // Nur bei eigenen Nachrichten relevant; wird nie nachträglich geändert.
+    if (vonMir) {
+      const statusEl = document.createElement('span');
+      statusEl.classList.add('nachricht-status');
+      // "e" sichtbar, wenn mindestens EIN Wort emotional eingefroren wurde;
+      // leer = alle Wörter leblos/neutral (Abwesenheit ist das Signal)
+      const hatEmotionalesWort = wortSnapshots.some(s => !s.leblos);
+      statusEl.textContent = hatEmotionalesWort ? 'e' : '';
+      wrapper.appendChild(statusEl);
+    }
+
+    chat.appendChild(wrapper);
+
+    // Höchstens zwei Nachrichten gleichzeitig sichtbar (aktuelle + vorherige):
+    // erst wenn eine dritte hinzukommt, verschwindet die älteste.
+    while (chat.children.length > 2) {
+      chat.removeChild(chat.firstElementChild);
+    }
+
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  // ── Ereignis-Handler ──────────────────────────────────────────
+
+  eingabe.addEventListener('keydown', tippAnalysieren);
+  // Kombinierter Input-Handler: Höhe + Paste-Erkennung
+  eingabe.addEventListener('input', function (e) {
+    eingabeFeldAnpassen();
+
+    // ══ MARKIERUNG: Unterscheidung eingefügt vs. getippt ═════════
+    // InputEvent.inputType erkennt die Art der Eingabe zuverlässig:
+    //   'insertFromPaste'  → Ctrl+V, Kontextmenü-Einfügen, Drag-Drop
+    //   'insertText'       → normales Tippen
+    // So wird Ctrl+V-keydown (key 'v') nicht fälschlicherweise als
+    // Tipp-Event gewertet, weil erst das nachfolgende 'input'-Event
+    // den tatsächlichen insertType kennt.
+    if (e.inputType === 'insertFromPaste') {
+      istEingefuegt = true;
+      vorschauAktualisieren(); // sofort neutral anzeigen
+    } else if (istEingefuegt && e.inputType === 'insertText') {
+      // Nutzer tippt nach einem Paste selbst weiter → Effekte reaktivieren
+      istEingefuegt = false;
+      vorschauAktualisieren();
+    }
+    // ══════════════════════════════════════════════════════════════
+
+    // Wort-Zustände an den aktuellen Text anpassen (siehe oben)
+    wortZustaendeSynchronisieren();
+  });
+
+  eingabe.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    if (e.shiftKey) return;        // Shift+Enter → Zeilenumbruch, nicht senden
+    e.preventDefault();            // verhindert Zeilenumbruch beim Senden
+    const text = eingabe.value.trim();
+    if (!text) return;
+
+    // ═══ Letztes Wort einfrieren, falls noch kein Leerzeichen folgte ═══
+    // (Senden gilt – wie ein Leerzeichen – als Wortabschluss, siehe Konzept)
+    const woerter = text.split(/\s+/).filter(w => w.length > 0);
+    const wortSnapshots = wortZustaende.slice(0, woerter.length);
+    if (wortSnapshots.length < woerter.length) {
+      wortSnapshots.push({ achsen: { ...aktuelleAchsen }, leblos: !emotionAktiv || istEingefuegt });
+    }
+
+    nachrichtHinzufuegen(text, true, wortSnapshots);
+
+    // ── Profilbild: Puls-/Zustandswert dieser Nachricht in den
+    // gesonderten, gleitenden Mittelwert der Person einfließen lassen
+    // (unabhängig vom Emotion-Toggle – reiner Rohwert der Person).
+    // Bei Gruppen-Chats bewusst übersprungen: es gibt keine EINE Person,
+    // deren Puls hier gemittelt werden könnte (siehe Gruppen-Abschnitt).
+    if (!aktuellerChatIstGruppe) {
+      avatarMittelwertAktualisieren(chatPartnerName.textContent, aktuelleRohwerte.intensitaet);
+    }
+
+    eingabe.value = '';
+    eingabeFeldAnpassen();         // Höhe nach dem Leeren zurücksetzen
+
+    // ── Zustand für die NÄCHSTE Nachricht zurücksetzen ────────
+    // Stabilität: sofort auf Ausgangswert (vollständige Ruhe)
+    stabilitaet_wert = STAB_START;
+
+    // Tempo: Zeitstempel-Puffer leeren → nächste Nachricht beginnt
+    // ohne Tipp-Vorgeschichte (Tempo startet bei Minimum)
+    tipp_zeitstempel = [];
+    aktuelleRohwerte.tempo = 100;
+    wertTempoAnzeige.textContent = 100;
+    balkenTempo.style.width      = '0%';
+
+    // Intensität und Tonalität: Slider-Werte bleiben (spiegeln Sensor-Zustand);
+    // nichts zurücksetzen – die Regler sind Platzhalter für externe Daten.
+
+    // Paste-Flag zurücksetzen: nächste Nachricht beginnt im Tipp-Modus
+    istEingefuegt = false;
+
+    // Wort-Zustände zurücksetzen: nächste Nachricht beginnt ohne
+    // eingefrorene Wörter (siehe wortZustaendeSynchronisieren)
+    wortZustaende = [];
+
+    // Vorschau und Anzeigen auf den zurückgesetzten Zustand bringen
+    stabilitaetUebernehmen(); // setzt aktuelleAchsen + Vorschau neu
+  });
+
+  function sliderAktualisieren() {
+    aktuelleRohwerte.intensitaet     = Number(sliderIntensitaet.value);
+    aktuelleRohwerte.tonalitaet      = Number(sliderTonalitaet.value);
+    aktuelleRohwerte.schlafqualitaet = Number(sliderSchlafqualitaet.value);
+    aktuelleRohwerte.atemfrequenz    = Number(sliderAtemfrequenz.value);
+    wertIntensitaet.textContent      = aktuelleRohwerte.intensitaet;
+    wertTonalitaet.textContent       = aktuelleRohwerte.tonalitaet;
+    wertSchlafqualitaet.textContent  = aktuelleRohwerte.schlafqualitaet;
+    wertAtemfrequenz.textContent     = aktuelleRohwerte.atemfrequenz;
+    aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+    vorschauAktualisieren();
+  }
+
+  sliderIntensitaet.addEventListener('input', sliderAktualisieren);
+  sliderTonalitaet.addEventListener('input',  sliderAktualisieren);
+  sliderSchlafqualitaet.addEventListener('input', sliderAktualisieren);
+  sliderAtemfrequenz.addEventListener('input',    sliderAktualisieren);
+
+  antwortBtn.addEventListener('click', function () {
+    if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) return;
+
+    // In Gruppen rotiert der Absender durch die Mitgliederliste – jede
+    // simulierte Nachricht "gehört" so einer anderen Person der Gruppe,
+    // exakt wie im 1:1-Chat aber ohne festen Gesprächspartner-Namen.
+    let absender;
+    if (aktuellerChatIstGruppe && aktuelleGruppe && aktuelleGruppe.mitglieder.length) {
+      absender = aktuelleGruppe.mitglieder[gruppenAntwortIndex % aktuelleGruppe.mitglieder.length];
+      gruppenAntwortIndex++;
+    }
+
+    nachrichtHinzufuegen(vorgegebeneNachrichten[naechsteAntwortIndex], false, null, absender);
+    naechsteAntwortIndex++;
+    if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) {
+      antwortBtn.disabled    = true;
+      antwortBtn.textContent = '–';
+    }
+  });
+
+  // Emotion-Toggle:
+  //   1. CSS-Klasse wechselt das komplette Farbschema (via Variablen)
+  //   2. emotionAktiv steuert die typografische Logik (Vorschau, Einfrieren)
+  emotionToggle.addEventListener('change', function () {
+    emotionAktiv = this.checked;
+    phoneFrame.classList.toggle('emotion-an', emotionAktiv); // ← Moduswechsel
+    vorschauAktualisieren();
+  });
+
+
+  // ══════════════════════════════════════════════════════════════════
+  //  BLUETOOTH-HERZFREQUENZ – Polar Verity Sense (oder kompatibles Band)
+  //
+  //  Verbindungsaufbau: Heart Rate Service (UUID 0x180D / 'heart_rate')
+  //  Datenquelle:       Heart Rate Measurement (UUID 0x2A37 / 'heart_rate_measurement')
+  //
+  //  BPM → Intensität:  55 bpm → Rohwert 100 (ruhig, leicht)
+  //                    105 bpm → Rohwert 900 (aktiviert, fett)
+  //  Werte außerhalb werden auf 100–900 geklemmt.
+  // ══════════════════════════════════════════════════════════════════
+
+  const BAND_BPM_MIN = 75;   // ← nachjustieren: ab diesem Puls dünnste Strichstärke (Minimum)
+  const BAND_BPM_MAX = 110;  // ← nachjustieren: ab diesem Puls fetteste Strichstärke (Maximum)
+
+  let bandVerbunden        = false;
+  let bluetoothGeraet      = null;
+  let bandCharacteristic   = null;
+  let intentionalesTrennen = false;
+
+  const bandBtn          = document.getElementById('band-btn');
+  const bandBpmLive      = document.getElementById('band-bpm-live');
+  const labelIntensitaet = sliderIntensitaet.closest('.sensor-dimension').querySelector('.dimension-label');
+
+  // ── Verbindungsaufbau per Klick ─────────────────────────────────
+  bandBtn.addEventListener('click', async function () {
+    // Zweiter Klick trennt das Band explizit
+    if (bandVerbunden) {
+      await bandExplizitTrennen();
+      return;
+    }
+
+    if (!navigator.bluetooth) {
+      bandFehlerZeigen('Web Bluetooth wird in diesem Browser nicht unterstützt.');
+      return;
+    }
+
+    try {
+      // Browser-Geräteauswahl-Dialog öffnet sich (nur Heart-Rate-Geräte sichtbar)
+      bluetoothGeraet = await navigator.bluetooth.requestDevice({
+        filters: [{ services: ['heart_rate'] }]
+      });
+
+      // Bei unerwartetem Verbindungsabbruch auf Slider zurückfallen
+      bluetoothGeraet.addEventListener('gattserverdisconnected', function () {
+        if (!intentionalesTrennen) {
+          bandZuruecksetzen();
+          bandFehlerZeigen('Verbindung zum Band getrennt – Slider aktiv.');
+        }
+        intentionalesTrennen = false;
+      });
+
+      // GATT-Verbindung aufbauen und Characteristic abonnieren
+      const server  = await bluetoothGeraet.gatt.connect();
+      const service = await server.getPrimaryService('heart_rate');
+      bandCharacteristic = await service.getCharacteristic('heart_rate_measurement');
+      await bandCharacteristic.startNotifications();
+      bandCharacteristic.addEventListener('characteristicvaluechanged', bpmEmpfangen);
+
+      // UI: verbunden → Slider sperren, Live-Indikator zeigen
+      bandVerbunden = true;
+      bandBtn.textContent = 'Band trennen';
+      bandBtn.classList.add('verbunden');
+      bandBpmLive.hidden = false;
+      bandBpmLive.classList.remove('fehler');
+      sliderIntensitaet.disabled            = true;
+      sliderIntensitaet.style.opacity       = '0.3';
+      sliderIntensitaet.style.pointerEvents = 'none';
+      labelIntensitaet.classList.add('dimension-label--live');
+
+    } catch (err) {
+      // NotFoundError = Nutzer hat Dialog abgebrochen → kein Hinweis nötig
+      if (err.name !== 'NotFoundError') {
+        bandFehlerZeigen('Verbindung fehlgeschlagen – Slider aktiv.');
+        console.error('[Bluetooth]', err);
+      }
+      bluetoothGeraet = null;
+    }
+  });
+
+  // ── BPM-Daten empfangen und auswerten ───────────────────────────
+  // Wird bei jeder neuen Heart Rate Measurement Notification aufgerufen.
+  function bpmEmpfangen(event) {
+    const daten    = event.target.value;   // DataView (rohe Bytes der Characteristic)
+    const flags    = daten.getUint8(0);    // Byte 0: Flags
+    const format16 = flags & 0x01;         // Bit 0: 1 = uint16, 0 = uint8
+
+    // Herzfrequenz lesen (1 oder 2 Bytes je nach Format-Flag)
+    const bpm = format16 ? daten.getUint16(1, true) : daten.getUint8(1);
+
+    // RR-Intervalle vorhanden? (Bit 4 der Flags) → für spätere HRV-Nutzung loggen
+    if (flags & 0x10) {
+      const offset  = format16 ? 3 : 2;
+      const rrWerte = [];
+      for (let i = offset; i + 1 < daten.byteLength; i += 2) {
+        // Einheit laut Spec: 1/1024 Sekunde → in ms umrechnen
+        rrWerte.push(Math.round(daten.getUint16(i, true) / 1024 * 1000));
+      }
+      if (rrWerte.length) console.log('[HRV] RR-Intervalle (ms):', rrWerte);
+    }
+
+    // Live-Anzeige des Rohwerts (sichtbar nach Verbindung)
+    bandBpmLive.textContent = bpm + ' bpm';
+
+    // ── BPM → Intensitäts-Rohwert mappen (fließt hier ins Mapping ein) ──
+    // umrechnen() wiederverwendet aus sensorZuSchriftAchse() oben.
+    const intensitaetRoh = Math.min(900, Math.max(100,
+      Math.round(umrechnen(bpm, BAND_BPM_MIN, BAND_BPM_MAX, 100, 900))
+    ));
+
+    // Intensität in aktuelleRohwerte einsetzen – ersetzt den Slider-Wert
+    aktuelleRohwerte.intensitaet = intensitaetRoh;
+    wertIntensitaet.textContent  = intensitaetRoh;
+    aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+    vorschauAktualisieren();
+  }
+
+  // ── Hilfsfunktionen Verbindungsstatus ───────────────────────────
+
+  // Setzt UI und Zustand auf Slider-Fallback zurück (intern + bei Abbruch).
+  function bandZuruecksetzen() {
+    bandVerbunden      = false;
+    bandCharacteristic = null;
+    bandBtn.textContent = 'Band verbinden';
+    bandBtn.classList.remove('verbunden');
+    bandBpmLive.hidden = true;
+    sliderIntensitaet.disabled            = false;
+    sliderIntensitaet.style.opacity       = '';
+    sliderIntensitaet.style.pointerEvents = '';
+    labelIntensitaet.classList.remove('dimension-label--live');
+    // Intensität auf letzten Slider-Wert zurücksetzen
+    aktuelleRohwerte.intensitaet = Number(sliderIntensitaet.value);
+    wertIntensitaet.textContent  = aktuelleRohwerte.intensitaet;
+    aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+    vorschauAktualisieren();
+  }
+
+  // Trennt die Verbindung auf Nutzerwunsch (kein Fehlerhinweis).
+  async function bandExplizitTrennen() {
+    intentionalesTrennen = true;
+    if (bandCharacteristic) {
+      try { await bandCharacteristic.stopNotifications(); } catch (e) {}
+    }
+    if (bluetoothGeraet && bluetoothGeraet.gatt.connected) {
+      bluetoothGeraet.gatt.disconnect();
+    }
+    bluetoothGeraet = null;
+    bandZuruecksetzen();
+  }
+
+  // Zeigt eine kurze Fehlermeldung (5 s) an der BPM-Anzeige.
+  function bandFehlerZeigen(meldung) {
+    bandBpmLive.textContent = meldung;
+    bandBpmLive.classList.add('fehler');
+    bandBpmLive.hidden = false;
+    setTimeout(function () {
+      if (!bandVerbunden) {
+        bandBpmLive.hidden = true;
+        bandBpmLive.classList.remove('fehler');
+      }
+    }, 5000);
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  MOMENT – Story-artige Leiste, separater Bereich
+  //
+  //  Nutzt DENSELBEN Einfrier-Mechanismus wie der Chat (dieselben
+  //  Funktionen sensorZuSchriftAchse/stilAnwenden/stilNeutralAnwenden,
+  //  dasselbe geteilte Tippverhalten über tippAnalysieren), aber mit
+  //  eigenem, komplett getrenntem Zustand:
+  //    - momentWortZustaende  statt wortZustaende (Chat)
+  //    - momentIstEingefuegt  statt istEingefuegt (Chat)
+  //    - momentEingabe        statt eingabe (Chat)
+  //  Verändert an keiner Stelle wortZustaende/eingabe/nachrichtHinzu-
+  //  fuegen des Chats.
+  //
+  //  Da die App nur EINEN echten Live-Puls kennt (den der Person, die
+  //  gerade das Telefon bedient – "Du"), kann realistisch nur "Du"
+  //  einen Moment live einfrieren. Die übrigen Kontakte zeigen fest
+  //  hinterlegte Demo-Momente (wie auch die restliche Kontaktliste
+  //  überall mit statischem Demo-Inhalt gefüllt ist) – jeweils mit
+  //  einem eigenen, plausiblen Achsen-Snapshot, damit die Story-
+  //  Leiste von Anfang an unterschiedliche Strichstärken zeigt.
+  // ═══════════════════════════════════════════════════════════════
+
+  const MOMENT_DEMO_KONTAKTE = [
+    { name: 'Anna',   text: 'Bin gerade im Zug.',
+      rohwerte: { intensitaet: 220, tempo: 300, stabilitaet: 700, tonalitaet: 300, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Ben',    text: 'Endlich Feierabend!',
+      rohwerte: { intensitaet: 780, tempo: 650, stabilitaet: 500, tonalitaet: 700, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Clara',  text: 'Kaffeepause.',
+      rohwerte: null }, // leblos-Demo: neutral/ohne eingefrorene Emotion, zeigt den Kontrastfall
+    { name: 'David',  text: 'Regen den ganzen Tag.',
+      rohwerte: { intensitaet: 300, tempo: 250, stabilitaet: 600, tonalitaet: 250, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Elena',  text: 'Neues Projekt gestartet!',
+      rohwerte: { intensitaet: 650, tempo: 500, stabilitaet: 550, tonalitaet: 650, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Felix',  text: 'Fast geschafft.',
+      rohwerte: { intensitaet: 500, tempo: 400, stabilitaet: 650, tonalitaet: 400, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Luca',   text: 'Sonntagsspaziergang.',
+      rohwerte: { intensitaet: 260, tempo: 200, stabilitaet: 800, tonalitaet: 350, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Mia',    text: 'Deadline heute Abend.',
+      rohwerte: { intensitaet: 850, tempo: 750, stabilitaet: 350, tonalitaet: 500, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Noah',   text: 'Ruhiger Tag bisher.',
+      rohwerte: { intensitaet: 350, tempo: 300, stabilitaet: 750, tonalitaet: 350, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Sophie', text: 'Vorfreude aufs Wochenende!',
+      rohwerte: { intensitaet: 600, tempo: 450, stabilitaet: 600, tonalitaet: 700, schlafqualitaet: 500, atemfrequenz: 500 } }
+  ];
+
+  // momente[name] = { text, wortSnapshots: [{achsen, leblos}, ...], datum? }
+  // "datum" ist nur bei "Du" gesetzt (steuert das "einmal pro Tag").
+  let momente = {};
+
+  function heutigesDatum() {
+    return new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+  }
+
+  // ── Persistenz: welche Momente wurden schon angesehen ───────────
+  const MOMENT_GESEHEN_KEY = 'situativeTypografie_momenteGesehen';
+
+  function momentGesehenLaden() {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(MOMENT_GESEHEN_KEY)) || []);
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  let momentGesehen = momentGesehenLaden();
+
+  function momentGesehenSpeichern() {
+    localStorage.setItem(MOMENT_GESEHEN_KEY, JSON.stringify(Array.from(momentGesehen)));
+  }
+
+  // ── Persistenz: der eigene, heute gepostete Moment ───────────────
+  const MOMENT_DU_KEY = 'situativeTypografie_momentDu';
+
+  function duMomentLaden() {
+    try {
+      return JSON.parse(localStorage.getItem(MOMENT_DU_KEY));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function duMomentSpeichern(moment) {
+    localStorage.setItem(MOMENT_DU_KEY, JSON.stringify(moment));
+  }
+
+  function duHatHeuteGepostet() {
+    return !!(momente['Du'] && momente['Du'].datum === heutigesDatum());
+  }
+
+  // Baut das Ausgangs-Momente-Objekt: feste Demo-Inhalte für die
+  // Kontakte + den eigenen, ggf. bereits heute geposteten Moment.
+  function momenteAufbauen() {
+    MOMENT_DEMO_KONTAKTE.forEach(function (k) {
+      const leblos  = !k.rohwerte;
+      const achsen  = leblos ? null : sensorZuSchriftAchse(k.rohwerte);
+      const woerter = k.text.split(/\s+/).filter(function (w) { return w.length > 0; });
+      momente[k.name] = {
+        text: k.text,
+        wortSnapshots: woerter.map(function () { return { achsen: achsen || {}, leblos: leblos }; })
+      };
+    });
+
+    const duGespeichert = duMomentLaden();
+    if (duGespeichert && duGespeichert.datum === heutigesDatum()) {
+      momente['Du'] = duGespeichert;
+    }
+  }
+
+  // Rendert einen eingefrorenen Moment-Text Wort für Wort – exakt
+  // derselbe Mechanismus wie bei nachrichtHinzufuegen im Chat (siehe
+  // oben), als eigenständige Funktion für den separaten Moment-
+  // Bereich dupliziert, damit der Chat-Renderpfad unangetastet bleibt.
+  function momentTextRendern(container, text, wortSnapshots) {
+    container.innerHTML = '';
+    const woerter = text.split(/\s+/).filter(function (w) { return w.length > 0; });
+    woerter.forEach(function (wort, i) {
+      const snapshot = wortSnapshots[i];
+      const wortSpan = document.createElement('span');
+      wortSpan.className = 'wort';
+      wortSpan.textContent = wort;
+
+      if (snapshot && !snapshot.leblos) {
+        stilAnwenden(wortSpan, snapshot.achsen);
+      } else {
+        stilNeutralAnwenden(wortSpan);
+      }
+
+      container.appendChild(wortSpan);
+      if (i < woerter.length - 1) {
+        container.appendChild(document.createTextNode(' '));
+      }
+    });
+  }
+
+  // ── DOM-Referenzen ────────────────────────────────────────────
+  const momentLeiste          = document.getElementById('moment-leiste');
+  const momentComposer        = document.getElementById('moment-composer');
+  const momentEingabe         = document.getElementById('moment-eingabe');
+  const momentSendenBtn       = document.getElementById('moment-senden-btn');
+  const momentHinweis         = document.getElementById('moment-hinweis');
+  const momentAnsichtOverlay  = document.getElementById('moment-ansicht-overlay');
+  const momentAnsichtAvatar   = document.getElementById('moment-ansicht-avatar');
+  const momentAnsichtName     = document.getElementById('moment-ansicht-name');
+  const momentAnsichtText     = document.getElementById('moment-ansicht-text');
+  const momentAnsichtSchliessenBtn = document.getElementById('moment-ansicht-schliessen');
+
+  const MOMENT_NAMEN = ['Du'].concat(MOMENT_DEMO_KONTAKTE.map(function (k) { return k.name; }));
+
+  // Baut die Story-Leiste aus dem aktuellen momente-Objekt neu auf.
+  function momentLeisteRendern() {
+    momentLeiste.innerHTML = '';
+
+    MOMENT_NAMEN.forEach(function (name) {
+      const hatMoment = !!momente[name];
+
+      const wrapper = document.createElement('button');
+      wrapper.type = 'button';
+      wrapper.className = 'moment-kreis-wrapper';
+
+      const kreis = document.createElement('div');
+      kreis.className = 'avatar avatar--moment';
+      kreis.textContent = name.charAt(0).toUpperCase();
+
+      if (name === 'Du') {
+        // "Du" hat keinen Profilbild-Mittelwert (der beschreibt den
+        // Puls ANDERER Personen) – bleibt beim neutralen CSS-Default.
+      } else {
+        kreis.dataset.name = name;
+        avatarDarstellungAktualisieren(name);
+      }
+
+      const ungesehen = name !== 'Du' && hatMoment && !momentGesehen.has(name);
+      kreis.classList.toggle('avatar--moment-ungesehen', ungesehen);
+
+      const nameEl = document.createElement('span');
+      nameEl.className = 'moment-kreis-name';
+      nameEl.textContent = name;
+
+      wrapper.appendChild(kreis);
+      wrapper.appendChild(nameEl);
+      wrapper.addEventListener('click', function () { momentOeffnen(name); });
+
+      momentLeiste.appendChild(wrapper);
+    });
+  }
+
+  // Zeigt/versteckt Composer bzw. Hinweistext je nachdem, ob "Du"
+  // heute schon gepostet hast (einmal pro Tag).
+  function momentComposerAktualisieren() {
+    const gepostet = duHatHeuteGepostet();
+    momentComposer.hidden = gepostet;
+    momentHinweis.hidden  = !gepostet;
+  }
+
+  // Öffnet die Story-Ansicht für eine Person – oder, falls "Du" noch
+  // keinen Moment gepostet hast, springt stattdessen ins Composer-Feld.
+  function momentOeffnen(name) {
+    if (name === 'Du' && !momente['Du']) {
+      momentEingabe.focus();
+      return;
+    }
+
+    const moment = momente[name];
+    if (!moment) return;
+
+    if (name !== 'Du') {
+      momentGesehen.add(name);
+      momentGesehenSpeichern();
+    }
+
+    momentAnsichtAvatar.textContent = name.charAt(0).toUpperCase();
+    if (name === 'Du') {
+      delete momentAnsichtAvatar.dataset.name;
+      momentAnsichtAvatar.style.fontFamily = "'Situra-Medium', 'Inter', sans-serif";
+    } else {
+      momentAnsichtAvatar.dataset.name = name;
+      avatarDarstellungAktualisieren(name);
+    }
+    momentAnsichtName.textContent = name;
+
+    momentTextRendern(momentAnsichtText, moment.text, moment.wortSnapshots);
+
+    momentAnsichtOverlay.classList.add('sichtbar');
+    momentLeisteRendern(); // Ring-Status (Ungesehen) sofort aktualisieren
+  }
+
+  function momentAnsichtSchliessen() {
+    momentAnsichtOverlay.classList.remove('sichtbar');
+  }
+
+  momentAnsichtSchliessenBtn.addEventListener('click', momentAnsichtSchliessen);
+  momentAnsichtOverlay.addEventListener('click', function (e) {
+    if (e.target === momentAnsichtOverlay) momentAnsichtSchliessen();
+  });
+
+  // ── Composer: eigener, getrennter Wort-für-Wort-Einfrier-Zustand ──
+  let momentWortZustaende  = [];
+  let momentIstEingefuegt  = false;
+
+  function momentWortZustaendeSynchronisieren() {
+    const anzahl = abgeschlosseneWortAnzahl(momentEingabe.value);
+    const leblos = !emotionAktiv || momentIstEingefuegt;
+
+    while (momentWortZustaende.length < anzahl) {
+      momentWortZustaende.push({ achsen: { ...aktuelleAchsen }, leblos: leblos });
+    }
+    if (momentWortZustaende.length > anzahl) {
+      momentWortZustaende.length = anzahl;
+    }
+  }
+
+  // Tippverhalten (Tempo/Stabilität) ist derselbe geteilte Mechanismus
+  // wie im Chat – tippAnalysieren operiert auf dem gemeinsamen globalen
+  // Zustand (aktuelleRohwerte/aktuelleAchsen), unabhängig davon, in
+  // welchem Textfeld gerade getippt wird.
+  momentEingabe.addEventListener('keydown', tippAnalysieren);
+
+  momentEingabe.addEventListener('input', function (e) {
+    if (e.inputType === 'insertFromPaste') {
+      momentIstEingefuegt = true;
+    } else if (momentIstEingefuegt && e.inputType === 'insertText') {
+      momentIstEingefuegt = false;
+    }
+    momentWortZustaendeSynchronisieren();
+  });
+
+  function momentSenden() {
+    if (duHatHeuteGepostet()) return; // Sicherheitsnetz – Composer ist dann ohnehin ausgeblendet
+
+    const text = momentEingabe.value.trim();
+    if (!text) return;
+
+    const woerter = text.split(/\s+/).filter(function (w) { return w.length > 0; });
+    const wortSnapshots = momentWortZustaende.slice(0, woerter.length);
+    if (wortSnapshots.length < woerter.length) {
+      wortSnapshots.push({ achsen: { ...aktuelleAchsen }, leblos: !emotionAktiv || momentIstEingefuegt });
+    }
+
+    momente['Du'] = { text: text, wortSnapshots: wortSnapshots, datum: heutigesDatum() };
+    duMomentSpeichern(momente['Du']);
+
+    momentEingabe.value = '';
+    momentWortZustaende = [];
+    momentIstEingefuegt = false;
+
+    // Gemeinsamer Tempo-/Stabilitäts-Reset – exakt wie nach dem Senden
+    // einer Chat-Nachricht (siehe Enter-Handler des Chat-Eingabefelds).
+    stabilitaet_wert = STAB_START;
+    tipp_zeitstempel = [];
+    aktuelleRohwerte.tempo = 100;
+    wertTempoAnzeige.textContent = 100;
+    balkenTempo.style.width = '0%';
+    stabilitaetUebernehmen();
+
+    momentLeisteRendern();
+    momentComposerAktualisieren();
+  }
+
+  momentEingabe.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    momentSenden();
+  });
+
+  momentSendenBtn.addEventListener('click', momentSenden);
+
+  // ── Initialer Aufbau ──────────────────────────────────────────
+  momenteAufbauen();
+  momentLeisteRendern();
+  momentComposerAktualisieren();
+
+</script>
+</body>
+</html>

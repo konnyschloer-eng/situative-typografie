@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onboarding – Situative Typografie</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ══════════════════════════════════════════════════════════════
+       PULS-SCHRIFTSCHNITTE – 7 statische Situra-Schnitte (kein
+       Variable Font), identisch zu chat.html eingebunden, damit die
+       ganze App denselben Font-Stack nutzt. Hier rein statisch für
+       Überschriften/Buttons/Fließtext – keine Puls-Umschaltung auf
+       dieser Seite. ══════════════════════════════════════════════ */
+    @font-face {
+      font-family: 'Situra-Thin';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Light';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Regular';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Medium';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-SemiBold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Bold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Black';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       FARBWELTEN – reiner Schwarz/Weiß-Kontrast, automatisch nach
+       Systemeinstellung (prefers-color-scheme). Hell: schwarze
+       Schrift auf Weiß. Dunkel: weiße Schrift auf Schwarz.
+       ══════════════════════════════════════════════════════════════ */
+
+    .phone-frame {
+      --bg:          #ffffff;
+      --karte-rand:  rgba(0, 0, 0, 0.10);
+      --text:        #111111;
+      --text-2:      #6b6b6b;
+      --text-3:      #a8a8a8;
+      --punkt:       #d8d8d5;
+      --punkt-aktiv: #111111;
+      --btn-bg:      #111111;
+      --btn-text:    #ffffff;
+      --btn-rand:    #111111;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .phone-frame {
+        --bg:          #0d0d0d;
+        --karte-rand:  rgba(255, 255, 255, 0.12);
+        --text:        #f5f5f3;
+        --text-2:      #9a9a9a;
+        --text-3:      #5c5c5c;
+        --punkt:       #333333;
+        --punkt-aktiv: #f5f5f3;
+        --btn-bg:      #f5f5f3;
+        --btn-text:    #111111;
+        --btn-rand:    #f5f5f3;
+      }
+    }
+
+    body {
+      background: #e8e6e1;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100dvh;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body { background: #000000; }
+    }
+
+    .phone-frame {
+      position: relative;
+      width: 390px;
+      height: 844px;
+      max-height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,.12);
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (max-width: 440px) {
+      body { background: var(--bg); }
+      .phone-frame { width: 100%; height: 100dvh; box-shadow: none; }
+    }
+
+    /* ── Kopfbereich: Fortschritt + Überspringen ─────────────────── */
+    .onboarding-kopf {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 26px 0;
+    }
+
+    .fortschritt {
+      display: flex;
+      gap: 7px;
+    }
+
+    .punkt {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--punkt);
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .punkt--aktiv {
+      background: var(--punkt-aktiv);
+      transform: scale(1.3);
+    }
+
+    /* ── Schritt-Bühne ────────────────────────────────────────────── */
+    .buehne {
+      position: relative;
+      flex: 1;
+      padding: 18px 24px 0;
+      display: flex;
+    }
+
+    .schritt {
+      position: absolute;
+      inset: 18px 24px 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .schritt--aktiv { display: flex; }
+
+    /* Kein Bubble/Card-Look mehr: offener Stil, echter Seiten-
+       hintergrund (var(--bg) – dieselbe Variable wie die Seite
+       selbst, also buchstäblich keine sichtbare Box/Kante mehr),
+       große Typografie direkt auf der Seite statt in einer Karte. */
+    .karte {
+      width: 100%;
+      background: var(--bg);
+      padding: 0 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .schritt-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    /* Icon-Badge */
+    .schritt-icon {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border: 1px solid var(--karte-rand);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 16px 0 26px;
+      color: var(--text);
+    }
+
+    .schritt-icon svg { width: 26px; height: 26px; }
+
+    .schritt-titel {
+      font-size: 26px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      letter-spacing: -0.01em;
+      margin-bottom: 16px;
+    }
+
+    .schritt-text {
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--text-2);
+      max-width: 30ch;
+    }
+
+    /* ── Schritt "Willkommen": noch größere Überschrift ────────────
+       Der offene (kartenlose) Stil gilt jetzt bereits global über
+       .karte – hier nur noch die deutlich größere, volle Breite
+       ausnutzende Überschrift für genau diesen einen Schritt. ── */
+    .schritt--willkommen .schritt-titel {
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: 56px;
+      line-height: 0.98;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+
+    /* Elemente, die gestaffelt einfliegen (siehe JS: animationenStarten) */
+    [data-einblenden] {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+
+    .einblenden-aktiv {
+      animation: einfliegen 0.62s cubic-bezier(.16,1,.3,1) var(--verz, 0s) both;
+    }
+
+    @keyframes einfliegen {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Selbst-demonstrierende Wörter ───────────────────────────
+       Jedes Wort zeigt beim Erscheinen genau die typografische
+       Eigenschaft, die der Satz ihm zuschreibt – durchgängig in
+       echten Situra-Schriftschnitten (nicht Inter/Fallback). Für
+       Tempo/Tonalität/Wachheit/Gefasstheit/Stabilität reichen
+       letter-spacing/color/filter/opacity/transform – die
+       funktionieren unabhängig vom Font. Für Intensität ("wght") und
+       den Form-Effekt auf der Willkommen-Seite gibt es dagegen keine
+       kontinuierliche Situra-Variable-Font-Achse (Situra liegt nur
+       als 7 statische Schnitte vor, siehe @font-face oben) – dort
+       übernimmt das JS weiter unten (SITURA_SCHRIFTSCHNITTE /
+       schnittRampeStarten / schnittPulsStarten) die Gewichts-
+       Demonstration, indem es zwischen den echten statischen
+       Schnitten hin- und herschaltet (dasselbe Prinzip wie die
+       Puls-Reaktion in chat.html), statt font-variation-settings zu
+       animieren. */
+    .demo-wort {
+      display: inline-block;
+      color: var(--text);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+    }
+
+    /* ── Selbst-animierende Überschrift ────────────────────────────
+       Die Dimension selbst (z. B. "Intensität") ist die große
+       Überschrift UND demonstriert beim Erscheinen den Effekt, den
+       sie benennt. Ersetzt .schritt-titel für diese eine Instanz
+       (display:block statt inline-block, eigene Größe) – .demo-wort
+       liefert bereits Farbe + die Inter-Umstellung (siehe oben). ── */
+    .demo-wort--titel {
+      display: block;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 40px;
+      line-height: 1.02;
+      letter-spacing: -0.01em;
+      margin-top: 14px;
+      margin-bottom: 18px;
+    }
+
+    /* Intensität → Schriftstärke (wght) */
+    .demo-wght { font-variation-settings: 'wght' 100; font-weight: 100; }
+    .demo-wght.demo-aktiv {
+      animation: demoGewicht 1.3s cubic-bezier(.3,0,.2,1) 0.55s both;
+    }
+    @keyframes demoGewicht {
+      from { font-variation-settings: 'wght' 100; }
+      to   { font-variation-settings: 'wght' 800; }
+    }
+
+    /* Tempo → Zeichenabstand (letter-spacing) */
+    .demo-spacing { letter-spacing: 0em; }
+    .demo-spacing.demo-aktiv {
+      animation: demoAbstand 1.3s cubic-bezier(.3,0,.2,1) 0.55s both;
+    }
+    @keyframes demoAbstand {
+      from { letter-spacing: 0em; }
+      to   { letter-spacing: 0.3em; }
+    }
+
+    /* Tonalität → Farbverlauf kühl → warm (dieselben Farben wie in
+       situra-slider.html, für Konsistenz über beide Seiten hinweg) */
+    .demo-farbe { color: #7ca7c9; }
+    .demo-farbe.demo-aktiv {
+      animation: demoFarbe 1.3s cubic-bezier(.3,0,.2,1) 0.55s both;
+    }
+    @keyframes demoFarbe {
+      from { color: #7ca7c9; }
+      to   { color: #e08a4f; }
+    }
+
+    /* Schlafqualität (Testwert) → Unschärfe (filter: blur) */
+    .demo-blur { filter: blur(0px); }
+    .demo-blur.demo-aktiv {
+      animation: demoUnschaerfe 1.2s cubic-bezier(.3,0,.2,1) 0.55s both;
+    }
+    @keyframes demoUnschaerfe {
+      from { filter: blur(0px); }
+      to   { filter: blur(2px); }
+    }
+
+    /* Atemfrequenz (Testwert) → Transparenz (opacity) */
+    .demo-transparenz { opacity: 1; }
+    .demo-transparenz.demo-aktiv {
+      animation: demoTransparenz 1.2s cubic-bezier(.3,0,.2,1) 0.55s both;
+    }
+    @keyframes demoTransparenz {
+      from { opacity: 1; }
+      to   { opacity: 0.35; }
+    }
+
+    /* Sonderfall: Die selbst-animierende Überschrift trägt sowohl
+       [data-einblenden] (Einfliegen: opacity+translateY) als auch eine
+       der Demo-Animationen oben – beide setzen die "animation"-
+       Kurzschrift-Eigenschaft, die (anders als z.B. transform) nicht
+       additiv ist: nur die Regel mit der höheren Selektor-Spezifität
+       gewinnt, die andere wird komplett verworfen. Da
+       ".demo-XXX.demo-aktiv" (2 Klassen) spezifischer ist als
+       ".einblenden-aktiv" (1 Klasse), gewann bisher immer die
+       Demo-Animation – die Überschrift blieb dauerhaft bei opacity:0
+       aus [data-einblenden] hängen und war unsichtbar. Fix: pro
+       Demo-Typ eine noch spezifischere Regel (3 Klassen inkl.
+       .demo-wort--titel), die Einfliegen + Demo-Effekt in EINER
+       Animation zusammenführt. */
+    .demo-wort--titel.demo-wght.demo-aktiv {
+      animation: titelEinfliegenGewicht 1.6s cubic-bezier(.3,0,.2,1) both;
+    }
+    @keyframes titelEinfliegenGewicht {
+      0%   { opacity: 0; transform: translateY(14px); font-variation-settings: 'wght' 100; }
+      25%  { opacity: 1; transform: translateY(0);    font-variation-settings: 'wght' 100; }
+      100% { opacity: 1; transform: translateY(0);    font-variation-settings: 'wght' 800; }
+    }
+
+    .demo-wort--titel.demo-spacing.demo-aktiv {
+      animation: titelEinfliegenAbstand 1.6s cubic-bezier(.3,0,.2,1) both;
+    }
+    @keyframes titelEinfliegenAbstand {
+      0%   { opacity: 0; transform: translateY(14px); letter-spacing: 0em; }
+      25%  { opacity: 1; transform: translateY(0);    letter-spacing: 0em; }
+      100% { opacity: 1; transform: translateY(0);    letter-spacing: 0.3em; }
+    }
+
+    .demo-wort--titel.demo-farbe.demo-aktiv {
+      animation: titelEinfliegenFarbe 1.6s cubic-bezier(.3,0,.2,1) both;
+    }
+    @keyframes titelEinfliegenFarbe {
+      0%   { opacity: 0; transform: translateY(14px); color: #7ca7c9; }
+      25%  { opacity: 1; transform: translateY(0);    color: #7ca7c9; }
+      100% { opacity: 1; transform: translateY(0);    color: #e08a4f; }
+    }
+
+    .demo-wort--titel.demo-blur.demo-aktiv {
+      animation: titelEinfliegenUnschaerfe 1.5s cubic-bezier(.3,0,.2,1) both;
+    }
+    @keyframes titelEinfliegenUnschaerfe {
+      0%   { opacity: 0; transform: translateY(14px); filter: blur(0px); }
+      25%  { opacity: 1; transform: translateY(0);    filter: blur(0px); }
+      100% { opacity: 1; transform: translateY(0);    filter: blur(2px); }
+    }
+
+    .demo-wort--titel.demo-transparenz.demo-aktiv {
+      animation: titelEinfliegenTransparenz 1.5s cubic-bezier(.3,0,.2,1) both;
+    }
+    @keyframes titelEinfliegenTransparenz {
+      0%   { opacity: 0;    transform: translateY(14px); }
+      35%  { opacity: 1;    transform: translateY(0); }
+      100% { opacity: 0.35; transform: translateY(0); }
+    }
+
+    /* Startseite: kleine Mehrfach-Andeutung (Form) */
+    .demo-form { font-variation-settings: 'wght' 300; letter-spacing: 0em; font-style: oblique 0deg; }
+    .demo-form.demo-aktiv {
+      animation: demoForm 3.2s ease-in-out 0.5s infinite;
+    }
+    @keyframes demoForm {
+      0%   { font-variation-settings: 'wght' 300; letter-spacing: 0em;    font-style: oblique 0deg;  }
+      50%  { font-variation-settings: 'wght' 800; letter-spacing: 0.1em; font-style: oblique 9deg;  }
+      100% { font-variation-settings: 'wght' 300; letter-spacing: 0em;    font-style: oblique 0deg;  }
+    }
+
+    /* Stabilität → Zittern (kontinuierlich, pro Buchstabe) */
+    .zittern-buchstabe { display: inline-block; }
+    @keyframes demoZittern {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25%      { transform: translate(var(--amp), calc(var(--amp) * -1)) rotate(-2deg); }
+      50%      { transform: translate(calc(var(--amp) * -1), var(--amp)) rotate(2deg); }
+      75%      { transform: translate(var(--amp), var(--amp)) rotate(-1deg); }
+    }
+
+    /* ── Fußbereich: primäre Aktion ──────────────────────────────── */
+    .onboarding-fuss {
+      flex-shrink: 0;
+      padding: 20px 26px 30px;
+    }
+
+    #weiter-btn {
+      width: 100%;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: 1px solid var(--btn-rand);
+      border-radius: 999px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 15px;
+      letter-spacing: 0.01em;
+      padding: 15px 0;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.15s ease;
+    }
+
+    #weiter-btn:hover { opacity: 0.88; }
+    #weiter-btn:active { transform: scale(0.98); }
+
+    /* Schlichter Text-Button (Überspringen / Später verbinden) */
+    .link-btn {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text-2);
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      padding: 4px 2px;
+    }
+
+    .link-btn:hover { color: var(--text); }
+
+    /* ══════════════════════════════════════════════════════════════
+       ZUSÄTZLICHER SCREEN – Gerät verbinden (nach dem letzten
+       Erklär-Schritt, vor dem Chat). Eigene volle Ansicht, ersetzt
+       vollständig .onboarding-view (inkl. Fortschritt/Überspringen-
+       Kopf) – analog zum Umschalten zwischen den Erklär-Schritten.
+       ══════════════════════════════════════════════════════════════ */
+    .onboarding-view,
+    .bluetooth-view,
+    .logo-view,
+    .hallo-view {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .onboarding-view.aktiv,
+    .bluetooth-view.aktiv,
+    .logo-view.aktiv,
+    .hallo-view.aktiv { display: flex; }
+
+    /* ══════════════════════════════════════════════════════════════
+       LOGO-ANIMATION – Splash vor dem ersten Onboarding-Schritt.
+       Choreografie (per JS-Klassen, siehe Skript unten):
+         SCHRITT 1: Marke blendet GROSS, zentriert ein – NUR opacity
+            0→1 (".sichtbar"), KEINE transform-/Positionsänderung:
+            sie taucht direkt an ihrer finalen großen, zentrierten
+            Stelle auf, statt einzufliegen
+         SCHRITT 2: Herzschlag-Puls – GENAU 2× scale 1→1.15→1→1.15→1
+            (".puls-aktiv", cubic-bezier(0.45,0,0.55,1), bleibt dabei
+            exakt zentriert stehen)
+         SCHRITT 3: Marke schrumpft & wandert an den linken Rand in
+            EINER einzigen transform-Transition (".kompakt"),
+            WÄHREND GLEICHZEITIG der Name rechts daneben einfliegt
+            (".name-sichtbar") – eine einzige durchgehende Bewegung,
+            damit rechts genug Platz für den vollständigen Namen
+            "Momentum" entsteht (vorher wurde er abgeschnitten)
+         SCHRITT 4 (Größe): finales Lockup 1,5× so groß wie zuvor
+         sobald die Bewegung aus Schritt 3 sichtbar zur Ruhe gekommen
+            ist: weiche rechte Fade-Kante aktivieren, dann kurze Pause
+            im fertigen Lockup, dann Übergang weiter
+       Weiß auf Schwarz – reiner Marken-Moment, unabhängig von den
+       hellen Farbwelten des restlichen Onboardings.
+       ══════════════════════════════════════════════════════════════ */
+    .logo-view {
+      position: relative;
+      align-items: center;
+      justify-content: center;
+      background: #000000;
+      transition: opacity 0.4s ease;
+    }
+
+    .logo-view.ausblenden { opacity: 0; }
+
+    .logo-lockup {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Gemeinsamer Rahmen für Marke + Name: Breite deckt genau das
+       fertige Lockup ab (190px – exakte Zielbreite, siehe unten) –
+       die rechte Fade-Kante-Verlauf (.logo-verlauf-kante) wird AUF
+       DIESEM Wrapper platziert, nicht auf der Marke allein, damit
+       der Verlauf sich über das gesamte Lockup zieht statt nur über
+       das kleine Icon.
+       Alle Maße unten (Markenhöhe 37,28px, Namenshöhe 27,64px, Name-
+       Abstand 59,52px, Lockup-Breite 190px) sind NICHT mehr aus einem
+       Faktor auf die vorherige Umsetzung abgeleitet, sondern direkt
+       aus assets/Logo/Logo_Momentum_Komplett.svg errechnet: per
+       getBBox() dort exakt vermessen (Icon 94,8×72,5 / Schriftzug
+       394,49×53,74 / Abstand 22,29, jeweils in SVG-Einheiten) ergibt
+       sich ein Icon:Text-Höhenverhältnis von 72,5/53,74 ≈ 1,349:1 und
+       ein Abstand:Icon-Breite-Verhältnis von 22,29/94,8 ≈ 0,2351:1.
+       Diese beiden Verhältnisse – NICHT die rohen SVG-Einheiten selbst
+       (die Referenz ist eine maßstabslose 1000×1000-Zeichenfläche,
+       ihre Zahlen lassen sich nicht direkt als Pixel übernehmen) –
+       wurden auf die vom Nutzer vorgegebene Ziel-Lockup-Breite von
+       190px angewendet, unter Berücksichtigung der TATSÄCHLICHEN
+       Seitenverhältnisse unserer eigenen SVGs (Marke: viewBox 460×356,
+       Name: viewBox 425×90 – andere Ausschnitte als die Referenzdatei).
+       "left" ist bewusst KEIN fester Pixelwert: die fertige Einheit
+       (Icon + Schriftzug zusammen) soll in ihrer finalen, stehenden
+       Position horizontal zentriert auf dem Bildschirm stehen, nicht
+       an einem festen Rand kleben. Der 32px-Wert unten ist nur der
+       CSS-Fallback für den Fall, dass JS nicht läuft – das Skript
+       weiter unten (markeZentrierungSetzen) berechnet "left" aus der
+       tatsächlichen Rahmenbreite ((Rahmenbreite − 190px) / 2) und
+       setzt es einmalig, BEVOR die Einblend-Transition startet, damit
+       Icon+Name als Einheit exakt mittig landen. */
+    .logo-inhalt {
+      position: absolute;
+      left: 32px;
+      top: 50%;
+      width: 190px;
+      height: 27.64px;
+      transform: translateY(-50%);
+    }
+
+    .logo-mark,
+    .logo-name { color: #ffffff; }
+
+    .logo-mark path,
+    .logo-name path { fill: currentColor; }
+
+    /* Fix gegen Verwischen: Größe/Position ändern sich AUSSCHLIESSLICH
+       über transform (skaliert + verschoben aus der finalen Ruhelage
+       heraus) – nie über height/left/top. Layout-auslösende Eigen-
+       schaften bei einer laufenden Transition sind der Grund für das
+       vorherige dauerhafte Verwischen (Browser cachte einen
+       Zwischenzustand als Bitmap). transform allein bleibt immer
+       GPU-kompositiert und damit scharf, in jeder Phase.
+       Ruhelage (= finale Position): links, 37,28px hoch (exakt aus
+       assets/Logo/Logo_Momentum_Komplett.svg errechnet, siehe
+       ausführlicher Kommentar an .logo-inhalt oben: Icon:Text-
+       Höhenverhältnis 1,349:1 aus der Referenz, angewendet auf eine
+       Ziel-Lockup-Breite von 190px), KEIN Transform außer der
+       permanenten Höhenzentrierung (translateY(-50%)).
+       Der "groß+zentriert"-Zustand (Phase 1+2) wird als ZWEITE,
+       SEPARATE scale()-Funktion an die Ruhelage angehängt:
+       "scale(2.5) scale(<puls>)" – der erste scale(2.5) ist die feste
+       Einblend-/Puls-Größe, der zweite ist genau der Wert, der in
+       Phase 2 zwischen 1 und 1.15 pulsiert (siehe @keyframes
+       logoMarkePuls unten). translateX(var(--logo-zentrier-x)) ist
+       bewusst KEIN fester Pixelwert: er hängt von der tatsächlichen
+       Rahmenbreite ab (390px im eingebetteten Vorschau-Rahmen, aber
+       echte Viewport-Breite auf Mobilgeräten unter der 440px-Media-
+       Query, siehe unten) – ein einzelner fest codierter Wert
+       zentriert deshalb nur bei genau einer Breite korrekt. Das
+       Skript unten (markeZentrierungSetzen) misst die tatsächliche
+       Rahmenbreite und setzt --logo-zentrier-x, BEVOR die Einblend-
+       Transition startet.
+       ── SCHRITT 1 (Einblenden) ──────────────────────────────────
+       Der Ausgangszustand (opacity:0) hat exakt DENSELBEN transform-
+       Wert wie der .sichtbar-Zielzustand direkt darunter – es gibt
+       also KEINE Positions-/Skalierungs-Differenz zwischen den
+       beiden. Die transition unten deklariert zwar sowohl opacity als
+       auch transform (transform wird erst in Schritt 3 gebraucht),
+       das ist aber unschädlich für Schritt 1: eine CSS-Transition
+       läuft NUR, wenn sich der WERT einer Eigenschaft ändert – und
+       transform ändert sich in Schritt 1 nicht (identischer Wert vor/
+       nach .sichtbar), also passiert dort schlicht nichts damit. Wenn
+       .sichtbar hinzugefügt wird, ändert sich dadurch ausschließlich
+       opacity (0→1) – ein reines Einblenden ohne jede Bewegung. Die
+       Marke taucht direkt an ihrer großen, zentrierten Position auf,
+       statt aus einem Versatz heraus einzufliegen. */
+    .logo-mark {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      height: 37.28px;
+      width: auto;
+      opacity: 0;
+      transform: translateY(-50%) translateX(var(--logo-zentrier-x, 141px)) scale(2.5) scale(1);
+      transition: opacity 0.6s ease, transform 0.8s ease-in-out;
+    }
+
+    .logo-view.sichtbar .logo-mark {
+      /* SCHRITT 1: reines Einblenden – transform ist identisch zum
+         Ausgangszustand oben (keine transition dafür deklariert),
+         daher ändert sich hier wirklich NUR opacity. Danach bleibt die
+         Marke kurz stehen ("Moment"-Pause, siehe JS-Timing weiter
+         unten), bevor SCHRITT 2 den Puls startet und danach SCHRITT 3
+         sie in EINER durchgehenden Bewegung verkleinert/verschiebt. */
+      opacity: 1;
+    }
+
+    /* ── SCHRITT 2 (Pulsieren) ───────────────────────────────────
+       NACHDEM die Marke eingeblendet ist (opacity-Transition oben ist
+       abgeschlossen – ihr transform hat sich seit Schritt 1 nie
+       verändert, es läuft also garantiert keine transform-Transition
+       mehr, aus der heraus der Puls "mitten drin" starten könnte),
+       aber BEVOR Schritt 3 sie verkleinert/verschiebt, pulsiert die
+       zweite scale()-Funktion GENAU 2× zwischen 1 und 1.15 (1 → 1.15
+       → 1 → 1.15 → 1, 4 Teilbewegungen à ~0,4s = 1,6s gesamt).
+       translateX/-Y und der erste scale(2.5) bleiben dabei
+       unangetastet – die Marke bleibt exakt zentriert stehen, nichts
+       wandert, nur die zweite scale()-Zahl ändert sich.
+       Eigene @keyframes-Animation statt einer transition: CSS-
+       Animationen überschreiben für ihre Laufzeit automatisch jede
+       transition-basierte Deklaration auf derselben Eigenschaft und
+       geben sie danach wieder frei (animation-fill-mode bleibt
+       bewusst beim Standard "none") – die Marke "landet" dadurch
+       exakt wieder in ihrer .sichtbar-Ruhelage (Start- und Endwert der
+       Keyframes sind identisch mit deren transform), von wo aus
+       Schritt 3 nahtlos weiterläuft.
+       Timing-Funktion: cubic-bezier(0.45, 0, 0.55, 1) – gilt für JEDES
+       der 4 Segmente zwischen den Keyframes einzeln (langsamer Start,
+       schnellere Mitte, langsames Ende JEDER Wachstums-/
+       Schrumpfbewegung), NICHT linear. */
+    .logo-mark.puls-aktiv {
+      animation: logoMarkePuls 1.6s cubic-bezier(0.45, 0, 0.55, 1);
+    }
+
+    @keyframes logoMarkePuls {
+      0%   { transform: translateY(-50%) translateX(var(--logo-zentrier-x, 141px)) scale(2.5) scale(1);    }
+      25%  { transform: translateY(-50%) translateX(var(--logo-zentrier-x, 141px)) scale(2.5) scale(1.15); }
+      50%  { transform: translateY(-50%) translateX(var(--logo-zentrier-x, 141px)) scale(2.5) scale(1);    }
+      75%  { transform: translateY(-50%) translateX(var(--logo-zentrier-x, 141px)) scale(2.5) scale(1.15); }
+      100% { transform: translateY(-50%) translateX(var(--logo-zentrier-x, 141px)) scale(2.5) scale(1);    }
+    }
+
+    /* ── SCHRITT 3 (Übergang zur Wort-Bild-Marke) ────────────────
+       NACH dem Puls: EINE einzige CSS-Transition auf "transform" –
+       scale UND translateX ändern sich GLEICHZEITIG in derselben
+       Transition (0,8s, ease-in-out), das Element bewegt sich dabei
+       stetig von seiner aktuellen großen/zentrierten Position zur
+       finalen kleinen/linken Position – keine Sprünge, kein
+       Verschwinden dazwischen (opacity bleibt die ganze Zeit
+       konstant bei 1, wird von .kompakt gar nicht berührt – die Marke
+       verschwindet nie und taucht nicht neu auf, sie bewegt/
+       verkleinert sich nur). Startet laut JS-Timing GLEICHZEITIG mit
+       .name-sichtbar (siehe .logo-name unten): Verkleinern/Wandern
+       der Marke und Einfliegen des Schriftzugs sind eine einzige
+       zusammenhängende Bewegung statt zweier nacheinander laufender
+       Schritte. */
+    .logo-view.kompakt .logo-mark {
+      transform: translateY(-50%) translateX(0) scale(1) scale(1);
+    }
+
+    /* Weiche rechte Fade-Kante ("sobald Logo+Name in ihrer finalen
+       Position stehen") – bewusst als EIGENE Klasse, die per JS erst
+       NACH Abschluss der obigen transform-Transition gesetzt wird
+       (siehe JS-Timing weiter unten: SCHRITT 3 abgeschlossen, dann
+       kurz danach). Bewusst dezent: der Verlauf geht nie bis in
+       völlige Transparenz (Endwert ist halbtransparentes Schwarz
+       statt "transparent"), damit das Ende des Schriftzugs nur sanft
+       abgedunkelt statt ausgeblendet wird – und beginnt früher (45%
+       statt 72%), damit sich der Verlauf über einen deutlich längeren
+       Abschnitt der Schrift zieht statt abrupt auf kurzer Strecke zu
+       enden.
+       Umsetzung ÜBER EIN EIGENES OVERLAY-ELEMENT (.logo-verlauf-kante,
+       eine simple <div> direkt über Marke+Name in .logo-inhalt) statt
+       über mask-image: mask-image lässt sich in Browsern nicht
+       zuverlässig sanft ein-/ausblenden (ein Wechsel zwischen "kein
+       Verlauf" und "Verlauf-Gradient" ist kein interpolierbarer
+       CSS-Wertetyp, die transition würde also trotz Deklaration hart
+       umschalten statt einzufaden). Das Overlay dagegen trägt den
+       Verlauf permanent als eigenes background – ein- und
+       ausgeblendet wird nur seine ganz normale, garantiert weich
+       transitionierbare opacity (0→1). Da der Seitenhintergrund an
+       dieser Stelle ohnehin reines Schwarz ist, sieht ein halb-
+       transparentes schwarzes Overlay über dem weißen Text optisch
+       exakt so aus wie eine halbtransparente Maske auf dem Text
+       selbst (beides ergibt denselben Grauton) – rein visuell also
+       keine Änderung, nur der Ein-/Ausblende-Mechanismus ist jetzt
+       ein zuverlässig animierbarer. */
+    .logo-verlauf-kante {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(to right, transparent 45%, rgba(0,0,0,0.5) 100%);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .logo-inhalt--fade-kante .logo-verlauf-kante {
+      opacity: 1;
+    }
+
+    /* Finale Position rechts neben der (kleinen) Marke, relativ zu
+       .logo-inhalt: ≈48,17px Markenbreite + ≈11,33px Abstand ≈
+       59,52px (exakt errechnet, siehe Kommentar an .logo-inhalt
+       oben). Startet laut JS-Timing GLEICHZEITIG mit .kompakt (siehe
+       .logo-mark oben, SCHRITT 3) – Einfliegen des Schriftzugs UND
+       Verkleinern/Wandern der Marke sind eine einzige,
+       zusammenhängende Bewegung. */
+    .logo-name {
+      position: absolute;
+      left: 59.52px;
+      top: 50%;
+      height: 27.64px;
+      width: auto;
+      opacity: 0;
+      transform: translateY(-50%) translateX(14px);
+      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(.16,1,.3,1);
+    }
+
+    .logo-view.name-sichtbar .logo-name {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
+    }
+
+    /* ── Zwischenschritt "Hallo!" ─────────────────────────────────
+       Kurzer, freundlicher Screen zwischen Logo-Animation und dem
+       ersten Onboarding-Schritt. ── */
+    .hallo-view {
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .hallo-view.sichtbar { opacity: 1; }
+    .hallo-view.ausblenden { opacity: 0; }
+
+    .hallo-text {
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: 60px;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .bluetooth-aktionen {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    /* Outline-Variante des primären Buttons – zwei gleichwertige
+       Optionen (Armband/Uhr), keine davon ist "die" Hauptaktion. */
+    .bluetooth-btn {
+      width: 100%;
+      background: none;
+      border: 1px solid var(--btn-rand);
+      color: var(--text);
+      border-radius: 999px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 14px;
+      letter-spacing: 0.01em;
+      padding: 13px 0;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+    }
+
+    .bluetooth-btn:hover { background: var(--karte-rand); }
+    .bluetooth-btn:active { transform: scale(0.98); }
+    .bluetooth-btn:disabled { opacity: 0.4; cursor: default; }
+
+    .bluetooth-btn.verbunden {
+      border-color: var(--punkt-aktiv);
+      color: var(--punkt-aktiv);
+    }
+
+    .bluetooth-hinweis {
+      font-size: 12px;
+      color: var(--text-2);
+      margin-top: 18px;
+      font-style: italic;
+      min-height: 1.4em;
+    }
+
+    .bluetooth-view .onboarding-fuss { text-align: center; }
+
+    /* Eigene Klasse statt .schritt/.schritt--aktiv: verhindert, dass
+       dieser Screen versehentlich in die Tutorial-Schritt-Logik
+       (schritte-Array, Punkte-Indizes) mit hineingezählt wird –
+       visuell identisch zentriert/positioniert wie ein Erklär-Schritt. */
+    .bt-schritt {
+      position: absolute;
+      inset: 18px 24px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Barrierefreiheit: reduzierte Bewegung ───────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      [data-einblenden], .demo-wort, .zittern-buchstabe {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+
+      /* Logo/Hallo-Screens: sofort im jeweils finalen Zustand zeigen,
+         keine Größen-/Positions-/Fade-Übergänge zwischen den Phasen –
+         inklusive des Herzschlag-Pulses (Phase 2) und des Verlauf-
+         Einfadens, die sonst über @keyframes- bzw. opacity-transition
+         liefen. */
+      .logo-mark, .logo-name, .hallo-view, .logo-verlauf-kante { transition: none !important; }
+      .logo-mark {
+        animation: none !important;
+        opacity: 1 !important; transform: translateY(-50%) translateX(0) scale(1) !important;
+      }
+      .logo-verlauf-kante { opacity: 1 !important; }
+      .logo-name { opacity: 1 !important; transform: translateY(-50%) translateX(0) !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="phone-frame" id="phone-frame">
+
+  <!-- ══════════════════════════════════════════════════════════════
+       LOGO-ANIMATION – erster Bildschirm, vor allen Onboarding-
+       Schritten. Marke erscheint zentriert, App-Name fährt von
+       rechts an, kurze Pause, dann Übergang zu "Willkommen".
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="logo-view aktiv" id="logo-view">
+    <div class="logo-lockup">
+      <div class="logo-inhalt" id="logo-inhalt">
+      <svg class="logo-mark" viewBox="270 322 460 356" aria-hidden="true">
+        <path d="M722.81,670.4h-445.62v-340.79h185.67l37.14,79.44,37.6-79.44h185.21v340.79Z"/>
+      </svg>
+      <svg class="logo-name" viewBox="345 455 425 90" role="img" aria-label="Momentum">
+        <path d="M361.3,474.35h10.06l16.72,41,16.72-41h10.14v52.98h-9.77v-31.67l-12.8,31.67h-8.58l-12.73-31.67c0,.84.01,1.69.04,2.55.02.86.04,1.71.04,2.55v26.57h-9.84v-52.98Z"/>
+        <path d="M423.83,507.06c0-2.32.34-4.72,1.04-7.21.69-2.49,1.8-4.76,3.33-6.81,1.53-2.05,3.55-3.74,6.07-5.07,2.52-1.33,5.57-2,9.18-2s6.65.67,9.14,2,4.5,3.02,6.03,5.07c1.53,2.05,2.64,4.32,3.33,6.81.69,2.49,1.04,4.9,1.04,7.21s-.35,4.65-1.04,7.14c-.69,2.49-1.8,4.76-3.33,6.81-1.53,2.05-3.54,3.74-6.03,5.07s-5.54,2-9.14,2-6.66-.67-9.18-2c-2.52-1.33-4.54-3.02-6.07-5.07-1.53-2.05-2.64-4.32-3.33-6.81-.69-2.49-1.04-4.87-1.04-7.14ZM433.3,507.06c0,1.48.18,2.99.55,4.51.37,1.53.95,2.92,1.74,4.18.79,1.26,1.84,2.28,3.14,3.07,1.31.79,2.87,1.18,4.7,1.18s3.38-.39,4.66-1.18c1.28-.79,2.33-1.81,3.14-3.07.81-1.26,1.41-2.65,1.78-4.18.37-1.53.55-3.03.55-4.51s-.18-3-.55-4.55-.96-2.96-1.78-4.22c-.81-1.26-1.86-2.28-3.14-3.07-1.28-.79-2.84-1.18-4.66-1.18s-3.39.4-4.7,1.18c-1.31.79-2.36,1.81-3.14,3.07-.79,1.26-1.37,2.66-1.74,4.22s-.55,3.07-.55,4.55Z"/>
+        <path d="M470.38,527.34v-40.63h8.58l.44,3.63c1.38-1.28,3-2.33,4.85-3.15,1.85-.81,3.93-1.22,6.25-1.22,3.26,0,5.87.62,7.84,1.85,1.97,1.23,3.5,2.86,4.59,4.88,1.38-1.87,3.16-3.47,5.33-4.77,2.17-1.31,4.79-1.96,7.84-1.96s5.8.6,7.77,1.81c1.97,1.21,3.5,2.81,4.59,4.81,1.08,2,1.8,4.25,2.15,6.77.34,2.52.52,5.08.52,7.7v20.28h-9.47v-20.28c0-.99-.01-1.95-.04-2.89-.03-.94-.09-1.87-.19-2.81-.15-1.13-.35-2.15-.59-3.03-.25-.89-.62-1.65-1.11-2.29-.49-.64-1.15-1.13-1.96-1.48-.81-.34-1.86-.52-3.14-.52-1.68,0-3.11.42-4.29,1.26-1.18.84-2.12,1.89-2.81,3.14-.69,1.26-1.2,2.65-1.52,4.18-.32,1.53-.48,3.01-.48,4.44v20.28h-9.4v-20.28c0-.99-.03-1.95-.07-2.89-.05-.94-.12-1.87-.22-2.81-.2-2.22-.75-4-1.67-5.33-.91-1.33-2.6-2-5.07-2-3.06,0-5.37.89-6.92,2.66-1.55,1.78-2.33,3.92-2.33,6.44v24.2h-9.47Z"/>
+        <path d="M537.79,507.06c0-2.17.3-4.48.89-6.92s1.6-4.72,3.03-6.84c1.43-2.12,3.33-3.87,5.7-5.25,2.37-1.38,5.33-2.07,8.88-2.07s6.51.69,8.88,2.07c2.37,1.38,4.27,3.13,5.7,5.25,1.43,2.12,2.44,4.4,3.03,6.84s.89,4.75.89,6.92c0,.3-.01.59-.04.89-.03.3-.06.59-.11.89l-.07,1.11h-27.16c.1,1.18.36,2.38.78,3.59.42,1.21.99,2.29,1.7,3.26s1.6,1.74,2.66,2.33c1.06.59,2.31.89,3.74.89,1.97,0,3.66-.5,5.07-1.52,1.41-1.01,2.38-2.31,2.92-3.89l.3-.89h9.55l-.37,1.41c-.4,1.78-1.07,3.45-2.04,5.03-.96,1.58-2.18,2.95-3.66,4.11-1.48,1.16-3.21,2.08-5.18,2.78-1.97.69-4.17,1.04-6.59,1.04-3.55,0-6.51-.69-8.88-2.07-2.37-1.38-4.27-3.12-5.7-5.22-1.43-2.1-2.44-4.38-3.03-6.85-.59-2.47-.89-4.76-.89-6.88ZM564.65,501.88c-.4-2.12-1.27-3.96-2.63-5.51-1.36-1.55-3.27-2.33-5.74-2.33s-4.38.78-5.74,2.33c-1.36,1.55-2.23,3.39-2.63,5.51h16.72Z"/>
+        <path d="M582.19,527.34v-40.63h8.58l.44,3.63c1.38-1.28,3-2.33,4.85-3.15,1.85-.81,3.93-1.22,6.25-1.22,3.26,0,5.86.6,7.81,1.81,1.95,1.21,3.46,2.81,4.55,4.81,1.08,2,1.8,4.25,2.15,6.77.34,2.52.52,5.08.52,7.7v20.28h-9.4v-20.28c0-.99-.03-1.95-.07-2.89-.05-.94-.12-1.87-.22-2.81-.2-2.22-.75-4-1.67-5.33-.91-1.33-2.6-2-5.07-2-3.06,0-5.37.89-6.92,2.66-1.55,1.78-2.33,3.92-2.33,6.44v24.2h-9.47Z"/>
+        <path d="M629.48,510.54v-16.5h-6.14v-7.33h6.14v-8.14h9.4v8.14h6.07v7.33h-6.07v18.83c0,.76.05,1.57.15,2.4.1,1.73.42,2.95.96,3.66.54.72,1.7,1.07,3.48,1.07h1.48v8.07h-1.41c-3.26,0-5.82-.42-7.7-1.26-1.88-.84-3.28-2.01-4.22-3.51-.94-1.5-1.53-3.34-1.78-5.51-.25-2.17-.37-4.59-.37-7.25Z"/>
+        <path d="M650.94,507.06v-20.35h9.47v20.35c0,.94.01,1.88.04,2.81.02.94.09,1.88.18,2.81.15,1.09.34,2.08.59,3,.25.91.62,1.69,1.11,2.33.49.64,1.16,1.14,2,1.48.84.35,1.88.52,3.11.52,3.06,0,5.37-.89,6.92-2.66s2.33-3.92,2.33-6.44v-24.2h9.4v40.63h-8.51l-.52-3.63c-1.38,1.28-3,2.33-4.85,3.14-1.85.81-3.93,1.22-6.25,1.22-3.21,0-5.8-.61-7.77-1.81-1.97-1.21-3.49-2.8-4.55-4.77-1.06-1.97-1.78-4.22-2.15-6.73-.37-2.52-.55-5.08-.55-7.7Z"/>
+        <path d="M695.04,527.34v-40.63h8.58l.44,3.63c1.38-1.28,3-2.33,4.85-3.15,1.85-.81,3.93-1.22,6.25-1.22,3.26,0,5.87.62,7.84,1.85,1.97,1.23,3.5,2.86,4.59,4.88,1.38-1.87,3.16-3.47,5.33-4.77,2.17-1.31,4.78-1.96,7.84-1.96s5.8.6,7.77,1.81c1.97,1.21,3.5,2.81,4.59,4.81,1.08,2,1.8,4.25,2.15,6.77.34,2.52.52,5.08.52,7.7v20.28h-9.47v-20.28c0-.99-.01-1.95-.04-2.89-.03-.94-.09-1.87-.18-2.81-.15-1.13-.35-2.15-.59-3.03-.25-.89-.62-1.65-1.11-2.29-.49-.64-1.15-1.13-1.96-1.48-.81-.34-1.86-.52-3.14-.52-1.68,0-3.11.42-4.29,1.26-1.18.84-2.12,1.89-2.81,3.14-.69,1.26-1.2,2.65-1.52,4.18-.32,1.53-.48,3.01-.48,4.44v20.28h-9.4v-20.28c0-.99-.03-1.95-.07-2.89-.05-.94-.12-1.87-.22-2.81-.2-2.22-.75-4-1.67-5.33-.91-1.33-2.6-2-5.07-2-3.06,0-5.37.89-6.92,2.66-1.55,1.78-2.33,3.92-2.33,6.44v24.2h-9.47Z"/>
+      </svg>
+      <div class="logo-verlauf-kante" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ZWISCHENSCHRITT – kurzer, freundlicher Gruß nach der Logo-
+       Animation, bevor der erste Onboarding-Schritt erscheint.
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="hallo-view" id="hallo-view">
+    <span class="hallo-text">Hallo!</span>
+  </div>
+
+  <div class="onboarding-view" id="onboarding-view">
+
+  <div class="onboarding-kopf">
+    <div class="fortschritt" id="fortschritt">
+      <span class="punkt punkt--aktiv" data-index="0"></span>
+      <span class="punkt" data-index="1"></span>
+      <span class="punkt" data-index="2"></span>
+      <span class="punkt" data-index="3"></span>
+      <span class="punkt" data-index="4"></span>
+      <span class="punkt" data-index="5"></span>
+      <span class="punkt" data-index="6"></span>
+    </div>
+    <button id="ueberspringen-btn" class="link-btn">Überspringen</button>
+  </div>
+
+  <div class="buehne" id="buehne">
+
+    <section class="schritt schritt--aktiv schritt--willkommen" data-schritt="0">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">Willkommen</span>
+        <h1 class="schritt-titel" data-einblenden style="--verz:.1s">Bevor's losgeht</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.22s">
+          Diese App übersetzt, wie du dich beim Schreiben fühlst, in die
+          <span class="demo-wort demo-form" data-demo="form">Form</span> deiner Schrift.
+        </p>
+      </div>
+    </section>
+
+    <section class="schritt" data-schritt="1">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">1 / 6 · Intensität</span>
+        <h1 class="schritt-titel demo-wort demo-wort--titel demo-wght" data-demo="wght" data-einblenden style="--verz:.1s">Intensität</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.24s">
+          Wie intensiv du schreibst, bestimmt, wie
+          <span class="demo-wort demo-wght" data-demo="wght">fett</span> die Schrift erscheint.
+        </p>
+      </div>
+    </section>
+
+    <section class="schritt" data-schritt="2">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">2 / 6 · Tempo</span>
+        <h1 class="schritt-titel demo-wort demo-wort--titel demo-spacing" data-demo="spacing" data-einblenden style="--verz:.1s">Tempo</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.24s">
+          Dein Schreibtempo verändert den
+          <span class="demo-wort demo-spacing" data-demo="spacing">Zeichenabstand</span> – schnelles Tippen zieht die Buchstaben auseinander.
+        </p>
+      </div>
+    </section>
+
+    <section class="schritt" data-schritt="3">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">3 / 6 · Stabilität</span>
+        <h1 class="schritt-titel demo-wort demo-wort--titel" data-demo="zittern" data-einblenden style="--verz:.1s">Stabilität</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.24s">
+          Unruhiges Tippen lässt die Schrift sichtbar
+          <span class="demo-wort" data-demo="zittern">zittern</span>.
+        </p>
+      </div>
+    </section>
+
+    <section class="schritt" data-schritt="4">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">4 / 6 · Wachheit · Testwert</span>
+        <h1 class="schritt-titel demo-wort demo-wort--titel demo-blur" data-demo="blur" data-einblenden style="--verz:.1s">Wachheit</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.24s">
+          Als Testwert zeigt deine Wachheit, ob der Text scharf oder
+          <span class="demo-wort demo-blur" data-demo="blur">unscharf</span> wirkt.
+        </p>
+      </div>
+    </section>
+
+    <section class="schritt" data-schritt="5">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">5 / 6 · Gefasstheit · Testwert</span>
+        <h1 class="schritt-titel demo-wort demo-wort--titel demo-transparenz" data-demo="transparenz" data-einblenden style="--verz:.1s">Gefasstheit</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.24s">
+          Als Testwert lässt deine Gefasstheit den Text kräftig oder
+          <span class="demo-wort demo-transparenz" data-demo="transparenz">blass</span> wirken.
+        </p>
+      </div>
+    </section>
+
+    <section class="schritt" data-schritt="6">
+      <div class="karte">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">6 / 6 · Tonalität</span>
+        <h1 class="schritt-titel demo-wort demo-wort--titel demo-farbe" data-demo="farbe" data-einblenden style="--verz:.1s">Tonalität</h1>
+        <p class="schritt-text" data-einblenden style="--verz:.24s">
+          Eine wärmere Tonalität färbt die Schrift von kühl zu
+          <span class="demo-wort demo-farbe" data-demo="farbe">warm</span>.
+        </p>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="onboarding-fuss">
+    <button id="weiter-btn">Weiter</button>
+  </div>
+
+  </div><!-- /.onboarding-view -->
+
+  <!-- ══════════════════════════════════════════════════════════════
+       ZUSÄTZLICHER SCREEN – Gerät verbinden
+       Erscheint nach dem letzten Erklär-Schritt (bzw. nach
+       "Überspringen"), bevor es in den Chat geht. Nutzt dieselbe
+       Web-Bluetooth-Verbindungsmethode wie in chat.html (Heart Rate
+       Service) – Armband und Uhr unterscheiden sich nur im Label.
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="bluetooth-view" id="bluetooth-view">
+
+    <div class="buehne">
+      <section class="bt-schritt">
+        <div class="karte">
+          <span class="schritt-eyebrow">Fast geschafft</span>
+          <div class="schritt-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="7" y="7" width="10" height="10" rx="3"/>
+              <path d="M9.5 3.5h5M9.5 20.5h5"/>
+              <path d="M12 10v2.4l1.6 1.1"/>
+            </svg>
+          </div>
+          <h1 class="schritt-titel">Gerät verbinden</h1>
+          <p class="schritt-text">
+            Verbinde dein Armband oder deine Uhr, um loszulegen.
+          </p>
+
+          <div class="bluetooth-aktionen">
+            <button class="bluetooth-btn" id="bt-armband-btn">Armband verbinden</button>
+            <button class="bluetooth-btn" id="bt-uhr-btn">Uhr verbinden</button>
+          </div>
+
+          <p class="bluetooth-hinweis" id="bluetooth-hinweis"></p>
+        </div>
+      </section>
+    </div>
+
+    <div class="onboarding-fuss">
+      <button id="bt-spaeter-btn" class="link-btn">Später verbinden</button>
+    </div>
+
+  </div><!-- /.bluetooth-view -->
+
+</div>
+
+<script>
+  const schritte      = Array.from(document.querySelectorAll('.schritt'));
+  const punkte        = Array.from(document.querySelectorAll('.punkt'));
+  const weiterBtn      = document.getElementById('weiter-btn');
+  const ueberspringenBtn = document.getElementById('ueberspringen-btn');
+
+  let aktuellerIndex = 0;
+  const totalSchritte = schritte.length;
+
+  function zuChat() {
+    window.location.href = 'chat.html';
+  }
+
+  // Teilt den Text eines selbst-demonstrierenden "Zittern"-Wortes in
+  // Buchstaben-Spans auf (einmalig) und (re)startet pro Buchstabe eine
+  // eigene, leicht zufällige Zitter-Animation – unabhängig vom
+  // Wort-für-Wort-Einfrieren im eigentlichen Chat.
+  function zitterWortStarten(el) {
+    if (!el.dataset.zittern) {
+      const text = el.textContent;
+      el.textContent = '';
+      for (const zeichen of text) {
+        const span = document.createElement('span');
+        span.textContent = zeichen;
+        span.classList.add('zittern-buchstabe');
+        el.appendChild(span);
+      }
+      el.dataset.zittern = 'true';
+    }
+    el.querySelectorAll('.zittern-buchstabe').forEach(span => {
+      if (span.textContent === ' ') return;
+      span.style.animation = 'none';
+      void span.offsetWidth; // Reflow erzwingen, damit die Animation neu startet
+      const dauer = (0.35 + Math.random() * 0.4).toFixed(2);
+      const verzoeger = (0.5 + Math.random() * 0.5).toFixed(2);
+      const amplitude = (1.1 + Math.random() * 0.9).toFixed(2);
+      span.style.setProperty('--amp', amplitude + 'px');
+      span.style.animation = `demoZittern ${dauer}s ease-in-out ${verzoeger}s infinite`;
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  7 statische Situra-Schnitte, dünn → fett (siehe @font-face oben,
+  //  dieselbe Liste wie die Puls-Reaktion in chat.html). Situra hat
+  //  keine 'wght'-Variable-Font-Achse, also lässt sich eine
+  //  Gewichtszunahme nicht kontinuierlich per font-variation-settings
+  //  animieren (siehe Kommentar an .demo-wort oben) – stattdessen
+  //  schaltet das Demo-Wort während seiner Animation nacheinander
+  //  durch diese echten statischen Schnitte.
+  // ══════════════════════════════════════════════════════════════
+  const SITURA_SCHRIFTSCHNITTE = [
+    'Situra-Thin',
+    'Situra-Light',
+    'Situra-Regular',
+    'Situra-Medium',
+    'Situra-SemiBold',
+    'Situra-Bold',
+    'Situra-Black'
+  ];
+
+  function schnittStack(schnitt) {
+    return "'" + schnitt + "', 'Situra-Regular', 'Inter', sans-serif";
+  }
+
+  // Einmaliger Hoch-Lauf dünn → fett über "dauerMs", beginnend nach
+  // "verzoegerungMs" – bildet den Zeitverlauf von @keyframes
+  // demoGewicht / titelEinfliegenGewicht nach (die dortige
+  // font-variation-settings-Animation bleibt bestehen, wirkt bei
+  // Situra aber ohnehin nicht; hier passiert die eigentliche sichtbare
+  // Gewichtsänderung).
+  function schnittRampeStarten(el, verzoegerungMs, dauerMs) {
+    (el._schnittTimer || []).forEach(clearTimeout);
+    el._schnittTimer = [];
+    el.style.fontFamily = schnittStack(SITURA_SCHRIFTSCHNITTE[0]);
+    SITURA_SCHRIFTSCHNITTE.forEach((schnitt, i) => {
+      const zeitpunkt = verzoegerungMs + (dauerMs * i / (SITURA_SCHRIFTSCHNITTE.length - 1));
+      el._schnittTimer.push(setTimeout(() => {
+        el.style.fontFamily = schnittStack(schnitt);
+      }, zeitpunkt));
+    });
+  }
+
+  // Endlos hin- und her pendelnder Lauf (dünn → fett → dünn), bildet
+  // den @keyframes-demoForm-Loop (0.5s Verzögerung, 3.2s Zyklus) nach.
+  function schnittPulsStarten(el, verzoegerungMs, zyklusMs) {
+    if (el._schnittIntervall) clearInterval(el._schnittIntervall);
+    if (el._schnittStartTimer) clearTimeout(el._schnittStartTimer);
+    const stufenMs = zyklusMs / 2 / (SITURA_SCHRIFTSCHNITTE.length - 1);
+    let index = 0;
+    let richtung = 1;
+    el.style.fontFamily = schnittStack(SITURA_SCHRIFTSCHNITTE[0]);
+    el._schnittStartTimer = setTimeout(() => {
+      el._schnittIntervall = setInterval(() => {
+        index += richtung;
+        if (index >= SITURA_SCHRIFTSCHNITTE.length - 1) richtung = -1;
+        if (index <= 0) richtung = 1;
+        el.style.fontFamily = schnittStack(SITURA_SCHRIFTSCHNITTE[index]);
+      }, stufenMs);
+    }, verzoegerungMs);
+  }
+
+  function animationenStarten(schrittEl) {
+    schrittEl.querySelectorAll('[data-einblenden]').forEach(el => {
+      el.classList.remove('einblenden-aktiv');
+      void el.offsetWidth;
+      el.classList.add('einblenden-aktiv');
+    });
+
+    schrittEl.querySelectorAll('.demo-wort').forEach(el => {
+      if (el.dataset.demo === 'zittern') {
+        zitterWortStarten(el);
+      } else {
+        el.classList.remove('demo-aktiv');
+        void el.offsetWidth;
+        el.classList.add('demo-aktiv');
+      }
+
+      if (el.dataset.demo === 'wght') {
+        const istTitel = el.classList.contains('demo-wort--titel');
+        schnittRampeStarten(el, istTitel ? 400 : 550, istTitel ? 1200 : 1300);
+      } else if (el.dataset.demo === 'form') {
+        schnittPulsStarten(el, 500, 3200);
+      }
+    });
+  }
+
+  function schrittAnzeigen(index) {
+    index = Math.max(0, Math.min(totalSchritte - 1, index));
+    aktuellerIndex = index;
+
+    schritte.forEach((el, i) => el.classList.toggle('schritt--aktiv', i === index));
+    punkte.forEach((p, i) => p.classList.toggle('punkt--aktiv', i === index));
+
+    const istLetzter = index === totalSchritte - 1;
+    weiterBtn.textContent = istLetzter ? 'Loslegen' : 'Weiter';
+    ueberspringenBtn.style.visibility = istLetzter ? 'hidden' : 'visible';
+
+    animationenStarten(schritte[index]);
+  }
+
+  weiterBtn.addEventListener('click', function () {
+    if (aktuellerIndex === totalSchritte - 1) {
+      geraeteVerbindenAnzeigen();
+    } else {
+      schrittAnzeigen(aktuellerIndex + 1);
+    }
+  });
+
+  // "Überspringen" lässt nur die Erklär-Tour aus – der Verbinden-Schritt
+  // davor bleibt trotzdem bestehen (eigene Entscheidung, siehe unten).
+  ueberspringenBtn.addEventListener('click', geraeteVerbindenAnzeigen);
+
+  punkte.forEach((punkt, i) => {
+    punkt.addEventListener('click', () => schrittAnzeigen(i));
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') weiterBtn.click();
+    if (e.key === 'ArrowLeft' && aktuellerIndex > 0) schrittAnzeigen(aktuellerIndex - 1);
+  });
+
+  // Die erste Einblend-Animation (Willkommen-Schritt) wird NICHT hier
+  // ausgelöst, sondern erst, sobald die Logo-Animation fertig ist und
+  // .onboarding-view tatsächlich sichtbar wird (siehe ganz unten) –
+  // sonst würde sie unbemerkt hinter dem Logo-Screen ablaufen.
+
+
+  // ══════════════════════════════════════════════════════════════
+  //  ZUSÄTZLICHER SCREEN – Gerät verbinden
+  //
+  //  Ersetzt die Erklär-Tour vollständig durch den Verbinden-Screen.
+  //  Die Verbindungsmethode selbst (Web Bluetooth, Heart-Rate-
+  //  Service) ist exakt dieselbe wie in chat.html: Armband und Uhr
+  //  sind technisch dasselbe Geräteprofil, nur das Label am Button
+  //  unterscheidet sich. Die eigentliche Live-Nutzung der Verbindung
+  //  (BPM-Anzeige, Mapping auf Intensität) bleibt vollständig in
+  //  chat.html – dort muss beim Ankommen ggf. erneut verbunden
+  //  werden, weil Web Bluetooth keine Verbindung über einen
+  //  Seitenwechsel hinweg offen hält.
+  // ══════════════════════════════════════════════════════════════
+  const onboardingView   = document.getElementById('onboarding-view');
+  const bluetoothView    = document.getElementById('bluetooth-view');
+  const btArmbandBtn     = document.getElementById('bt-armband-btn');
+  const btUhrBtn         = document.getElementById('bt-uhr-btn');
+  const btSpaeterBtn     = document.getElementById('bt-spaeter-btn');
+  const bluetoothHinweis = document.getElementById('bluetooth-hinweis');
+
+  function geraeteVerbindenAnzeigen() {
+    onboardingView.classList.remove('aktiv');
+    bluetoothView.classList.add('aktiv');
+  }
+
+  function bluetoothHinweisZeigen(text) {
+    bluetoothHinweis.textContent = text;
+  }
+
+  async function geraetVerbinden(button, anderesBtn) {
+    if (!navigator.bluetooth) {
+      bluetoothHinweisZeigen('Web Bluetooth wird in diesem Browser nicht unterstützt – du kannst später verbinden.');
+      return;
+    }
+
+    button.disabled = true;
+    anderesBtn.disabled = true;
+    bluetoothHinweisZeigen('Suche nach Gerät …');
+
+    try {
+      // Identische Verbindungsmethode wie der "Band verbinden"-Button
+      // im Chat (Heart Rate Service, UUID 0x180D).
+      const geraet = await navigator.bluetooth.requestDevice({
+        filters: [{ services: ['heart_rate'] }]
+      });
+      const server = await geraet.gatt.connect();
+      await server.getPrimaryService('heart_rate');
+
+      button.classList.add('verbunden');
+      button.textContent = 'Verbunden ✓';
+      bluetoothHinweisZeigen('Verbunden – weiter geht’s.');
+      setTimeout(zuChat, 700);
+
+    } catch (err) {
+      button.disabled = false;
+      anderesBtn.disabled = false;
+      if (err.name === 'NotFoundError') {
+        bluetoothHinweisZeigen(''); // Nutzer hat den Geräte-Dialog abgebrochen
+      } else {
+        bluetoothHinweisZeigen('Verbindung fehlgeschlagen – versuch es erneut oder verbinde später.');
+        console.error('[Bluetooth]', err);
+      }
+    }
+  }
+
+  btArmbandBtn.addEventListener('click', function () { geraetVerbinden(btArmbandBtn, btUhrBtn); });
+  btUhrBtn.addEventListener('click', function () { geraetVerbinden(btUhrBtn, btArmbandBtn); });
+  btSpaeterBtn.addEventListener('click', zuChat);
+
+
+  // ══════════════════════════════════════════════════════════════
+  //  LOGO-ANIMATION – Splash vor dem ersten Onboarding-Schritt.
+  //
+  //  Phasen (jede Phase = eine per JS gesetzte Klasse, CSS-transition
+  //  bzw. -animation übernimmt die eigentliche Bewegung, siehe oben):
+  //    1. .sichtbar       – Marke blendet groß, zentriert ein (reines
+  //                         opacity 0→1, keine Bewegung – Ausgangs-
+  //                         und Zielzustand haben denselben transform)
+  //    2. .puls-aktiv     – GENAU 2× sanfter Herzschlag-Puls (größer/
+  //                         kleiner, @keyframes logoMarkePuls, jedes
+  //                         der 4 Segmente einzeln ease-in-out),
+  //                         Marke bleibt dabei zentriert stehen
+  //    3. .kompakt UND .name-sichtbar GLEICHZEITIG – Marke schrumpft
+  //                         und wandert nach links, WÄHREND der Name
+  //                         gleichzeitig von rechts einfliegt: eine
+  //                         einzige durchgehende Bewegung statt zweier
+  //                         nacheinander laufender Schritte (reines
+  //                         transform, siehe CSS – bleibt dabei
+  //                         durchgehend scharf, verschwindet nie)
+  //    4. sobald die Bewegung sichtbar zur Ruhe gekommen ist: weiche
+  //       rechte Fade-Kante aktivieren
+  //    5. LÄNGERE Pause im fertigen Lockup, dann Ausblenden
+  //    6. Zwischenschritt "Hallo!" (eigene View, kurz eingeblendet)
+  //    7. Übergang zu "Willkommen" – erst HIER wird die erste
+  //       Einblend-Animation des Onboardings ausgelöst, damit sie
+  //       exakt beim Sichtbarwerden abläuft.
+  // ══════════════════════════════════════════════════════════════
+  const logoView   = document.getElementById('logo-view');
+  const halloView  = document.getElementById('hallo-view');
+  const logoInhalt = document.getElementById('logo-inhalt');
+  const logoMark   = document.querySelector('.logo-mark');
+  const logoLockup = document.querySelector('.logo-lockup');
+
+  // Siehe Kommentare an .logo-inhalt/.logo-mark oben: sowohl die
+  // finale, stehende Position des gesamten Lockups (Icon + Schriftzug
+  // als Einheit) als auch der X-Versatz für den groß/zentrierten
+  // Einflug-Zustand hängen von der tatsächlichen Rahmenbreite ab
+  // (390px im eingebetteten Vorschau-Rahmen, echte Viewport-Breite auf
+  // Mobilgeräten unter der 440px-Media-Query) und lassen sich deshalb
+  // nicht als feste Pixelwerte im CSS hinterlegen. Misst hier einmalig
+  // vor dem Einflug und setzt beides, damit auf jeder Bildschirmbreite
+  // 1) die Marke beim Einblenden exakt horizontal zentriert erscheint
+  // UND 2) das fertige Lockup am Ende genauso zentriert stehen bleibt.
+  const LOCKUP_BREITE_RUHE      = 190;      // = .logo-inhalt width (Marke + Abstand + Name in Ruhelage)
+  const MARKE_HOEHE_RUHE        = 37.28;    // = .logo-mark height
+  const MARKE_SEITENVERHAELTNIS = 460/356;  // = viewBox-Breite / -Höhe
+
+  function markeZentrierungSetzen() {
+    const rahmenBreite = logoLockup.getBoundingClientRect().width;
+
+    // Finale Position: das komplette Lockup (190px) als Einheit mittig.
+    const lockupLinks = (rahmenBreite - LOCKUP_BREITE_RUHE) / 2;
+    logoInhalt.style.left = lockupLinks + 'px';
+
+    // Einblend-Position: NUR das Icon (aus seiner neuen Ruhelage heraus)
+    // groß auf die Bildschirmmitte skaliert.
+    const markeBreiteRuhe = MARKE_HOEHE_RUHE * MARKE_SEITENVERHAELTNIS;
+    const markeMitteRuhe  = lockupLinks + markeBreiteRuhe / 2;
+    const versatz = rahmenBreite / 2 - markeMitteRuhe;
+    logoView.style.setProperty('--logo-zentrier-x', versatz + 'px');
+  }
+
+  markeZentrierungSetzen();
+
+  // SCHRITT 1: Marke einblenden (rAF, damit der Browser den
+  // Ausgangszustand erst rendert, bevor die Klasse den Übergang
+  // auslöst – sonst würde die transition übersprungen). Reines
+  // Einblenden (siehe CSS: identischer transform-Wert vor/nach
+  // .sichtbar, NUR opacity transitioniert) – die Marke bewegt sich
+  // dabei nicht, sie taucht direkt an ihrer großen, zentrierten
+  // Stelle auf.
+  requestAnimationFrame(function () {
+    logoView.classList.add('sichtbar');
+  });
+
+  // Zeitkonstanten der Choreografie: EINBLEND_DAUER muss zur opacity-
+  // transition-Dauer von .logo-mark oben passen (0,6s, SCHRITT 1),
+  // PULS_DAUER zur Dauer von @keyframes logoMarkePuls (1,6s = 4×0,4s,
+  // SCHRITT 2). SCHRITT 3 errechnet sich daraus, damit sich bei einer
+  // Änderung von EINBLEND_DAUER/PULS_DAUER automatisch alles
+  // Nachfolgende mitverschiebt – die bisherigen ABSTÄNDE zwischen den
+  // Schritten bleiben dabei unverändert.
+  const EINBLEND_DAUER = 600;
+  const PULS_DAUER     = 1600;
+
+  // SCHRITT 2: ERST wenn die Marke eingeblendet ist (opacity-Transition
+  // abgeschlossen – ihr transform hat sich seit Schritt 1 nie
+  // verändert, es läuft also garantiert keine transform-Transition
+  // mehr, aus der heraus der Puls "mitten drin" starten könnte),
+  // beginnt der Puls (siehe @keyframes logoMarkePuls oben – GENAU 2×
+  // scale 1→1.15→1→1.15→1, cubic-bezier(0.45,0,0.55,1) je Segment).
+  // Die Marke bleibt dabei exakt zentriert stehen, nur ihre Größe
+  // oszilliert.
+  setTimeout(function () {
+    logoMark.classList.add('puls-aktiv');
+  }, EINBLEND_DAUER);
+
+  // SCHRITT 3: NACH dem Puls EINE einzige transform-Transition (scale
+  // UND translateX gleichzeitig, 0,8s ease-in-out, siehe CSS) – die
+  // Marke schrumpft und wandert links, WÄHREND GLEICHZEITIG der Name
+  // von rechts einfliegt (0,5s, siehe .logo-name-transition) – beide
+  // Klassen werden bewusst im selben Callback gesetzt, damit daraus
+  // eine einzige, durchgehende Bewegung wird statt zweier
+  // nacheinander laufender Schritte. Die Marke bleibt während der
+  // gesamten Bewegung sichtbar (opacity konstant 1, wird von .kompakt
+  // gar nicht berührt) – sie verschwindet nicht und taucht nicht neu
+  // auf, sie bewegt/verkleinert sich nur.
+  setTimeout(function () {
+    logoView.classList.add('kompakt');
+    logoView.classList.add('name-sichtbar');
+  }, EINBLEND_DAUER + PULS_DAUER);
+
+  // ERST wenn die Bewegung aus Schritt 3 (800ms Dauer) vollständig
+  // abgeschlossen ist, wird die Fade-Kante aktiviert – auf dem dann
+  // bereits ruhenden, scharfen Element (siehe CSS-Kommentar zu
+  // .logo-inhalt--fade-kante).
+  setTimeout(function () {
+    logoInhalt.classList.add('logo-inhalt--fade-kante');
+  }, EINBLEND_DAUER + PULS_DAUER + 800);
+
+  // Phase 5–7: DEUTLICH LÄNGERE Pause im fertigen Lockup (vorher zu
+  // kurz), dann Logo ausblenden, "Hallo!" kurz zeigen, dann erst ins
+  // eigentliche Onboarding.
+  setTimeout(function () {
+    logoView.classList.add('ausblenden');
+    setTimeout(function () {
+      logoView.classList.remove('aktiv');
+      halloView.classList.add('aktiv');
+      requestAnimationFrame(function () {
+        halloView.classList.add('sichtbar');
+      });
+
+      setTimeout(function () {
+        halloView.classList.add('ausblenden');
+        setTimeout(function () {
+          halloView.classList.remove('aktiv');
+          onboardingView.classList.add('aktiv');
+          schrittAnzeigen(0); // Willkommen-Schritt jetzt erst einblenden
+        }, 420);
+      }, 1100);
+    }, 420);
+  }, EINBLEND_DAUER + PULS_DAUER + 800 + 2000);
+</script>
+</body>
+</html>
