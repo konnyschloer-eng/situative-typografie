@@ -3,6 +3,7 @@ package com.momentum.app;
 import android.Manifest;
 import android.content.Intent;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
@@ -43,8 +44,11 @@ import com.getcapacitor.annotation.PermissionCallback;
 )
 public class MomentumBleServicePlugin extends Plugin {
 
+    private static final String TAG = "MomentumBleServicePlugin";
+
     @PluginMethod
     public void start(PluginCall call) {
+        Log.d(TAG, "start() von JS aus aufgerufen.");
         // POST_NOTIFICATIONS ist erst ab Android 13 (API 33) eine
         // Laufzeit-Berechtigung – ohne sie zeigt das System die
         // Pflicht-Benachrichtigung nicht an. Der Foreground Service selbst
@@ -53,6 +57,7 @@ public class MomentumBleServicePlugin extends Plugin {
         // onNotificationPermissionResult().
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && getPermissionState("notifications") != PermissionState.GRANTED) {
+            Log.d(TAG, "start(): POST_NOTIFICATIONS noch nicht gewährt, fordere Berechtigung an.");
             requestPermissionForAlias("notifications", call, "onNotificationPermissionResult");
             return;
         }
@@ -61,19 +66,33 @@ public class MomentumBleServicePlugin extends Plugin {
 
     @PermissionCallback
     private void onNotificationPermissionResult(PluginCall call) {
+        Log.d(TAG, "onNotificationPermissionResult: Berechtigungsstatus=" + getPermissionState("notifications"));
         serviceStarten(call);
     }
 
     private void serviceStarten(PluginCall call) {
-        Intent intent = new Intent(getContext(), MomentumBleForegroundService.class);
-        ContextCompat.startForegroundService(getContext(), intent);
-        call.resolve();
+        try {
+            Intent intent = new Intent(getContext(), MomentumBleForegroundService.class);
+            ContextCompat.startForegroundService(getContext(), intent);
+            Log.d(TAG, "serviceStarten: startForegroundService() aufgerufen, keine Exception.");
+            call.resolve();
+        } catch (Exception e) {
+            Log.e(TAG, "serviceStarten: startForegroundService() fehlgeschlagen.", e);
+            call.reject("Foreground Service konnte nicht gestartet werden: " + e.getMessage(), e);
+        }
     }
 
     @PluginMethod
     public void stop(PluginCall call) {
-        Intent intent = new Intent(getContext(), MomentumBleForegroundService.class);
-        getContext().stopService(intent);
-        call.resolve();
+        Log.d(TAG, "stop() von JS aus aufgerufen.");
+        try {
+            Intent intent = new Intent(getContext(), MomentumBleForegroundService.class);
+            boolean liefEndete = getContext().stopService(intent);
+            Log.d(TAG, "stop(): stopService() aufgerufen, lief zuvor=" + liefEndete + ".");
+            call.resolve();
+        } catch (Exception e) {
+            Log.e(TAG, "stop(): stopService() fehlgeschlagen.", e);
+            call.reject("Foreground Service konnte nicht gestoppt werden: " + e.getMessage(), e);
+        }
     }
 }

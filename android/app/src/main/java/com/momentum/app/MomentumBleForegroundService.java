@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
@@ -34,6 +35,7 @@ public class MomentumBleForegroundService extends Service {
 
     private static final String CHANNEL_ID = "momentum_ble_channel";
     private static final int NOTIFICATION_ID = 1001;
+    private static final String TAG = "MomentumBleService";
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -45,26 +47,33 @@ public class MomentumBleForegroundService extends Service {
 
     @Override
     public void onCreate() {
+        Log.d(TAG, "onCreate: Service-Instanz wird erstellt.");
         super.onCreate();
         benachrichtigungskanalErstellen();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "onStartCommand: aufgerufen (startId=" + startId + ").");
         Notification benachrichtigung = benachrichtigungBauen();
 
-        // Ab Android 10 (API 29) muss der Foreground-Service-Typ explizit beim
-        // Start angegeben werden, ab Android 14 (API 34) wird das strikt
-        // durchgesetzt und muss zur AndroidManifest.xml-Deklaration passen
-        // (siehe android:foregroundServiceType="connectedDevice" dort).
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(
-                NOTIFICATION_ID,
-                benachrichtigung,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
-            );
-        } else {
-            startForeground(NOTIFICATION_ID, benachrichtigung);
+        try {
+            // Ab Android 10 (API 29) muss der Foreground-Service-Typ explizit beim
+            // Start angegeben werden, ab Android 14 (API 34) wird das strikt
+            // durchgesetzt und muss zur AndroidManifest.xml-Deklaration passen
+            // (siehe android:foregroundServiceType="connectedDevice" dort).
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    benachrichtigung,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+                );
+            } else {
+                startForeground(NOTIFICATION_ID, benachrichtigung);
+            }
+            Log.d(TAG, "onStartCommand: startForeground() erfolgreich aufgerufen, Service läuft im Vordergrund.");
+        } catch (Exception e) {
+            Log.e(TAG, "onStartCommand: startForeground() ist fehlgeschlagen – Service läuft NICHT im Vordergrund.", e);
         }
 
         // START_STICKY: Falls das System den Prozess trotz Foreground-Status
@@ -73,6 +82,21 @@ public class MomentumBleForegroundService extends Service {
         // sind. Passt zum Anwendungsfall (Nacht-Messung) besser als
         // START_NOT_STICKY.
         return START_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.w(TAG, "onDestroy: Service wird beendet/zerstört.");
+        super.onDestroy();
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        // Wird ausgelöst, wenn die App aus der Übersicht (Recents) entfernt
+        // wird – ein häufiger, vom BLE-Verbindungsstatus unabhängiger Grund,
+        // warum Android den Prozess anschließend beendet.
+        Log.w(TAG, "onTaskRemoved: App wurde aus den Recents entfernt.");
+        super.onTaskRemoved(rootIntent);
     }
 
     private void benachrichtigungskanalErstellen() {
@@ -87,12 +111,15 @@ public class MomentumBleForegroundService extends Service {
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) {
                 manager.createNotificationChannel(kanal);
+                Log.d(TAG, "onCreate: NotificationChannel '" + CHANNEL_ID + "' angelegt/aktualisiert.");
+            } else {
+                Log.e(TAG, "onCreate: NotificationManager nicht verfügbar – Kanal konnte nicht angelegt werden.");
             }
         }
     }
 
     private Notification benachrichtigungBauen() {
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
+        Notification benachrichtigung = new NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Momentum misst deinen Puls")
             .setContentText("Verbunden mit deinem Band – auch bei gesperrtem Bildschirm aktiv.")
             .setSmallIcon(R.drawable.ic_notification)
@@ -100,5 +127,7 @@ public class MomentumBleForegroundService extends Service {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build();
+        Log.d(TAG, "onStartCommand: Benachrichtigung gebaut.");
+        return benachrichtigung;
     }
 }
