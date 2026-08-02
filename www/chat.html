@@ -1438,7 +1438,7 @@
   <div class="ansicht" id="ansicht-uebersicht">
 
     <header class="app-kopfzeile">
-      <img class="app-logo" src="assets/logo/Logo_Momentum_Komplett.svg" alt="Situative Typografie">
+      <img class="app-logo" src="assets/Logo/Logo_Momentum_Komplett.svg" alt="Situative Typografie">
       <button class="menu-btn" aria-label="Menü" title="Menü">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 7h16M4 12h16M4 17h16"/>
@@ -3903,7 +3903,30 @@
     { name: 'Noah',   text: 'Ruhiger Tag bisher.',
       rohwerte: { intensitaet: 350, tempo: 300, stabilitaet: 750, tonalitaet: 350, schlafqualitaet: 500, atemfrequenz: 500 } },
     { name: 'Sophie', text: 'Vorfreude aufs Wochenende!',
-      rohwerte: { intensitaet: 600, tempo: 450, stabilitaet: 600, tonalitaet: 700, schlafqualitaet: 500, atemfrequenz: 500 } }
+      rohwerte: { intensitaet: 600, tempo: 450, stabilitaet: 600, tonalitaet: 700, schlafqualitaet: 500, atemfrequenz: 500 } },
+
+    // ── Aktuelle Kontakte (aus assets/avatars/) – eigene, lustige
+    //    Momente statt der generischen MOMENT_PLATZHALTER_TEXTE ──
+    { name: 'Lina',    text: 'Habe versucht, erwachsen zu sein. Hat nicht geklappt.',
+      rohwerte: { intensitaet: 500, tempo: 400, stabilitaet: 450, tonalitaet: 600, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Marie',   text: 'Mein Kaffee ist kälter als meine Standarts.',
+      rohwerte: { intensitaet: 300, tempo: 250, stabilitaet: 550, tonalitaet: 350, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Marius',  text: 'Dreimal über nichts gestolpert. Persönlicher Rekord.',
+      rohwerte: { intensitaet: 700, tempo: 700, stabilitaet: 300, tonalitaet: 500, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Noelle',  text: 'Kühlschrank leer, Motivation auch.',
+      rohwerte: { intensitaet: 250, tempo: 200, stabilitaet: 600, tonalitaet: 300, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Paul',    text: 'Schlüssel gesucht. Waren die ganze Zeit in der Hand.',
+      rohwerte: { intensitaet: 550, tempo: 500, stabilitaet: 400, tonalitaet: 450, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Theresa', text: 'Netflix fragt, ob ich noch da bin. Gute Frage eigentlich.',
+      rohwerte: { intensitaet: 350, tempo: 300, stabilitaet: 700, tonalitaet: 400, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Tim',     text: 'Schon wieder den falschen Bus genommen. Klassiker.',
+      rohwerte: { intensitaet: 650, tempo: 600, stabilitaet: 350, tonalitaet: 400, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Elias',   text: 'Mit der Zimmerpflanze gestritten. Sie hat gewonnen.',
+      rohwerte: { intensitaet: 450, tempo: 350, stabilitaet: 500, tonalitaet: 550, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Jonas',   text: 'Fünf Tabs offen, keine Ahnung mehr wofür.',
+      rohwerte: { intensitaet: 600, tempo: 550, stabilitaet: 450, tonalitaet: 500, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Jovan',   text: 'Sport für heute erledigt. Bin zum Kühlschrank gesprintet.',
+      rohwerte: { intensitaet: 750, tempo: 650, stabilitaet: 400, tonalitaet: 650, schlafqualitaet: 500, atemfrequenz: 500 } }
   ];
 
   // momente[name] = { text, wortSnapshots: [{achsen, leblos}, ...], datum? }
@@ -3914,22 +3937,12 @@
     return new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
   }
 
-  // ── Persistenz: welche Momente wurden schon angesehen ───────────
-  const MOMENT_GESEHEN_KEY = 'situativeTypografie_momenteGesehen';
-
-  function momentGesehenLaden() {
-    try {
-      return new Set(JSON.parse(localStorage.getItem(MOMENT_GESEHEN_KEY)) || []);
-    } catch (e) {
-      return new Set();
-    }
-  }
-
-  let momentGesehen = momentGesehenLaden();
-
-  function momentGesehenSpeichern() {
-    localStorage.setItem(MOMENT_GESEHEN_KEY, JSON.stringify(Array.from(momentGesehen)));
-  }
+  // ── Welche Momente wurden schon angesehen ────────────────────────
+  // Bewusst NUR im Arbeitsspeicher (kein localStorage): der Ring soll
+  // bei jedem Neuladen der Seite wieder für alle Momente erscheinen,
+  // unabhängig davon, ob sie in einer früheren Sitzung schon angesehen
+  // wurden.
+  let momentGesehen = new Set();
 
   // ── Persistenz: der eigene, heute gepostete Moment ───────────────
   const MOMENT_DU_KEY = 'situativeTypografie_momentDu';
@@ -4114,7 +4127,6 @@
 
     if (name !== 'Du') {
       momentGesehen.add(name);
-      momentGesehenSpeichern();
     }
 
     momentAnsichtAvatar.textContent = name.charAt(0).toUpperCase();
