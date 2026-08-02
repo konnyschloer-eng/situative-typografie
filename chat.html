@@ -788,6 +788,20 @@
       margin-right: 2px;
     }
 
+    /* Profilfoto statt Buchstabe: nur gesetzt, wenn für die Person
+       eine Datei aus avatars-manifest.json geladen werden konnte
+       (siehe avatarFotoAktualisieren). Ohne Treffer bleibt der
+       Buchstaben-Kreis unverändert. !important nötig, weil sonst die
+       spezifischere .phone-frame.emotion-an .avatar-Regel weiter
+       unten Buchstabe + Outline auch über dem Foto sichtbar färben
+       würde. */
+    .avatar--foto {
+      background-size: cover;
+      background-position: center;
+      color: transparent !important;
+      border-color: transparent !important;
+    }
+
     .gespraechs-info {
       display: flex;
       flex-direction: column;
@@ -1456,7 +1470,7 @@
       <div class="gespraechs-eintrag" data-name="Anna" data-ungelesen data-favorit>
         <div class="avatar" data-name="Anna">A</div>
         <div class="gespraechs-info">
-          <span class="gespraechs-name">Anna</span>
+          <span class="gespraechs-name" data-name="Anna">Anna</span>
           <span class="gespraechs-vorschau">Schick mir mal einen Screenshot, wenn's fertig ist.</span>
         </div>
         <div class="gespraechs-meta">
@@ -1468,7 +1482,7 @@
       <div class="gespraechs-eintrag" data-name="Ben" data-ungelesen>
         <div class="avatar" data-name="Ben">B</div>
         <div class="gespraechs-info">
-          <span class="gespraechs-name">Ben</span>
+          <span class="gespraechs-name" data-name="Ben">Ben</span>
           <span class="gespraechs-vorschau">Bin gleich so weit, gib mir 5 Minuten.</span>
         </div>
         <div class="gespraechs-meta">
@@ -1480,7 +1494,7 @@
       <div class="gespraechs-eintrag" data-name="Clara" data-favorit>
         <div class="avatar" data-name="Clara">C</div>
         <div class="gespraechs-info">
-          <span class="gespraechs-name">Clara</span>
+          <span class="gespraechs-name" data-name="Clara">Clara</span>
           <span class="gespraechs-vorschau">Das klingt nach einem guten Plan.</span>
         </div>
         <div class="gespraechs-meta">
@@ -1491,7 +1505,7 @@
       <div class="gespraechs-eintrag" data-name="David">
         <div class="avatar" data-name="David">D</div>
         <div class="gespraechs-info">
-          <span class="gespraechs-name">David</span>
+          <span class="gespraechs-name" data-name="David">David</span>
           <span class="gespraechs-vorschau">Wann sollen wir starten?</span>
         </div>
         <div class="gespraechs-meta">
@@ -1502,7 +1516,7 @@
       <div class="gespraechs-eintrag" data-name="Elena" data-ungelesen data-favorit>
         <div class="avatar" data-name="Elena">E</div>
         <div class="gespraechs-info">
-          <span class="gespraechs-name">Elena</span>
+          <span class="gespraechs-name" data-name="Elena">Elena</span>
           <span class="gespraechs-vorschau">Ich schau's mir heute Abend an.</span>
         </div>
         <div class="gespraechs-meta">
@@ -1514,7 +1528,7 @@
       <div class="gespraechs-eintrag" data-name="Felix">
         <div class="avatar" data-name="Felix">F</div>
         <div class="gespraechs-info">
-          <span class="gespraechs-name">Felix</span>
+          <span class="gespraechs-name" data-name="Felix">Felix</span>
           <span class="gespraechs-vorschau">Perfekt, bis später!</span>
         </div>
         <div class="gespraechs-meta">
@@ -1525,7 +1539,7 @@
       <div class="gespraechs-eintrag" data-name="Luca" data-favorit>
         <div class="avatar" data-name="Luca">L</div>
         <div class="gespraechs-info">
-          <span class="gespraechs-name">Luca</span>
+          <span class="gespraechs-name" data-name="Luca">Luca</span>
           <span class="gespraechs-vorschau">Klingt interessant – wie funktioniert das genau?</span>
         </div>
         <div class="gespraechs-meta">
@@ -1536,7 +1550,7 @@
       <div class="gespraechs-eintrag" data-name="Mia" data-ungelesen>
         <div class="avatar" data-name="Mia">M</div>
         <div class="gespraechs-info">
-          <span class="gespraechs-name">Mia</span>
+          <span class="gespraechs-name" data-name="Mia">Mia</span>
           <span class="gespraechs-vorschau">Hast du schon was zum Zeigen?</span>
         </div>
         <div class="gespraechs-meta">
@@ -1548,7 +1562,7 @@
       <div class="gespraechs-eintrag" data-name="Noah">
         <div class="avatar" data-name="Noah">N</div>
         <div class="gespraechs-info">
-          <span class="gespraechs-name">Noah</span>
+          <span class="gespraechs-name" data-name="Noah">Noah</span>
           <span class="gespraechs-vorschau">Können wir das morgen besprechen?</span>
         </div>
         <div class="gespraechs-meta">
@@ -1559,7 +1573,7 @@
       <div class="gespraechs-eintrag" data-name="Sophie" data-favorit>
         <div class="avatar" data-name="Sophie">S</div>
         <div class="gespraechs-info">
-          <span class="gespraechs-name">Sophie</span>
+          <span class="gespraechs-name" data-name="Sophie">Sophie</span>
           <span class="gespraechs-vorschau">Danke, hilft mir sehr weiter.</span>
         </div>
         <div class="gespraechs-meta">
@@ -1841,6 +1855,7 @@
     chatPartnerAvatar.dataset.name = name;
     chatPartnerBtn.classList.remove('chat-partner-btn--gruppe');
     avatarDarstellungAktualisieren(name);
+    avatarFotoAktualisieren(name, KONTAKT_DATEIEN[name]);
     alsGelesenMarkieren(name);
     ansichtUebersicht.classList.add('ansicht--versteckt');
     ansichtChat.classList.remove('ansicht--versteckt');
@@ -1916,7 +1931,13 @@
     }
   });
 
-  document.querySelectorAll('#gespraechs-liste .gespraechs-eintrag').forEach(function (el) {
+  // Bindet Long-Press-Kontextmenü + Klick-zum-Öffnen an einen
+  // Kontakt-Eintrag. Als Funktion, damit sie sowohl einmalig über die
+  // fest im HTML stehenden Einträge laufen kann (unten) als auch für
+  // jeden Eintrag gilt, der später ggf. aus avatars-manifest.json
+  // dynamisch nachgebaut wird (siehe kontaktEintragErstellen weiter
+  // unten).
+  function kontaktEintragEreignisseBinden(el) {
     el.addEventListener('pointerdown', function (e) {
       if (e.button !== 0 && e.pointerType === 'mouse') return; // nur linke Maustaste
       langDruckAusgeloest = false;
@@ -1942,7 +1963,9 @@
       }
       zeigeChat(this.dataset.name);
     });
-  });
+  }
+
+  document.querySelectorAll('#gespraechs-liste .gespraechs-eintrag').forEach(kontaktEintragEreignisseBinden);
 
 
   // ── Kontaktsuche + Filter-Chips: kombinierte Live-Filterung ─────
@@ -2319,7 +2342,7 @@
 
 
   // ═══════════════════════════════════════════════════════════════
-  //  PROFILBILD – Kreis mit Anfangsbuchstabe pro Person
+  //  PROFILBILD – animierter Name pro Person
   //
   //  Separates, zusätzliches Element: baut auf denselben Puls-/
   //  Zustandsdaten auf wie die reagierende Nachrichten-Typografie,
@@ -2328,15 +2351,57 @@
   //
   //  Pro Person wird ein gleitender Mittelwert (EMA) der Puls-/
   //  Intensitätswerte geführt, die beim Schreiben AN diese Person
-  //  erfasst wurden. Der Anfangsbuchstabe im Kreis zeigt den zu
-  //  diesem Mittelwert passenden Situra-Schnitt (dieselbe 7-Stufen-
-  //  Zuordnung wie im Chat) – gerundet auf den nächstgelegenen
-  //  Schnitt. Persistiert in localStorage, damit sich das Bild über
+  //  erfasst wurden. Der NAME neben dem Avatar-Kreis (nicht der Kreis
+  //  selbst – der zeigt das Foto bzw. den neutralen Anfangsbuchstaben,
+  //  siehe PROFILFOTO/KONTAKTLISTE weiter unten) zeigt den zu diesem
+  //  Mittelwert passenden Situra-Schnitt (dieselbe 7-Stufen-Zuordnung
+  //  wie im Chat) – gerundet auf den nächstgelegenen Schnitt.
+  //  Persistiert in localStorage, damit sich die Darstellung über
   //  mehrere Sitzungen hinweg langsam entwickelt.
   // ═══════════════════════════════════════════════════════════════
   const AVATAR_SPEICHER_KEY = 'situativeTypografie_avatarMittelwerte';
   const AVATAR_EMA_ALPHA     = 0.15; // niedrig = träge/langsame Angleichung
   const AVATAR_START_WERT    = 500;  // neutraler Startwert (= Regler-Default)
+
+  // Fest einprogrammierte Demo-Kontakte (siehe HTML-Kontaktliste oben
+  // – gleichzeitig das Sicherheitsnetz, falls avatars-manifest.json
+  // fehlt/leer ist/nicht geladen werden kann, siehe KONTAKTLISTE
+  // weiter unten). Für sie gibt es keine echten Puls-Daten, aus denen
+  // sich ein Mittelwert bilden ließe – sie bekommen daher NICHT den
+  // echten EMA-Mittelwert-Mechanismus, sondern einmalig einen
+  // zufälligen der 7 Situra-Schnitte fest zugewiesen (siehe
+  // demoAvatarSchnittVon). Wird die Liste später erfolgreich durch
+  // avatars-manifest.json ersetzt, kommen deren Namen zu dieser Liste
+  // hinzu (siehe kontaktlisteAusManifestErsetzen). Ein eigenes,
+  // echtes Profil stünde außerhalb dieser Liste und würde weiterhin
+  // über avatarMittelwertVon/-Aktualisieren den echten, aus
+  // Pulsdaten berechneten Durchschnitt verwenden.
+  const DEMO_KONTAKTE_STATISCH = ['Anna', 'Ben', 'Clara', 'David', 'Elena', 'Felix', 'Luca', 'Mia', 'Noah', 'Sophie'];
+  let DEMO_KONTAKTE = DEMO_KONTAKTE_STATISCH.slice();
+
+  const DEMO_AVATAR_SCHNITT_SPEICHER_KEY = 'situativeTypografie_demoAvatarSchnitte';
+
+  function demoAvatarSchnitteLaden() {
+    try {
+      return JSON.parse(localStorage.getItem(DEMO_AVATAR_SCHNITT_SPEICHER_KEY)) || {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  let demoAvatarSchnitte = demoAvatarSchnitteLaden();
+
+  // Würfelt beim ersten Aufruf EINMALIG einen der 7 Situra-Schnitte
+  // für diese Person aus und persistiert ihn – bei jedem weiteren
+  // Aufruf (auch nach Neuladen) bleibt derselbe Schnitt bestehen,
+  // statt bei jedem Laden neu zufällig bestimmt zu werden.
+  function demoAvatarSchnittVon(name) {
+    if (!demoAvatarSchnitte[name]) {
+      demoAvatarSchnitte[name] = SITURA_SCHRIFTSCHNITTE[Math.floor(Math.random() * SITURA_SCHRIFTSCHNITTE.length)];
+      localStorage.setItem(DEMO_AVATAR_SCHNITT_SPEICHER_KEY, JSON.stringify(demoAvatarSchnitte));
+    }
+    return demoAvatarSchnitte[name];
+  }
 
   function avatarMittelwerteLaden() {
     try {
@@ -2352,13 +2417,18 @@
     return avatarMittelwerte[name] ?? AVATAR_START_WERT;
   }
 
-  // Setzt die aktuelle Strichstärke (Mittelwert) auf alle Avatar-
-  // Elemente einer Person (Übersicht + ggf. Chat-Kopfzeile).
+  // Setzt den aktuellen Situra-Schnitt (Strichstärke) auf den
+  // Namens-Text einer Person in der Kontaktliste (NICHT auf den
+  // Avatar-Kreis – der zeigt das Foto bzw. den neutralen
+  // Anfangsbuchstaben, siehe avatarFotoAktualisieren weiter unten).
+  // Demo-Kontakte zeigen ihren einmalig ausgewürfelten, festen
+  // Schnitt; alle anderen den aus echten Pulsdaten gemittelten.
   function avatarDarstellungAktualisieren(name) {
-    const wght = Math.round(avatarMittelwertVon(name));
-    document.querySelectorAll('.avatar[data-name="' + CSS.escape(name) + '"]').forEach(function (el) {
-      el.style.fontVariationSettings = "'wght' " + wght;
-      el.style.fontWeight            = wght;
+    const schnitt = DEMO_KONTAKTE.includes(name)
+      ? demoAvatarSchnittVon(name)
+      : intensitaetZuSchriftschnitt(avatarMittelwertVon(name));
+    document.querySelectorAll('.gespraechs-name[data-name="' + CSS.escape(name) + '"]').forEach(function (el) {
+      el.style.fontFamily = "'" + schnitt + "', 'Inter', sans-serif";
     });
   }
 
@@ -2367,18 +2437,180 @@
   // jeder VON MIR gesendeten Nachricht aufgerufen (siehe Enter-Handler
   // weiter unten) – nie bei jedem Tastendruck, damit sich das Bild
   // erst über mehrere Nachrichten hinweg entwickelt statt bei jeder
-  // einzelnen komplett neu berechnet zu werden.
+  // einzelnen komplett neu berechnet zu werden. Demo-Kontakte haben
+  // bewusst keine echte Mittelung (siehe DEMO_KONTAKTE oben).
   function avatarMittelwertAktualisieren(name, neuerPulsWert) {
+    if (DEMO_KONTAKTE.includes(name)) return;
     const bisher = avatarMittelwertVon(name);
     avatarMittelwerte[name] = bisher + (neuerPulsWert - bisher) * AVATAR_EMA_ALPHA;
     localStorage.setItem(AVATAR_SPEICHER_KEY, JSON.stringify(avatarMittelwerte));
     avatarDarstellungAktualisieren(name);
   }
 
-  // Übersicht: alle Avatare direkt beim Laden mit gespeichertem Mittelwert füllen
-  // (nur 1:1-Kontakte – Gruppen-Avatare zeigen bewusst keinen Personen-Mittelwert)
+
+  // ═══════════════════════════════════════════════════════════════
+  //  PROFILFOTO – der Avatar-Kreis zeigt das Foto der Person
+  //
+  //  Zeigt (falls vorhanden) das per avatars-manifest.json bekannte
+  //  Foto der Person im Kreis. Schlägt das Laden fehl (Datei fehlt/
+  //  ist beschädigt) oder ist für die Person kein Dateiname bekannt
+  //  (z. B. bei den fest einprogrammierten Demo-Kontakten, solange
+  //  kein Manifest geladen wurde), bleibt der neutrale Anfangs-
+  //  buchstaben-Kreis stehen – kein Fehler, kein leeres Bild. Foto
+  //  und Situra-Schnitt sind unabhängig voneinander: das Foto ändert
+  //  nichts an der Strichstärken-Logik auf dem Namen oben.
+  // ═══════════════════════════════════════════════════════════════
+  const AVATAR_FOTO_ORDNER = 'assets/avatars/';
+
+  // name → Dateiname aus dem Manifest, für Stellen außerhalb der
+  // Kontaktliste (Chat-Kopfzeile, Momente-Leiste), die denselben
+  // Avatar-Kreis für dieselbe Person zeigen (siehe zeigeChat,
+  // momentLeisteRendern, momentOeffnen weiter unten).
+  let KONTAKT_DATEIEN = {};
+
+  function avatarFotoAnwenden(name, url) {
+    document.querySelectorAll('.avatar[data-name="' + CSS.escape(name) + '"]').forEach(function (el) {
+      if (url) {
+        el.style.backgroundImage = "url('" + url + "')";
+        el.classList.add('avatar--foto');
+      } else {
+        el.style.backgroundImage = '';
+        el.classList.remove('avatar--foto');
+      }
+    });
+  }
+
+  // dateiname = exakter Eintrag aus dem Manifest (z. B. "anna.jpg").
+  // Ohne dateiname (kein Foto für diese Person bekannt) bleibt sofort
+  // der Buchstaben-Kreis stehen.
+  function avatarFotoAktualisieren(name, dateiname) {
+    if (!dateiname) {
+      avatarFotoAnwenden(name, null);
+      return;
+    }
+    const url  = AVATAR_FOTO_ORDNER + dateiname;
+    const bild = new Image();
+    bild.onload  = function () { avatarFotoAnwenden(name, url); };
+    bild.onerror = function () { avatarFotoAnwenden(name, null); };
+    bild.src = url;
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  KONTAKTLISTE – optional aus assets/avatars/ ersetzt, MIT
+  //  SICHERHEITSNETZ
+  //
+  //  Die oben im HTML fest einprogrammierte Kontaktliste (Anna, Ben,
+  //  Clara, …) ist der Normalzustand UND gleichzeitig das
+  //  Sicherheitsnetz: Sie bleibt einfach unverändert stehen (inkl.
+  //  aller bereits gebundenen Klick-/Kontextmenü-Events, s. o.), bis
+  //  – und NUR wenn – beim Start ein gültiges, nicht-leeres
+  //  avatars-manifest.json geladen werden konnte. Erst dann wird sie
+  //  komplett durch die daraus abgeleiteten Kontakte ersetzt.
+  //
+  //  Der Browser kann Verzeichnisse nicht selbst auflisten (auch
+  //  nicht in der gebauten Capacitor-App) – das Manifest wird daher
+  //  nicht hier, sondern vorab von scripts/sync-web.js geschrieben
+  //  (Root: avatars-manifest.json, wird beim Sync automatisch mit
+  //  nach www/ kopiert).
+  //
+  //  JEDER denkbare Fehlerfall – Datei fehlt (404), Netzwerkfehler
+  //  (z. B. fetch() unter file:// nicht unterstützt), kaputtes JSON,
+  //  leeres Array – landet in kontaktlisteAusManifestErsetzen und
+  //  führt dort bewusst zu einem NO-OP (nichts wird angefasst) statt
+  //  zu einer leeren Liste. Nie darf ein Fehler beim Ersetzen
+  //  passieren, nachdem die feste Liste schon entfernt wurde.
+  // ═══════════════════════════════════════════════════════════════
+  const AVATAR_MANIFEST_PFAD = 'avatars-manifest.json';
+  const gespraechsListe      = document.getElementById('gespraechs-liste');
+
+  function kontaktNameAusDateiname(dateiname) {
+    const stamm = dateiname.replace(/\.[^./\\]+$/, '');
+    return stamm.charAt(0).toUpperCase() + stamm.slice(1);
+  }
+
+  // Baut einen 1:1-Kontakt-Eintrag (gleiches Markup wie die feste
+  // HTML-Liste oben) und hängt ihn an die Kontaktliste an. Vorschau-
+  // Text/Uhrzeit bleiben neutral, da es für aus Fotos abgeleitete
+  // Kontakte keine echte Nachrichten-Historie gibt.
+  function kontaktEintragErstellen(kontakt) {
+    const eintrag = document.createElement('div');
+    eintrag.className = 'gespraechs-eintrag';
+    eintrag.dataset.name = kontakt.name;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.dataset.name = kontakt.name;
+    avatar.textContent = kontakt.name.charAt(0).toUpperCase();
+    eintrag.appendChild(avatar);
+
+    const info = document.createElement('div');
+    info.className = 'gespraechs-info';
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'gespraechs-name';
+    nameEl.dataset.name = kontakt.name;
+    nameEl.textContent = kontakt.name;
+
+    const vorschauEl = document.createElement('span');
+    vorschauEl.className = 'gespraechs-vorschau';
+
+    info.appendChild(nameEl);
+    info.appendChild(vorschauEl);
+    eintrag.appendChild(info);
+
+    const meta = document.createElement('div');
+    meta.className = 'gespraechs-meta';
+    eintrag.appendChild(meta);
+
+    kontaktEintragEreignisseBinden(eintrag);
+    gespraechsListe.appendChild(eintrag);
+  }
+
+  // Einziger Ort, an dem die feste Liste angefasst wird – und auch
+  // nur, wenn "dateinamen" tatsächlich ein nicht-leeres Array ist.
+  // Bei allem anderen (undefined, null, [], kein Array) passiert
+  // NICHTS: die feste HTML-Liste bleibt exakt so stehen, wie sie ist.
+  function kontaktlisteAusManifestErsetzen(dateinamen) {
+    if (!Array.isArray(dateinamen) || dateinamen.length === 0) {
+      console.log('[Kontaktliste] avatars-manifest.json leer/nicht verwertbar – feste Kontaktliste bleibt aktiv.');
+      return;
+    }
+
+    const kontakte = dateinamen.map(function (datei) {
+      return { name: kontaktNameAusDateiname(datei), datei: datei };
+    });
+
+    gespraechsListe.innerHTML = '';
+    kontakte.forEach(kontaktEintragErstellen);
+
+    DEMO_KONTAKTE  = DEMO_KONTAKTE_STATISCH.concat(kontakte.map(function (k) { return k.name; }));
+    KONTAKT_DATEIEN = {};
+    kontakte.forEach(function (k) {
+      KONTAKT_DATEIEN[k.name] = k.datei;
+      avatarDarstellungAktualisieren(k.name);
+      avatarFotoAktualisieren(k.name, k.datei);
+    });
+
+    console.log('[Kontaktliste] aus avatars-manifest.json aufgebaut:', kontakte.length, 'Kontakt(e).');
+  }
+
+  fetch(AVATAR_MANIFEST_PFAD)
+    .then(function (antwort) { return antwort.ok ? antwort.json() : null; })
+    .then(kontaktlisteAusManifestErsetzen)
+    .catch(function (fehler) {
+      console.log('[Kontaktliste] avatars-manifest.json konnte nicht geladen werden – feste Kontaktliste bleibt aktiv.', fehler);
+    });
+
+  // Übersicht: alle (fest einprogrammierten) Avatare direkt beim Laden
+  // mit Schnitt + ggf. Foto füllen (nur 1:1-Kontakte – Gruppen-
+  // Avatare zeigen bewusst keinen Personen-Mittelwert/-Foto). Wird
+  // die Liste oben später erfolgreich ersetzt, übernimmt
+  // kontaktlisteAusManifestErsetzen dieselbe Aktualisierung für die
+  // neuen Einträge.
   document.querySelectorAll('#gespraechs-liste .gespraechs-eintrag').forEach(function (el) {
     avatarDarstellungAktualisieren(el.dataset.name);
+    avatarFotoAktualisieren(el.dataset.name, KONTAKT_DATEIEN[el.dataset.name]);
   });
 
 
@@ -3666,6 +3898,7 @@
       } else {
         kreis.dataset.name = name;
         avatarDarstellungAktualisieren(name);
+        avatarFotoAktualisieren(name, KONTAKT_DATEIEN[name]);
       }
 
       const ungesehen = name !== 'Du' && hatMoment && !momentGesehen.has(name);
@@ -3710,10 +3943,13 @@
     momentAnsichtAvatar.textContent = name.charAt(0).toUpperCase();
     if (name === 'Du') {
       delete momentAnsichtAvatar.dataset.name;
-      momentAnsichtAvatar.style.fontFamily = "'Situra-Medium', 'Inter', sans-serif";
+      momentAnsichtAvatar.style.fontFamily      = "'Situra-Medium', 'Inter', sans-serif";
+      momentAnsichtAvatar.style.backgroundImage = '';
+      momentAnsichtAvatar.classList.remove('avatar--foto');
     } else {
       momentAnsichtAvatar.dataset.name = name;
       avatarDarstellungAktualisieren(name);
+      avatarFotoAktualisieren(name, KONTAKT_DATEIEN[name]);
     }
     momentAnsichtName.textContent = name;
 
