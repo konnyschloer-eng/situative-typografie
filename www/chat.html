@@ -228,11 +228,10 @@
       padding: 14px 20px 6px;
     }
 
-    .app-name {
-      font-size: 17px;
-      font-family: 'Situra-Regular', 'Inter', sans-serif;
-      color: #222;
-      letter-spacing: -0.01em;
+    .app-logo {
+      height: 20px;
+      width: auto;
+      display: block;
     }
 
     .menu-btn {
@@ -1388,7 +1387,7 @@
 
     /* ── Invertierter Modus (Emotion AN): helle Schrift auf dunklem Grund ── */
     /* Überschreibt hartcodierte Farben, die nicht über CSS-Variablen laufen.  */
-    .phone-frame.emotion-an .app-name              { color: #d8d6d1; }
+    .phone-frame.emotion-an .app-logo              { filter: invert(1); }
     .phone-frame.emotion-an .gespraechs-name       { color: #ffffff; }
     .phone-frame.emotion-an .nachricht-andere .text         { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an .nachricht-andere .text::before { border-top-color: rgba(255,255,255,0.7); }
@@ -1439,7 +1438,7 @@
   <div class="ansicht" id="ansicht-uebersicht">
 
     <header class="app-kopfzeile">
-      <span class="app-name">Situative Typografie</span>
+      <img class="app-logo" src="assets/logo/Logo_Momentum_Komplett.svg" alt="Situative Typografie">
       <button class="menu-btn" aria-label="Menü" title="Menü">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 7h16M4 12h16M4 17h16"/>
@@ -2340,6 +2339,20 @@
     return SITURA_SCHRIFTSCHNITTE[index];
   }
 
+  // ── Dynamisches Stylesheet für Zitter-Keyframes ────────────────
+  // Pro Buchstabe wird ein einzigartiger @keyframes-Block erzeugt und
+  // hier eingefügt, damit jeder Buchstabe zufällig zittert (siehe
+  // erstelleZitterAnimation/buchstabenAnimieren weiter unten). Muss
+  // VOR dem PROFILBILD-Abschnitt stehen: dessen einmaliger Lade-Loop
+  // ruft für Demo-Kontakte bereits synchron beim Start
+  // demoNameDimensionenAnwenden → buchstabenAnimieren auf – stünde
+  // "const zitterStyleEl" dagegen (wie ursprünglich) erst weiter
+  // unten im Skript, würfe dieser frühe Aufruf einen "Cannot access
+  // 'zitterStyleEl' before initialization"-Fehler (TDZ), der dort
+  // unbehandelt den Rest der Skript-Ausführung abbricht.
+  const zitterStyleEl = document.createElement('style');
+  document.head.appendChild(zitterStyleEl);
+
 
   // ═══════════════════════════════════════════════════════════════
   //  PROFILBILD – animierter Name pro Person
@@ -2403,6 +2416,76 @@
     return demoAvatarSchnitte[name];
   }
 
+  // ── Demo-Kontakte: weitere Dimensionen neben der Strichstärke ───
+  // Unschärfe, Zittern (Buchstaben-Wobble inkl. Rotation) und
+  // Transparenz – dieselben CSS-Mechanismen wie die reagierende
+  // Nachrichten-Typografie (filter:blur, buchstabenAnimieren, opacity),
+  // aber unabhängig davon: einmalig zufällig gewürfelt und danach fest
+  // pro Kontakt (exakt wie demoAvatarSchnittVon oben), NICHT live aus
+  // Pulsdaten berechnet. Deutlich weiter gefasste Bandbreiten als bei
+  // sensorZuSchriftAchse weiter unten (dort extra dezent gehalten für
+  // lesbares Live-Tipp-Feedback) – hier sollen auch spürbar extreme
+  // Werte vorkommen. ABER: Kernprinzip der App ist "wahrnehmbar, aber
+  // lesbar" – darum bleiben die Obergrenzen bewusst UNTER dem Punkt,
+  // an dem Buchstaben ineinander verlaufen/sich überlappen. Per
+  // Screenshot geprüft (echtes Rendering, nicht nur Code gelesen):
+  // Der Buchstaben-Zitter-Effekt (wobble/wobbleRot) ist bei dieser
+  // Schriftgröße (14px, viel kleiner als der 26–30px Chat-Text, für
+  // den der Live-Effekt weiter unten kalibriert ist) der eigentlich
+  // kritische Faktor – schon ~2,7px Amplitude ließ einzelne
+  // Buchstaben spürbar in ihre Nachbarn hineinlaufen, obwohl Blur und
+  // Transparenz für denselben Namen fast neutral waren. Deshalb hier
+  // deutlich kleinere Zitter-Obergrenzen als ursprünglich angesetzt.
+  const DEMO_BLUR_MAX        = 1.6;  // px    – ← nachjustieren: "unscharf", aber noch lesbar
+  const DEMO_WOBBLE_MAX      = 1.2;  // px    – ← nachjustieren: "zitternd", ohne Buchstaben zu überlappen
+  const DEMO_WOBBLE_ROT_MAX  = 2;    // Grad  – ← nachjustieren
+  const DEMO_TRANSPARENZ_MIN = 0.4;  // ← nachjustieren: "blass", noch ausreichend Kontrast
+
+  // "_v2": Key bewusst umbenannt, als die Obergrenzen oben (v. a.
+  // DEMO_BLUR_MAX) nachträglich verschärft wurden – sonst würden
+  // bereits gespeicherte, zu extreme Alt-Werte unter altem Key
+  // weiterbestehen und stumm die neuen, sicheren Grenzen umgehen.
+  const DEMO_NAME_DIMENSIONEN_SPEICHER_KEY = 'situativeTypografie_demoNameDimensionen_v3';
+
+  function demoNameDimensionenLaden() {
+    try {
+      return JSON.parse(localStorage.getItem(DEMO_NAME_DIMENSIONEN_SPEICHER_KEY)) || {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  let demoNameDimensionen = demoNameDimensionenLaden();
+
+  function demoNameDimensionenVon(name) {
+    if (!demoNameDimensionen[name]) {
+      demoNameDimensionen[name] = {
+        blur:        Math.random() * DEMO_BLUR_MAX,
+        wobble:      Math.random() * DEMO_WOBBLE_MAX,
+        wobbleRot:   Math.random() * DEMO_WOBBLE_ROT_MAX,
+        transparenz: DEMO_TRANSPARENZ_MIN + Math.random() * (1 - DEMO_TRANSPARENZ_MIN)
+      };
+      localStorage.setItem(DEMO_NAME_DIMENSIONEN_SPEICHER_KEY, JSON.stringify(demoNameDimensionen));
+    }
+    return demoNameDimensionen[name];
+  }
+
+  // Wendet Unschärfe/Zittern/Transparenz auf den Namens-Text einer
+  // Demo-Person an. buchstabenAnimieren (siehe weiter unten, Teil der
+  // reagierenden Nachrichten-Typografie) wird dabei unverändert
+  // wiederverwendet – hier nur mit einmalig gewürfelten statt live
+  // berechneten Amplituden aufgerufen.
+  function demoNameDimensionenAnwenden(name) {
+    const d = demoNameDimensionenVon(name);
+    document.querySelectorAll('.gespraechs-name[data-name="' + CSS.escape(name) + '"]').forEach(function (el) {
+      el.style.filter  = d.blur > 0.05 ? `blur(${d.blur.toFixed(2)}px)` : 'none';
+      el.style.opacity = d.transparenz.toFixed(2);
+      if (d.wobble > 0.4) {
+        buchstabenAnimieren(el, { wobble: d.wobble, wobbleRot: d.wobbleRot });
+      }
+    });
+  }
+
   function avatarMittelwerteLaden() {
     try {
       return JSON.parse(localStorage.getItem(AVATAR_SPEICHER_KEY)) || {};
@@ -2424,12 +2507,16 @@
   // Demo-Kontakte zeigen ihren einmalig ausgewürfelten, festen
   // Schnitt; alle anderen den aus echten Pulsdaten gemittelten.
   function avatarDarstellungAktualisieren(name) {
-    const schnitt = DEMO_KONTAKTE.includes(name)
+    const istDemo = DEMO_KONTAKTE.includes(name);
+    const schnitt = istDemo
       ? demoAvatarSchnittVon(name)
       : intensitaetZuSchriftschnitt(avatarMittelwertVon(name));
     document.querySelectorAll('.gespraechs-name[data-name="' + CSS.escape(name) + '"]').forEach(function (el) {
       el.style.fontFamily = "'" + schnitt + "', 'Inter', sans-serif";
     });
+    if (istDemo) {
+      demoNameDimensionenAnwenden(name);
+    }
   }
 
   // Faltet einen neuen Puls-/Zustandswert per gleitendem Mittelwert
@@ -2504,39 +2591,68 @@
   //  Clara, …) ist der Normalzustand UND gleichzeitig das
   //  Sicherheitsnetz: Sie bleibt einfach unverändert stehen (inkl.
   //  aller bereits gebundenen Klick-/Kontextmenü-Events, s. o.), bis
-  //  – und NUR wenn – beim Start ein gültiges, nicht-leeres
-  //  avatars-manifest.json geladen werden konnte. Erst dann wird sie
-  //  komplett durch die daraus abgeleiteten Kontakte ersetzt.
+  //  – und NUR wenn – AVATARS_MANIFEST unten ein nicht-leeres Array
+  //  ist. Erst dann wird sie komplett durch die daraus abgeleiteten
+  //  Kontakte ersetzt.
   //
   //  Der Browser kann Verzeichnisse nicht selbst auflisten (auch
-  //  nicht in der gebauten Capacitor-App) – das Manifest wird daher
-  //  nicht hier, sondern vorab von scripts/sync-web.js geschrieben
-  //  (Root: avatars-manifest.json, wird beim Sync automatisch mit
-  //  nach www/ kopiert).
+  //  nicht in der gebauten Capacitor-App). Frühere Version hat das
+  //  Manifest deshalb separat als avatars-manifest.json abgelegt und
+  //  per fetch() nachgeladen – das schlägt aber fehl, wenn chat.html
+  //  direkt als Datei geöffnet wird (file://): Browser unterstützen
+  //  fetch() für das file-Schema grundsätzlich nicht (kein Fehler-
+  //  Dialog, einfach ein rejected Promise), die Liste fiel dann
+  //  IMMER auf das Sicherheitsnetz zurück, obwohl echte Fotos
+  //  vorhanden waren. Darum jetzt stattdessen fest eingebettet:
+  //  scripts/sync-web.js ersetzt beim Kopieren nach www/ den
+  //  Platzhalter-Kommentar unten direkt im Quelltext durch die
+  //  echten Dateinamen aus assets/avatars/ – funktioniert dadurch
+  //  unabhängig davon, wie chat.html geöffnet wird (Datei-
+  //  Doppelklick, lokaler Server, Capacitor-App). Im Root-Quelltext
+  //  (vor einem "npm run sync-web"-Lauf) bleibt AVATARS_MANIFEST ein
+  //  leeres Array – dann greift ganz normal das Sicherheitsnetz.
   //
-  //  JEDER denkbare Fehlerfall – Datei fehlt (404), Netzwerkfehler
-  //  (z. B. fetch() unter file:// nicht unterstützt), kaputtes JSON,
-  //  leeres Array – landet in kontaktlisteAusManifestErsetzen und
-  //  führt dort bewusst zu einem NO-OP (nichts wird angefasst) statt
-  //  zu einer leeren Liste. Nie darf ein Fehler beim Ersetzen
-  //  passieren, nachdem die feste Liste schon entfernt wurde.
+  //  JEDER denkbare Fehlerfall – Platzhalter nicht ersetzt, kaputtes
+  //  JSON im Manifest, leeres Array – landet in
+  //  kontaktlisteAusManifestErsetzen und führt dort bewusst zu einem
+  //  NO-OP (nichts wird angefasst) statt zu einer leeren Liste.
   // ═══════════════════════════════════════════════════════════════
-  const AVATAR_MANIFEST_PFAD = 'avatars-manifest.json';
-  const gespraechsListe      = document.getElementById('gespraechs-liste');
+  const AVATARS_MANIFEST = /* @AVATARS_MANIFEST@ */ ["Elias.jpeg","Jonas.jpg","Jovan.jpeg","Lina.jpeg","Marie.jpeg","Marius.jpeg","Noelle.jpg","Paul.jpg","Theresa.png","Tim.jpg"];
+  const gespraechsListe  = document.getElementById('gespraechs-liste');
 
   function kontaktNameAusDateiname(dateiname) {
     const stamm = dateiname.replace(/\.[^./\\]+$/, '');
     return stamm.charAt(0).toUpperCase() + stamm.slice(1);
   }
 
+  // Vorschau-Text/Uhrzeit/Ungelesen-Status sind für aus Fotos
+  // abgeleitete Kontakte frei erfunden (keine echte Nachrichten-
+  // Historie vorhanden) – ohne sie fehlten in der Liste sichtbar
+  // Uhrzeit, Vorschautext und der Ungelesen-Punkt (waren bei der
+  // festen Anna/Ben-Liste ja hart codiert). Zyklisch aus kleinen
+  // Pools befüllt, damit die Liste nicht komplett gleichförmig wirkt.
+  const KONTAKT_VORSCHAU_PLATZHALTER = [
+    'Hey, was gibt’s Neues?',
+    'Bin gleich da.',
+    'Klingt gut!',
+    'Bis später!',
+    'Schreib mir, wenn du Zeit hast.',
+    'Alles klar, bis dann.',
+    'Kannst du kurz telefonieren?',
+    'Danke dir!',
+    'Wir sehen uns.',
+    'Gute Frage, muss ich nachschauen.'
+  ];
+  const KONTAKT_ZEIT_PLATZHALTER = ['09:41', 'Gestern', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'So', '08:15', 'Jetzt'];
+
   // Baut einen 1:1-Kontakt-Eintrag (gleiches Markup wie die feste
-  // HTML-Liste oben) und hängt ihn an die Kontaktliste an. Vorschau-
-  // Text/Uhrzeit bleiben neutral, da es für aus Fotos abgeleitete
-  // Kontakte keine echte Nachrichten-Historie gibt.
-  function kontaktEintragErstellen(kontakt) {
+  // HTML-Liste oben) und hängt ihn an die Kontaktliste an.
+  function kontaktEintragErstellen(kontakt, index) {
     const eintrag = document.createElement('div');
     eintrag.className = 'gespraechs-eintrag';
     eintrag.dataset.name = kontakt.name;
+    const ungelesen = index % 3 === 0; // ~ein Drittel, ähnliche Dichte wie die feste Liste
+    if (ungelesen) eintrag.setAttribute('data-ungelesen', '');
 
     const avatar = document.createElement('div');
     avatar.className = 'avatar';
@@ -2554,6 +2670,7 @@
 
     const vorschauEl = document.createElement('span');
     vorschauEl.className = 'gespraechs-vorschau';
+    vorschauEl.textContent = KONTAKT_VORSCHAU_PLATZHALTER[index % KONTAKT_VORSCHAU_PLATZHALTER.length];
 
     info.appendChild(nameEl);
     info.appendChild(vorschauEl);
@@ -2561,6 +2678,18 @@
 
     const meta = document.createElement('div');
     meta.className = 'gespraechs-meta';
+
+    const zeitEl = document.createElement('span');
+    zeitEl.className = 'gespraechs-zeit';
+    zeitEl.textContent = KONTAKT_ZEIT_PLATZHALTER[index % KONTAKT_ZEIT_PLATZHALTER.length];
+    meta.appendChild(zeitEl);
+
+    if (ungelesen) {
+      const punkt = document.createElement('span');
+      punkt.className = 'ungelesen-punkt';
+      meta.appendChild(punkt);
+    }
+
     eintrag.appendChild(meta);
 
     kontaktEintragEreignisseBinden(eintrag);
@@ -2592,15 +2721,24 @@
       avatarFotoAktualisieren(k.name, k.datei);
     });
 
-    console.log('[Kontaktliste] aus avatars-manifest.json aufgebaut:', kontakte.length, 'Kontakt(e).');
+    // Momente-Leiste zeigt dieselben Personen wie die Kontaktliste
+    // (siehe momentNamenErmitteln) – bei Ersetzung sofort nachziehen,
+    // statt erst beim nächsten manuellen Tab-Wechsel zu aktualisieren.
+    momentePlatzhalterErgaenzen();
+    momentLeisteRendern();
+    momentComposerAktualisieren();
+
+    console.log('[Kontaktliste] aus AVATARS_MANIFEST aufgebaut:', kontakte.length, 'Kontakt(e).');
   }
 
-  fetch(AVATAR_MANIFEST_PFAD)
-    .then(function (antwort) { return antwort.ok ? antwort.json() : null; })
-    .then(kontaktlisteAusManifestErsetzen)
-    .catch(function (fehler) {
-      console.log('[Kontaktliste] avatars-manifest.json konnte nicht geladen werden – feste Kontaktliste bleibt aktiv.', fehler);
-    });
+  // Der eigentliche Aufruf kontaktlisteAusManifestErsetzen(AVATARS_MANIFEST)
+  // steht bewusst NICHT hier, sondern ganz am Ende des Skripts (zusammen
+  // mit momenteAufbauen()/momentLeisteRendern()): kontaktlisteAusManifest-
+  // Ersetzen ruft intern u. a. momentLeisteRendern auf, das erst weiter
+  // unten im Skript deklarierte Variablen (momente, momentLeiste, …)
+  // braucht – zu früh aufgerufen gäbe das denselben "vor der
+  // Initialisierung"-Fehler wie einst bei zitterStyleEl (siehe Kommentar
+  // dort).
 
   // Übersicht: alle (fest einprogrammierten) Avatare direkt beim Laden
   // mit Schnitt + ggf. Foto füllen (nur 1:1-Kontakte – Gruppen-
@@ -2686,12 +2824,6 @@
   function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
     return zuMin + (wert - vonMin) / (vonMax - vonMin) * (zuMax - zuMin);
   }
-
-  // ── Dynamisches Stylesheet für Zitter-Keyframes ────────────────
-  // Pro Buchstabe wird ein einzigartiger @keyframes-Block erzeugt
-  // und hier eingefügt, damit jeder Buchstabe zufällig zittert.
-  const zitterStyleEl = document.createElement('style');
-  document.head.appendChild(zitterStyleEl);
 
   // Erzeugt einen einzigartigen @keyframes-Block für einen Buchstaben.
   // Gibt den Animations-Namen zurück; fügt den Block ins Stylesheet ein.
@@ -3837,6 +3969,44 @@
     }
   }
 
+  // Liest die aktuell angezeigten 1:1-Kontakte live aus der Kontaktliste
+  // (fest einprogrammierte Anna/Ben-Liste ODER die aus
+  // avatars-manifest.json abgeleitete – je nachdem, was gerade aktiv
+  // ist). Gleicher Zugriffs-Pattern wie kontaktAuswahlAufbauen oben.
+  function aktuelleKontaktnamen() {
+    return Array.from(document.querySelectorAll('#gespraechs-liste .gespraechs-eintrag'))
+      .map(function (el) { return el.dataset.name; });
+  }
+
+  // Kleine, neutrale Platzhalter-Texte für Personen, die (weil aus
+  // avatars-manifest.json abgeleitet statt in MOMENT_DEMO_KONTAKTE
+  // vorgeschrieben) noch keinen eigenen Moment-Text haben.
+  const MOMENT_PLATZHALTER_TEXTE = [
+    'Gerade unterwegs.',
+    'Kurze Pause.',
+    'Schöner Tag bisher.',
+    'Nichts Besonderes los.',
+    'Bald mehr dazu.'
+  ];
+
+  // Ergänzt für jeden aktuellen 1:1-Kontakt ohne eigenen Moment (siehe
+  // momenteAufbauen oben – betrifft alle Namen außerhalb von
+  // MOMENT_DEMO_KONTAKTE, also insbesondere die aus Fotos abgeleiteten
+  // Kontakte) einen neutralen Platzhalter-Moment, damit ihr Kreis in
+  // der Story-Leiste klickbar bleibt. rohwerte: null → "leblos",
+  // derselbe neutrale Kontrastfall, den es mit "Clara" oben schon gibt.
+  function momentePlatzhalterErgaenzen() {
+    aktuelleKontaktnamen().forEach(function (name, i) {
+      if (momente[name]) return; // schon vorhanden (Demo-Text oder "Du")
+      const text    = MOMENT_PLATZHALTER_TEXTE[i % MOMENT_PLATZHALTER_TEXTE.length];
+      const woerter = text.split(/\s+/).filter(function (w) { return w.length > 0; });
+      momente[name] = {
+        text: text,
+        wortSnapshots: woerter.map(function () { return { achsen: {}, leblos: true }; })
+      };
+    });
+  }
+
   // Rendert einen eingefrorenen Moment-Text Wort für Wort – exakt
   // derselbe Mechanismus wie bei nachrichtHinzufuegen im Chat (siehe
   // oben), als eigenständige Funktion für den separaten Moment-
@@ -3875,13 +4045,20 @@
   const momentAnsichtText     = document.getElementById('moment-ansicht-text');
   const momentAnsichtSchliessenBtn = document.getElementById('moment-ansicht-schliessen');
 
-  const MOMENT_NAMEN = ['Du'].concat(MOMENT_DEMO_KONTAKTE.map(function (k) { return k.name; }));
+  // Wer in der Story-Leiste auftaucht: "Du" + dieselben Personen wie
+  // aktuell in der Kontaktliste (fest oder aus avatars-manifest.json
+  // abgeleitet) – live ausgewertet, nicht mehr fest verdrahtet auf
+  // MOMENT_DEMO_KONTAKTE, damit Momente-Leiste und Kontaktliste immer
+  // dieselben Personen (und Fotos) zeigen.
+  function momentNamenErmitteln() {
+    return ['Du'].concat(aktuelleKontaktnamen());
+  }
 
   // Baut die Story-Leiste aus dem aktuellen momente-Objekt neu auf.
   function momentLeisteRendern() {
     momentLeiste.innerHTML = '';
 
-    MOMENT_NAMEN.forEach(function (name) {
+    momentNamenErmitteln().forEach(function (name) {
       const hatMoment = !!momente[name];
 
       const wrapper = document.createElement('button');
@@ -4043,6 +4220,12 @@
   momenteAufbauen();
   momentLeisteRendern();
   momentComposerAktualisieren();
+
+  // Muss NACH den drei Aufrufen oben stehen (siehe Kommentar bei
+  // AVATARS_MANIFEST weiter oben) – ersetzt die feste Kontaktliste durch
+  // die aus assets/avatars/ abgeleiteten Kontakte, sofern beim Build
+  // (scripts/sync-web.js) welche gefunden wurden.
+  kontaktlisteAusManifestErsetzen(AVATARS_MANIFEST);
 
 </script>
 </body>

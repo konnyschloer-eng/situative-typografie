@@ -2,6 +2,9 @@
 // (webDir: "www") sie in die native Android-App übernehmen kann. Root
 // bleibt die eigentliche Arbeitskopie – vor jedem "npx cap sync" bzw.
 // "npx cap copy" hier ausführen, damit www/ den aktuellen Stand hat.
+// WICHTIG: auch nach jedem Hinzufügen/Entfernen einer Datei in
+// assets/avatars/ erneut ausführen – sonst bleibt avatars-manifest.json
+// (und damit die aus Fotos abgeleitete Kontaktliste in chat.html) veraltet.
 const fs = require('fs');
 const path = require('path');
 
@@ -28,15 +31,23 @@ fs.copyFileSync(
   path.join(vendorRoot, 'bluetooth-le.js')
 );
 
-// ── Kontakt-Fotos: assets/avatars/ → avatars-manifest.json ─────────
+// ── Kontakt-Fotos: assets/avatars/ → Kontaktliste in chat.html ─────
 // Der Browser kann Verzeichnisinhalte nicht selbst auflisten (auch
-// nicht in der gebauten Capacitor-App) – deshalb schreibt dieser
-// Sync-Schritt eine einfache Liste der gefundenen Bilddateinamen
-// nach avatars-manifest.json. chat.html lädt diese Datei per fetch()
-// und baut daraus optional die Kontaktliste; schlägt das fehl (Datei
-// fehlt/ist leer/Fetch-Fehler), bleibt dort die fest einprogrammierte
-// Kontaktliste als Sicherheitsnetz aktiv – siehe chat.html,
+// nicht in der gebauten Capacitor-App) – deshalb liest dieser
+// Sync-Schritt assets/avatars/ aus und trägt die gefundenen
+// Bilddateinamen direkt in chat.html ein (Platzhalter-Kommentar
+// "/* @AVATARS_MANIFEST@ */ []" → echtes Array). Bewusst NICHT per
+// fetch() einer separaten JSON-Datei nachgeladen: das schlägt fehl,
+// wenn chat.html direkt als Datei geöffnet wird (file://) – Browser
+// unterstützen fetch() für das file-Schema grundsätzlich nicht, die
+// Kontaktliste wäre dann immer nur die feste Anna/Ben-Liste, obwohl
+// echte Fotos vorhanden sind. Die feste Sicherheitsnetz-Liste bleibt
+// unverändert, wenn assets/avatars/ leer ist – siehe chat.html,
 // kontaktlisteAusManifestErsetzen.
+//
+// avatars-manifest.json wird zusätzlich weiterhin geschrieben (nicht
+// mehr von chat.html selbst benutzt, aber nützlich zum Nachschauen/
+// Debuggen, welche Dateien zuletzt gefunden wurden).
 const avatarOrdner = path.join(root, 'assets', 'avatars');
 const AVATAR_BILD_ENDUNGEN = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 
@@ -53,12 +64,27 @@ fs.writeFileSync(
 
 console.log('avatars-manifest.json aktualisiert:', avatarDateien.length, 'Bild(er)', avatarDateien);
 
-const dateien = ['index.html', 'chat.html', 'onboarding.html', 'situra-slider.html', 'ble-test.html', 'avatars-manifest.json'];
+const dateien = ['index.html', 'chat.html', 'onboarding.html', 'situra-slider.html', 'ble-test.html'];
 const ordner = ['assets', 'vendor'];
 
 fs.mkdirSync(dest, { recursive: true });
 
+const AVATARS_MANIFEST_PLATZHALTER = '/* @AVATARS_MANIFEST@ */ []';
+const chatHtmlQuelle = fs.readFileSync(path.join(root, 'chat.html'), 'utf8');
+if (!chatHtmlQuelle.includes(AVATARS_MANIFEST_PLATZHALTER)) {
+  throw new Error(
+    'chat.html: Platzhalter "' + AVATARS_MANIFEST_PLATZHALTER + '" nicht gefunden – ' +
+    'wurde er umbenannt/entfernt? www/chat.html würde sonst ohne Kontaktfotos gebaut.'
+  );
+}
+fs.writeFileSync(
+  path.join(dest, 'chat.html'),
+  chatHtmlQuelle.replace(AVATARS_MANIFEST_PLATZHALTER, '/* @AVATARS_MANIFEST@ */ ' + JSON.stringify(avatarDateien))
+);
+fs.copyFileSync(path.join(root, 'avatars-manifest.json'), path.join(dest, 'avatars-manifest.json'));
+
 for (const datei of dateien) {
+  if (datei === 'chat.html') continue; // oben bereits mit eingebettetem Manifest geschrieben
   fs.copyFileSync(path.join(root, datei), path.join(dest, datei));
 }
 
