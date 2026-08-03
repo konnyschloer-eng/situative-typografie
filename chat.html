@@ -738,6 +738,177 @@
 
     .phone-frame.emotion-an .moment-ansicht-text { color: #d8d6d1; }
 
+
+    /* ══════════════════════════════════════════════════════════════
+       PROFIL – eigener Profilbereich (Foto, Name, aktuelle Werte)
+       + TAGEBUCH (eigenständige, dauerhafte Einträge, im Unterschied
+       zu MOMENT: kein 24h-Limit, kein "einmal pro Tag"). Gleicher
+       reduzierter Look wie der Rest der App (Outline-Stil, Situra).
+       ══════════════════════════════════════════════════════════════ */
+    .profil-kopf {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    /* Größere Variante des bestehenden .avatar-Kreises (siehe dort) –
+       gleicher Aufbau (Outline, Foto überschreibt Buchstaben), nur
+       größer fürs Profil. */
+    .avatar--profil {
+      width: 72px; height: 72px;
+      font-size: 26px;
+    }
+
+    .profil-foto-wrapper {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    /* Kleiner Stift-Button, unten rechts über dem Foto-Kreis –
+       öffnet den unsichtbaren Datei-Dialog (siehe #profil-foto-input). */
+    .profil-foto-upload-btn {
+      position: absolute;
+      right: -2px; bottom: -2px;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .profil-foto-upload-btn:hover { color: #222; }
+    .phone-frame.emotion-an .profil-foto-upload-btn:hover { color: #eee; }
+
+    .profil-info { flex: 1; min-width: 0; }
+
+    /* Eigener Name: kein Rahmen, sieht wie normaler Fließtext aus,
+       trotzdem editierbar (Klick hinein zum Umbenennen). Schriftschnitt
+       wird per JS gesetzt (profilNameSchriftAktualisieren) – zeigt den
+       tatsächlichen, aus echten Messdaten gemittelten Zustand, siehe
+       eigenerMittelwertAktualisieren weiter unten (JS). */
+    .profil-name-eingabe {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      outline: none;
+      font-size: 20px;
+      color: #111;
+      padding: 0 0 4px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif; /* Fallback, bis JS den echten Schnitt setzt */
+    }
+
+    .phone-frame.emotion-an .profil-name-eingabe { color: #eee; }
+
+    .profil-name-hinweis {
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.04em;
+    }
+
+    /* Aktuelle Werte: dieselben .sensor-dimension/.dimension-*-Klassen
+       wie oben bei Intensität/Tempo/… (siehe ANSICHT 1) – rein
+       lesend, kein Regler, exakt wie Tempo/Stabilität dort schon. */
+    .profil-stats {
+      flex-shrink: 0;
+      display: flex;
+      gap: 20px;
+      padding: 4px 20px 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .profil-stats .sensor-dimension { flex: 1; }
+
+    /* ── Tagebuch ─────────────────────────────────────────────── */
+    .tagebuch-kopf {
+      flex-shrink: 0;
+      padding: 16px 20px 8px;
+      font-size: 12px;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .tagebuch-composer {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 0 20px 16px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .tagebuch-eingabe {
+      width: 100%;
+      resize: none;
+      background: none;
+      border: 1px solid var(--border);
+      outline: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 14px;
+      color: #222;
+      padding: 8px 10px;
+    }
+
+    .phone-frame.emotion-an .tagebuch-eingabe { color: #eee; }
+
+    .tagebuch-speichern-btn {
+      align-self: flex-end;
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+
+    .tagebuch-liste {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 20px 20px;
+    }
+
+    .tagebuch-eintrag {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .tagebuch-eintrag:last-child { border-bottom: none; }
+
+    .tagebuch-datum {
+      font-size: 11px;
+      color: var(--text-3);
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tagebuch-text {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #111;
+      overflow-wrap: break-word;
+    }
+
+    .phone-frame.emotion-an .tagebuch-text { color: #d8d6d1; }
+
+    .tagebuch-leer-hinweis {
+      font-size: 12px;
+      color: var(--text-3);
+      font-style: italic;
+      padding: 8px 0;
+    }
+
     .gespraechs-liste {
       flex: 1;
       overflow-y: auto;
@@ -1617,11 +1788,67 @@
 
     </div><!-- /#tab-moment -->
 
-    <!-- ── Tab-Leiste: Chats / Gruppen / Moment ── -->
+    <!-- ── PROFIL – eigener Bereich (Foto/Name/aktuelle Werte) +
+         TAGEBUCH (eigenständig, siehe JS-Abschnitt "TAGEBUCH" –
+         nutzt denselben tippAnalysieren-Mechanismus wie Chat/Moment
+         über einen eigenen, getrennten Wort-Zustand, siehe dort). ── -->
+    <div class="tab-inhalt" id="tab-profil">
+
+      <div class="gruppen-kopf">
+        <span class="gruppen-kopf-label">Profil</span>
+      </div>
+
+      <div class="profil-kopf">
+        <div class="profil-foto-wrapper">
+          <div class="avatar avatar--profil" id="profil-avatar">D</div>
+          <button class="profil-foto-upload-btn" id="profil-foto-upload-btn" type="button" title="Profilbild ändern" aria-label="Profilbild ändern">✎</button>
+          <input type="file" accept="image/*" id="profil-foto-input" hidden>
+        </div>
+        <div class="profil-info">
+          <input class="profil-name-eingabe" type="text" id="profil-name-eingabe" value="Du" maxlength="24" autocomplete="off">
+          <div class="profil-name-hinweis">Dein durchschnittlicher Schriftzustand aus echten Nachrichten/Einträgen</div>
+        </div>
+      </div>
+
+      <div class="profil-stats">
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label dimension-label--live">Puls</span>
+            <span class="dimension-wert" id="profil-wert-puls">—</span>
+          </div>
+        </div>
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label dimension-label--live">Stabilität</span>
+            <span class="dimension-wert" id="profil-wert-stabilitaet">—</span>
+          </div>
+        </div>
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label dimension-label--live">Schlaf</span>
+            <span class="dimension-wert" id="profil-wert-schlaf">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tagebuch-kopf">Tagebuch</div>
+
+      <div class="tagebuch-composer">
+        <textarea class="tagebuch-eingabe" id="tagebuch-eingabe" rows="3"
+          placeholder="Was ist heute passiert?" autocomplete="off" maxlength="2000"></textarea>
+        <button class="tagebuch-speichern-btn" id="tagebuch-speichern-btn" type="button">Eintragen</button>
+      </div>
+
+      <div class="tagebuch-liste" id="tagebuch-liste"></div>
+
+    </div><!-- /#tab-profil -->
+
+    <!-- ── Tab-Leiste: Chats / Gruppen / Moment / Profil ── -->
     <nav class="tab-leiste">
       <button class="tab-btn tab-btn--aktiv" data-tab="chats">Chats</button>
       <button class="tab-btn" data-tab="gruppen">Gruppen</button>
       <button class="tab-btn" data-tab="moment">Moment</button>
+      <button class="tab-btn" data-tab="profil">Profil</button>
     </nav>
 
     <!-- ── Kontextmenü: Long-Press auf einen Chat-Eintrag ── -->
@@ -2000,15 +2227,16 @@
   });
 
 
-  // ── Tab-Leiste: Chats / Gruppen / Moment ─────────────────────────
-  // Schaltet nur um, welches der drei Panels innerhalb der Übersicht
+  // ── Tab-Leiste: Chats / Gruppen / Moment / Profil ─────────────────
+  // Schaltet nur um, welches der vier Panels innerhalb der Übersicht
   // sichtbar ist – keine Auswirkung auf Such-/Filter- oder
   // Typografie-Logik.
   const uebersichtTitel = document.getElementById('uebersicht-titel');
   const tabChats        = document.getElementById('tab-chats');
   const tabGruppen      = document.getElementById('tab-gruppen');
   const tabMoment       = document.getElementById('tab-moment');
-  const TAB_TITEL       = { chats: 'Chats', gruppen: 'Gruppen', moment: 'Moment' };
+  const tabProfil       = document.getElementById('tab-profil');
+  const TAB_TITEL       = { chats: 'Chats', gruppen: 'Gruppen', moment: 'Moment', profil: 'Profil' };
 
   function tabAnzeigen(tabName) {
     document.querySelectorAll('.tab-btn').forEach(function (b) {
@@ -2017,7 +2245,11 @@
     tabChats.classList.toggle('aktiv', tabName === 'chats');
     tabGruppen.classList.toggle('aktiv', tabName === 'gruppen');
     tabMoment.classList.toggle('aktiv', tabName === 'moment');
+    tabProfil.classList.toggle('aktiv', tabName === 'profil');
     uebersichtTitel.textContent = TAB_TITEL[tabName];
+    // Aktuelle Werte (Puls/Stabilität/Schlaf) erst beim Anzeigen
+    // auffrischen – siehe Abschnitt PROFIL weiter unten (JS).
+    if (tabName === 'profil') profilStatsAktualisieren();
   }
 
   document.querySelectorAll('.tab-btn').forEach(function (btn) {
@@ -3055,18 +3287,45 @@
     }
   }
 
-  // Stabilität in Rohwerte + Anzeige + Vorschau übernehmen
-  function stabilitaetUebernehmen() {
-    const gerundet               = Math.round(stabilitaet_wert);
-    aktuelleRohwerte.stabilitaet = gerundet;
+  // Gemeinsamer Low-Level-Setter für die Stabilitäts-Dimension – nimmt den
+  // fertigen (gerundeten) Wert entgegen, unabhängig von seiner Quelle
+  // (Tippverhalten ODER Puls-Variabilität, siehe pulsVariabilitaetMessen/
+  // bpmEmpfangen). DOM-Updates bewusst hinter document.hidden gestellt wie
+  // schon bei den übrigen Live-Anzeigen in bpmEmpfangen (reine UI-Kosmetik
+  // bei gesperrtem Bildschirm) – aktuelleRohwerte/aktuelleAchsen (relevant
+  // fürs Wort-für-Wort-Einfrieren) werden davon unabhängig IMMER aktualisiert.
+  function stabilitaetAnzeigenUndUebernehmen(gerundeterWert) {
+    aktuelleRohwerte.stabilitaet = gerundeterWert;
     aktuelleAchsen               = sensorZuSchriftAchse(aktuelleRohwerte);
-    wertStabilitaetAnzeige.textContent = gerundet;
-    balkenStabilitaet.style.width = `${(gerundet - STAB_MIN) / (STAB_MAX - STAB_MIN) * 100}%`;
-    vorschauAktualisieren();
+    if (!document.hidden) {
+      wertStabilitaetAnzeige.textContent = gerundeterWert;
+      balkenStabilitaet.style.width = `${(gerundeterWert - STAB_MIN) / (STAB_MAX - STAB_MIN) * 100}%`;
+      vorschauAktualisieren();
+    }
   }
 
-  // Kontinuierliche Zeiterholung: läuft immer, erholt Stabilität sanft
+  // Stabilität aus dem tippbasierten stabilitaet_wert (siehe tippAnalysieren/
+  // Erholungs-Timer unten) in Rohwerte + Anzeige + Vorschau übernehmen. NUR
+  // relevant, solange KEIN Band verbunden ist – bei verbundenem Band liefert
+  // stattdessen die Puls-Variabilität die Stabilität (siehe bpmEmpfangen),
+  // tippAnalysieren/Erholungs-Timer sind dann per !bandVerbunden-Guard inaktiv.
+  function stabilitaetUebernehmen() {
+    stabilitaetAnzeigenUndUebernehmen(Math.round(stabilitaet_wert));
+  }
+
+  // Kontinuierliche Zeiterholung: erholt die TIPPBASIERTE Stabilität sanft.
+  // Reine Chat-Eingabe-Optik (Tippverhalten-Vorschau) – bei gesperrtem
+  // Bildschirm (z. B. während der Nacht-Erfassung) sieht sie ohnehin
+  // niemand, daher hier pausiert (document.hidden). Die eigentliche
+  // Nacht-Erfassung (Foreground Service + BLE-Notifications) läuft davon
+  // komplett unabhängig weiter, siehe MomentumBleForegroundService.
+  // Zusätzlich pausiert bei verbundenem Band (!bandVerbunden) – dann
+  // liefert die Puls-Variabilität die Stabilität (siehe bpmEmpfangen),
+  // der tippbasierte stabilitaet_wert würde sonst im Hintergrund
+  // weiterlaufen und beim nächsten Trennen einen veralteten Sprungwert
+  // liefern.
   setInterval(() => {
+    if (document.hidden || bandVerbunden) return; // nichts zu tun
     if (stabilitaet_wert >= STAB_MAX) return; // schon ruhig, nichts zu tun
     stabilitaet_wert = Math.min(STAB_MAX, stabilitaet_wert + STAB_ERHOLUNG_PRO_TICK);
     stabilitaetUebernehmen();
@@ -3085,25 +3344,40 @@
     tipp_zeitstempel.push(jetzt);
     tipp_zeitstempel = tipp_zeitstempel.filter(t => t >= jetzt - TIPP_FENSTER_MS);
 
-    // ── Stabilität: Ereignisse auswerten ─────────────────────
-    if (event.key === 'Backspace' || event.key === 'Delete') {
-      // Löschen destabilisiert; mehrere kurz hintereinander wirken kumulativ
-      stabilitaet_wert = Math.max(STAB_MIN, stabilitaet_wert - STAB_BACKSPACE_ABZUG);
-    } else if (event.key === ' ') {
-      // Wort abgeschlossen → beruhigt den Rhythmus
-      stabilitaet_wert = Math.min(STAB_MAX, stabilitaet_wert + STAB_LEERZEICHEN_GEWINN);
+    // ── Stabilität: Ereignisse auswerten – NUR ohne verbundenes Band.
+    // Bei verbundenem Band liefert die Puls-Variabilität die Stabilität
+    // (siehe pulsVariabilitaetMessen/bpmEmpfangen), das Tippverhalten
+    // beeinflusst sie dann nicht mehr (exakt dasselbe Substitutions-
+    // Prinzip wie beim Intensitäts-Regler, der bei BLE-Verbindung
+    // deaktiviert wird) ─────────────────────
+    if (!bandVerbunden) {
+      if (event.key === 'Backspace' || event.key === 'Delete') {
+        // Löschen destabilisiert; mehrere kurz hintereinander wirken kumulativ
+        stabilitaet_wert = Math.max(STAB_MIN, stabilitaet_wert - STAB_BACKSPACE_ABZUG);
+      } else if (event.key === ' ') {
+        // Wort abgeschlossen → beruhigt den Rhythmus
+        stabilitaet_wert = Math.min(STAB_MAX, stabilitaet_wert + STAB_LEERZEICHEN_GEWINN);
+      }
     }
     // Buchstaben: keine direkte Wirkung; Erholung läuft über den Timer
 
-    // ── Tempo berechnen ──────────────────────────────────────
+    // ── Tempo berechnen (immer tippbasiert, unabhängig vom Band) ──────
     const tempo = tempoBerechnen();
     aktuelleRohwerte.tempo = tempo;
 
     wertTempoAnzeige.textContent = tempo;
     balkenTempo.style.width = `${(tempo - 100) / 800 * 100}%`;
 
-    // Stabilität und Vorschau synchronisieren
-    stabilitaetUebernehmen();
+    // Stabilität (falls tippbasiert) und Vorschau synchronisieren. Bei
+    // verbundenem Band übernimmt bpmEmpfangen die Stabilität/Vorschau
+    // bereits – hier nur noch die Achsen mit dem neuen Tempo-Wert
+    // neu berechnen, damit das nächste eingefrorene Wort ihn enthält.
+    if (!bandVerbunden) {
+      stabilitaetUebernehmen();
+    } else {
+      aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+      if (!document.hidden) vorschauAktualisieren();
+    }
   }
 
   function tempoBerechnen() {
@@ -3303,6 +3577,11 @@
       avatarMittelwertAktualisieren(chatPartnerName.textContent, aktuelleRohwerte.intensitaet);
     }
 
+    // ── Eigener Durchschnitt fürs Profil (siehe Abschnitt PROFIL
+    // weiter unten) – exakt dasselbe EMA-Prinzip wie oben, aber für
+    // MICH statt für den Chat-Partner, unabhängig von Gruppe/1:1.
+    eigenerMittelwertAktualisieren(aktuelleRohwerte.intensitaet);
+
     eingabe.value = '';
     eingabeFeldAnpassen();         // Höhe nach dem Leeren zurücksetzen
 
@@ -3406,9 +3685,19 @@
   //  Intensität, Strichstärke) ist komplett unverändert.
   // ══════════════════════════════════════════════════════════════════
 
-  const { BleClient } = capacitorCommunityBluetoothLe;
+  const { BleClient, ConnectionPriority } = capacitorCommunityBluetoothLe;
   const HEART_RATE_SERVICE     = capacitorCommunityBluetoothLe.numberToUUID(0x180d);
   const HEART_RATE_MEASUREMENT = capacitorCommunityBluetoothLe.numberToUUID(0x2a37);
+
+  // ── Nacht-Fenster (22:00–08:00) – Gerätesystemzeit, siehe MomentumBle-
+  // ForegroundService.istNachtzeit() für das native Pendant (native und
+  // JS-Seite verwenden bewusst dieselbe simple Stunden-Grenze). Bestimmt
+  // NUR die ACC-Rate + Connection Priority beim Verbindungsaufbau unten –
+  // NICHT die reaktive Typografie (bpmEmpfangen bleibt unangetastet).
+  function istNachtzeit() {
+    const stunde = new Date().getHours();
+    return stunde >= 22 || stunde < 8;
+  }
 
   // ── PMD (Polar Measurement Data) – Bewegung für die Nacht-Erfassung ──
   // Der Beschleunigungssensor liegt beim Verity Sense NICHT hinter einem
@@ -3420,12 +3709,30 @@
   const PMD_DATA          = 'fb005c82-02e7-f387-1cad-8acd2d8df0c8';
 
   // Control-Point-Kommando "Messung starten" (0x02), Typ ACC (0x02), gefolgt
-  // von (Einstellungstyp, Länge, Wert…)-Tripeln: Sample-Rate 200 Hz (Typ 0x00),
-  // Auflösung 16 Bit (Typ 0x01), Messbereich ±8G (Typ 0x02) – die für den
-  // Verity Sense belegte, funktionierende Kombination.
-  const PMD_ACC_START_KOMMANDO = new Uint8Array([
+  // von (Einstellungstyp, Länge, Wert…)-Tripeln: Sample-Rate (Typ 0x00),
+  // Auflösung 16 Bit (Typ 0x01), Messbereich ±8G (Typ 0x02).
+  //
+  // WICHTIG: Die Sample-Rate MUSS einer der laut offizieller Polar-BLE-SDK-
+  // Doku (polarofficial/polar-ble-sdk, documentation/products/
+  // PolarVeritySense.md) für die Verity Sense im Online-Streaming
+  // dokumentierten Raten sein: 26/52(Default)/104/208/416 Hz. Der früher
+  // hier verwendete Wert 200 Hz gehört NICHT zu dieser Liste (das ist die
+  // gültige ACC-Rate des Polar H10, nicht der Verity Sense) – vermutlich
+  // eine Verwechslung. Nacht-Kommando nutzt daher den Vendor-Default 52 Hz
+  // (kommt dem gewünschten 25–50-Hz-Bereich am nächsten UND ist die von
+  // Polar selbst als Standard vorgesehene, also am ehesten stabil
+  // akzeptierte Einstellung). Tag-Kommando nutzt 208 Hz als nächstgültigen
+  // Wert zum ursprünglichen (ungültigen) 200-Hz-Wert, damit sich am
+  // bisherigen Tagesverhalten sonst nichts ändert.
+  const PMD_ACC_START_KOMMANDO_NACHT = new Uint8Array([
     0x02, 0x02,
-    0x00, 0x01, 0xC8, 0x00,
+    0x00, 0x01, 0x34, 0x00, // Sample-Rate 52 Hz (0x0034)
+    0x01, 0x01, 0x10, 0x00,
+    0x02, 0x01, 0x08, 0x00
+  ]);
+  const PMD_ACC_START_KOMMANDO_TAG = new Uint8Array([
+    0x02, 0x02,
+    0x00, 0x01, 0xD0, 0x00, // Sample-Rate 208 Hz (0x00D0)
     0x01, 0x01, 0x10, 0x00,
     0x02, 0x01, 0x08, 0x00
   ]);
@@ -3456,10 +3763,86 @@
   const BAND_BPM_MIN = 75;   // ← nachjustieren: ab diesem Puls dünnste Strichstärke (Minimum)
   const BAND_BPM_MAX = 110;  // ← nachjustieren: ab diesem Puls fetteste Strichstärke (Maximum)
 
+  // ══════════════════════════════════════════════════════════════════
+  //  PULS-VARIABILITÄT (Annäherung an HRV) → STABILITÄTS-DIMENSION
+  //
+  //  Der Verity Sense liefert über den Standard-HR-Kanal (0x2A37) keine
+  //  RR-Intervalle (empirisch bestätigt, siehe Kommentar bei rrWerte in
+  //  bpmEmpfangen unten) – für "echtes" RMSSD (Root Mean Square of
+  //  Successive Differences der RR-Intervalle in ms) fehlt daher die
+  //  Rohdatenbasis. Stattdessen: eine Annäherung aus der Schwankung der
+  //  ohnehin ca. 1×/Sekunde eintreffenden BPM-Werte selbst – ein in der
+  //  Literatur zu Consumer-Wearables mit niedrig aufgelösten HF-Daten
+  //  beschriebenes Vorgehen (BPM statt RR-ms, gröber, aber ohne
+  //  zusätzliche Hardware-Anforderung nutzbar).
+  //
+  //  Formel: MASD (Mean Absolute Successive Difference) über ein
+  //  gleitendes Zeitfenster – Mittelwert der Beträge aufeinanderfolgender
+  //  Differenzen (|bpm[i] − bpm[i−1]|). Konzeptionell näher an RMSSD als
+  //  eine einfache Standardabweichung, weil beide auf AUFEINANDERFOLGENDEN
+  //  Differenzen aufbauen statt auf der Streuung um den Gesamt-Mittelwert
+  //  – aber bewusst OHNE Quadrierung/Wurzel (echtes RMSSD), da das bei so
+  //  grober BPM-Auflösung keinen zusätzlichen Erkenntnisgewinn bringt.
+  //
+  //  Persönlicher Normalwert: gleitender Mittelwert (EMA) DIESER
+  //  Variabilität selbst, sehr träge – analog avatarMittelwertAktualisieren
+  //  weiter oben (dort: EMA über Pulswerte pro Kontakt), hier: EMA über die
+  //  eigene Variabilität, persistiert in localStorage ("über längere Zeit").
+  //  RICHTUNG (wichtig, gegenläufig zur Typ-Logik!): hohe Variabilität =
+  //  entspannt = stabile Schrift (Stabilität hoch); niedrige Variabilität
+  //  = angespannt = zitternde Schrift (Stabilität niedrig).
+  // ══════════════════════════════════════════════════════════════════
+  const PULS_VAR_FENSTER_MS     = 45000; // ← nachjustieren: gleitendes Fenster, 30–60s laut Auftrag
+  const PULS_VAR_MIN_MESSPUNKTE = 5;     // ← nachjustieren: mind. 4 Differenzen, bevor der Wert genutzt wird
+  const PULS_VAR_EMA_ALPHA      = 0.08;  // ← nachjustieren: sehr träge, "persönlicher Normalwert" entwickelt sich über viele Minuten
+  const STAB_PULS_BASIS         = 500;   // Stabilität bei exakt durchschnittlicher (persönlich normaler) Variabilität
+  const STAB_PULS_SKALIERUNG    = 150;   // ← nachjustieren nach ersten echten Messungen: Stabilitäts-Punkte pro bpm Abweichung vom Normalwert
+
+  const PULS_VAR_NORMALWERT_KEY = 'situativeTypografie_pulsVariabilitaetNormalwert';
+
+  function pulsVariabilitaetNormalwertLaden() {
+    try {
+      const wert = JSON.parse(localStorage.getItem(PULS_VAR_NORMALWERT_KEY));
+      return typeof wert === 'number' ? wert : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  let pulsFenster = []; // { bpm, zeit }-Einträge der letzten PULS_VAR_FENSTER_MS
+  let pulsVariabilitaetNormalwert = pulsVariabilitaetNormalwertLaden(); // EMA, null bis genug Messpunkte da sind
+
+  // Nimmt einen neuen BPM-Wert entgegen, pflegt das gleitende Fenster und
+  // liefert die aktuelle Variabilität zurück (oder null, falls noch nicht
+  // genug Messpunkte im Fenster sind). Faltet nebenbei den persönlichen
+  // Normalwert (EMA) fort. Wird bei jeder HF-Notification aus bpmEmpfangen
+  // aufgerufen.
+  function pulsVariabilitaetMessen(bpm) {
+    const jetzt = Date.now();
+    pulsFenster.push({ bpm: bpm, zeit: jetzt });
+    pulsFenster = pulsFenster.filter(function (eintrag) { return eintrag.zeit >= jetzt - PULS_VAR_FENSTER_MS; });
+
+    if (pulsFenster.length < PULS_VAR_MIN_MESSPUNKTE) return null;
+
+    let summeDiffs = 0;
+    for (let i = 1; i < pulsFenster.length; i++) {
+      summeDiffs += Math.abs(pulsFenster[i].bpm - pulsFenster[i - 1].bpm);
+    }
+    const variabilitaet = summeDiffs / (pulsFenster.length - 1);
+
+    pulsVariabilitaetNormalwert = pulsVariabilitaetNormalwert == null
+      ? variabilitaet
+      : pulsVariabilitaetNormalwert + (variabilitaet - pulsVariabilitaetNormalwert) * PULS_VAR_EMA_ALPHA;
+    try { localStorage.setItem(PULS_VAR_NORMALWERT_KEY, JSON.stringify(pulsVariabilitaetNormalwert)); } catch (e) {}
+
+    return variabilitaet;
+  }
+
   let bandVerbunden        = false;
   let bandDeviceId         = null;  // ersetzt bluetoothGeraet (Web-Bluetooth-Objekt) – bei BleClient reicht die Geräte-ID als String
   let bleBereit             = false; // BleClient.initialize() nur einmal nötig
   let intentionalesTrennen = false;
+  let letzterBpmWert       = null;  // für die Profil-Anzeige (siehe profilStatsAktualisieren), null solange nie verbunden
 
   // ── Zustand für die Bewegungs-Erfassung (PMD ACC, Nacht-Erfassung) ──
   let bewegungAkkumuliert   = 0;     // seit der letzten Meldung ans Foreground-Service-Plugin
@@ -3521,13 +3904,33 @@
     // (z. B. unterstützt das verbundene Gerät die Kombination nicht) darf
     // die normale Puls-Verbindung nicht beeinträchtigen, wird aber laut
     // geloggt statt still zu scheitern.
+    //
+    // Rate + Connection Priority werden EINMALIG hier beim Verbindungsaufbau
+    // anhand der aktuellen Uhrzeit gewählt (nicht dynamisch während der
+    // laufenden Verbindung nachjustiert – siehe istNachtzeit()-Kommentar
+    // oben: eine Live-Rekonfiguration des PMD-Streams mitten in der
+    // Verbindung wäre ein unnötiges Stabilitätsrisiko).
+    const nachts = istNachtzeit();
     try {
       await BleClient.startNotifications(deviceId, PMD_SERVICE, PMD_DATA, accDatenEmpfangen);
-      await BleClient.write(deviceId, PMD_SERVICE, PMD_CONTROL_POINT, new DataView(PMD_ACC_START_KOMMANDO.buffer));
-      console.log('[Bewegung] PMD-Beschleunigungsmessung gestartet.');
+      await BleClient.write(
+        deviceId, PMD_SERVICE, PMD_CONTROL_POINT,
+        new DataView((nachts ? PMD_ACC_START_KOMMANDO_NACHT : PMD_ACC_START_KOMMANDO_TAG).buffer)
+      );
+      console.log('[Bewegung] PMD-Beschleunigungsmessung gestartet (' + (nachts ? '52 Hz, Nacht-Modus' : '208 Hz, Tag-Modus') + ').');
     } catch (err) {
       console.error('[Bewegung] PMD-Beschleunigungsmessung konnte nicht gestartet werden:', err);
     }
+
+    // Connection Priority: nachts auf LOW_POWER (größeres Verbindungs-
+    // intervall, spart Akku), tagsüber explizit BALANCED (SIG-Standard-
+    // verhalten, unverändert zum bisherigen Tagesverhalten). Rein additiv,
+    // fire-and-forget – ein Fehlschlag hier darf die Verbindung selbst
+    // nicht gefährden (auf web ohnehin No-Op, siehe vendor/bluetooth-le.js).
+    BleClient.requestConnectionPriority(
+      deviceId,
+      nachts ? ConnectionPriority.CONNECTION_PRIORITY_LOW_POWER : ConnectionPriority.CONNECTION_PRIORITY_BALANCED
+    ).catch(err => console.error('[Bluetooth] requestConnectionPriority fehlgeschlagen (Verbindung bleibt davon unberührt):', err));
   }
 
   // ── Verbindungsaufbau per Klick ─────────────────────────────────
@@ -3611,7 +4014,7 @@
   // ── Nacht-Erfassung: Morgen-Auswertung ───────────────────────────
   // Prüft beim Laden von chat.html, ob der native Foreground Service über
   // Nacht Puls-/Bewegungs-Summen gesammelt hat (siehe
-  // MomentumBleForegroundService, 5-Minuten-Takt), berechnet daraus eine von
+  // MomentumBleForegroundService, 15-Minuten-Takt), berechnet daraus eine von
   // 4 Schlafqualitäts-Stufen und speist sie in die bestehende
   // Schlafqualität-Dimension ein. Rein additiv: die Blur-Berechnung selbst
   // (siehe BLUR_MAX weiter oben) bleibt komplett unverändert, sie liest nur
@@ -3627,7 +4030,7 @@
   const SCHLAF_HF_GUT            = 55;  // ← durchschnittl. Ruhepuls, gilt als "sehr gut"
   const SCHLAF_HF_SCHLECHT       = 90;  // ← ab hier gilt der Puls-Teil-Score als "schlecht"
   // Bewegungs-Schwellwerte: PLATZHALTER. Die Einheit (Summe aus
-  // Magnitude-Deltas pro 5-Min-Tick, siehe accDatenEmpfangen) lässt sich vor
+  // Magnitude-Deltas pro 15-Min-Tick, siehe accDatenEmpfangen) lässt sich vor
   // einer ersten echten Nacht mit dem Band nicht sinnvoll beziffern – nach
   // dem ersten Testlauf anhand der in MomentumBleForegroundService
   // geloggten "Nacht-Tick"-Werte kalibrieren.
@@ -3707,9 +4110,18 @@
 
     // Herzfrequenz lesen (1 oder 2 Bytes je nach Format-Flag)
     const bpm = format16 ? daten.getUint16(1, true) : daten.getUint8(1);
+    letzterBpmWert = bpm; // für die Profil-Anzeige (siehe profilStatsAktualisieren), unabhängig von document.hidden
 
-    // RR-Intervalle vorhanden? (Bit 4 der Flags) → nur zu Testzwecken loggen,
-    // noch keine HRV-Berechnung/UI-Änderung.
+    // RR-Intervalle vorhanden? (Bit 4 der Flags) – wird ausgelesen und
+    // geloggt, ABSICHTLICH NICHT für die HRV-Näherung unten verwendet: der
+    // Verity Sense liefert über diesen Standard-HR-Kanal empirisch KEINE
+    // RR-Intervalle (dieser Zweig lief in Tests nie, siehe else-Zweig unten
+    // im Log). Die Stabilitäts-Dimension nutzt stattdessen eine Annäherung
+    // aus der Schwankung der BPM-Werte selbst (siehe pulsVariabilitaetMessen
+    // weiter oben). Dieser Block bleibt bewusst bestehen – falls doch einmal
+    // ein Gerät/Firmware-Stand echte RR-Intervalle sendet, sind sie bereits
+    // ausgelesen und könnten künftig die BPM-Näherung durch echtes RMSSD
+    // ersetzen.
     if (flags & 0x10) {
       // Offset der RR-Intervalle: Flags(1) + HR-Wert(1 oder 2, je nach Bit 0)
       // + optional Energy Expended(2), wenn Bit 3 gesetzt ist (spec-treu,
@@ -3727,9 +4139,6 @@
       console.log('[HRV] Keine RR-Intervalle in diesem Datenstrom vorhanden.');
     }
 
-    // Live-Anzeige des Rohwerts (sichtbar nach Verbindung)
-    bandBpmLive.textContent = bpm + ' bpm';
-
     // ── BPM → Intensitäts-Rohwert mappen (fließt hier ins Mapping ein) ──
     // umrechnen() wiederverwendet aus sensorZuSchriftAchse() oben.
     const intensitaetRoh = Math.min(900, Math.max(100,
@@ -3737,10 +4146,45 @@
     ));
 
     // Intensität in aktuelleRohwerte einsetzen – ersetzt den Slider-Wert
+    // (bewusst UNABHÄNGIG von document.hidden: fließt in die Nacht-Erfassung
+    // ein bzw. muss beim nächsten sichtbaren Rendern aktuell sein).
     aktuelleRohwerte.intensitaet = intensitaetRoh;
-    wertIntensitaet.textContent  = intensitaetRoh;
-    aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
-    vorschauAktualisieren();
+
+    // Stabilität aus der Puls-Variabilität (Annäherung an HRV, siehe
+    // pulsVariabilitaetMessen weiter oben) – ersetzt bei verbundenem Band
+    // die tippbasierte Stabilität (tippAnalysieren/Erholungs-Timer sind
+    // dann per !bandVerbunden inaktiv). RICHTUNG: hohe Variabilität =
+    // entspannt = stabile Schrift (Wert hoch), niedrige Variabilität =
+    // angespannt = zitternde Schrift (Wert niedrig) – daher
+    // (variabilitaet − Normalwert), NICHT umgekehrt.
+    const variabilitaet = pulsVariabilitaetMessen(bpm);
+    if (variabilitaet != null) {
+      const stabilitaetRoh = Math.round(Math.min(STAB_MAX, Math.max(STAB_MIN,
+        STAB_PULS_BASIS + (variabilitaet - pulsVariabilitaetNormalwert) * STAB_PULS_SKALIERUNG
+      )));
+      // Setzt aktuelleRohwerte.stabilitaet + aktuelleAchsen (+ Anzeige,
+      // falls sichtbar) – siehe stabilitaetAnzeigenUndUebernehmen oben.
+      stabilitaetAnzeigenUndUebernehmen(stabilitaetRoh);
+    } else {
+      // Noch nicht genug Messpunkte im gleitenden Fenster – Achsen trotzdem
+      // mit der neuen Intensität neu berechnen, Stabilität bleibt vorerst
+      // beim zuletzt gültigen Wert (Start: tippbasierter Ausgangszustand).
+      aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+    }
+
+    // Live-Anzeige (BPM-/Intensitäts-Text): reine UI-Kosmetik, die bei
+    // gesperrtem Bildschirm ohnehin niemand sieht – hier pausiert, um bei
+    // ~1 HF-Notification/Sekunde über eine ganze Nacht nicht unnötig oft
+    // Text-/Style-Änderungen auszuführen. Die Nacht-Erfassung selbst (Meldung
+    // an den Foreground Service unten) ist davon nicht betroffen. Vorschau-
+    // Stil: bereits oben in stabilitaetAnzeigenUndUebernehmen erledigt, wenn
+    // variabilitaet vorlag – sonst hier nachholen.
+    if (!document.hidden) {
+      bandBpmLive.textContent = bpm + ' bpm';
+      wertIntensitaet.textContent = intensitaetRoh;
+      if (variabilitaet == null) vorschauAktualisieren();
+      profilStatsAktualisieren(); // Puls/Stabilitaet im Profil live nachziehen, siehe Abschnitt PROFIL
+    }
 
     // An den Foreground Service melden (für die Nacht-Erfassung, siehe
     // MomentumBleForegroundService) – rein additiv, fire-and-forget, beeinflusst
@@ -3811,6 +4255,12 @@
   function bandZuruecksetzen() {
     bandVerbunden = false;
     bandDeviceId  = null;
+    // stabilitaet_wert (Tipp-Engine, siehe tippAnalysieren/Erholungs-Timer)
+    // war während der Verbindung eingefroren (Stabilität kam stattdessen
+    // aus der Puls-Variabilität, siehe bpmEmpfangen) – hier auf den zuletzt
+    // angezeigten Wert nachziehen, damit der nächste Tastendruck nahtlos
+    // anschließt statt auf den alten Vor-Verbindungs-Wert zurückzuspringen.
+    stabilitaet_wert = aktuelleRohwerte.stabilitaet;
     bandBtn.textContent = 'Band verbinden';
     bandBtn.classList.remove('verbunden');
     bandBpmLive.hidden = true;
@@ -4238,6 +4688,269 @@
   // die aus assets/avatars/ abgeleiteten Kontakte, sofern beim Build
   // (scripts/sync-web.js) welche gefunden wurden.
   kontaktlisteAusManifestErsetzen(AVATARS_MANIFEST);
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  PROFIL – eigener Bereich: Foto, Name (mit echtem EMA-
+  //  Schriftschnitt), aktuelle Werte (Puls/Stabilität/Schlaf), NUR
+  //  die aktuellen Werte, kein Verlauf über mehrere Tage.
+  // ═══════════════════════════════════════════════════════════════
+
+  // ── Eigener Durchschnitt (EMA) – dasselbe Prinzip wie
+  // avatarMittelwertAktualisieren weiter oben (siehe dort), aber für
+  // MICH statt für einen Chat-Kontakt: EIN einzelner Wert statt einer
+  // Map pro Name, gefüttert aus jeder gesendeten Chat-Nachricht (siehe
+  // Enter-Handler oben) UND jedem Tagebuch-Eintrag (siehe unten) –
+  // beides "echte", von mir selbst verfasste Daten, im Unterschied zu
+  // den zufällig gewürfelten Demo-Kontakten (siehe DEMO_KONTAKTE oben).
+  const EIGENER_MITTELWERT_KEY = 'situativeTypografie_eigenerMittelwert';
+
+  function eigenerMittelwertLaden() {
+    try {
+      const wert = JSON.parse(localStorage.getItem(EIGENER_MITTELWERT_KEY));
+      return typeof wert === 'number' ? wert : AVATAR_START_WERT;
+    } catch (e) {
+      return AVATAR_START_WERT;
+    }
+  }
+
+  let eigenerMittelwert = eigenerMittelwertLaden();
+
+  function eigenerMittelwertAktualisieren(neuerWert) {
+    eigenerMittelwert = eigenerMittelwert + (neuerWert - eigenerMittelwert) * AVATAR_EMA_ALPHA;
+    try { localStorage.setItem(EIGENER_MITTELWERT_KEY, JSON.stringify(eigenerMittelwert)); } catch (e) {}
+    profilNameSchriftAktualisieren();
+  }
+
+  // ── DOM-Referenzen ────────────────────────────────────────────
+  const profilAvatar          = document.getElementById('profil-avatar');
+  const profilFotoUploadBtn   = document.getElementById('profil-foto-upload-btn');
+  const profilFotoInput       = document.getElementById('profil-foto-input');
+  const profilNameEingabe     = document.getElementById('profil-name-eingabe');
+  const profilWertPuls        = document.getElementById('profil-wert-puls');
+  const profilWertStabilitaet = document.getElementById('profil-wert-stabilitaet');
+  const profilWertSchlaf      = document.getElementById('profil-wert-schlaf');
+
+  function profilNameSchriftAktualisieren() {
+    const schnitt = intensitaetZuSchriftschnitt(eigenerMittelwert);
+    profilNameEingabe.style.fontFamily = "'" + schnitt + "', 'Inter', sans-serif";
+  }
+  profilNameSchriftAktualisieren();
+
+  // ── Eigener Name: einfaches, persistiertes Textfeld (kein Rahmen,
+  // sieht wie Fließtext aus, siehe .profil-name-eingabe) – "Grund-
+  // gerüst" wie gefordert, es gibt keine Namens-Erfassung im
+  // Onboarding, daher hier die einfachste Lösung.
+  const EIGENER_NAME_KEY = 'situativeTypografie_eigenerName';
+
+  function eigenerNameLaden() {
+    try { return localStorage.getItem(EIGENER_NAME_KEY) || 'Du'; } catch (e) { return 'Du'; }
+  }
+
+  profilNameEingabe.value = eigenerNameLaden();
+  profilAvatar.textContent = profilNameEingabe.value.charAt(0).toUpperCase() || 'D';
+
+  profilNameEingabe.addEventListener('change', function () {
+    const wert = profilNameEingabe.value.trim() || 'Du';
+    profilNameEingabe.value = wert;
+    try { localStorage.setItem(EIGENER_NAME_KEY, wert); } catch (e) {}
+    if (!profilAvatar.classList.contains('avatar--foto')) {
+      profilAvatar.textContent = wert.charAt(0).toUpperCase();
+    }
+  });
+
+  // ── Eigenes Profilbild: einfacher Datei-Upload (Grundgerüst) – rein
+  // lokal als Data-URL in localStorage, kein Server-Upload. Größere
+  // Fotos können das localStorage-Kontingent sprengen, daher try/catch
+  // – schlägt der Speicherversuch fehl, bleibt zumindest die Live-
+  // Anzeige (bis zum nächsten Neuladen) erhalten.
+  const EIGENES_PROFILBILD_KEY = 'situativeTypografie_eigenesProfilbild';
+
+  function eigenesProfilbildAnwenden(dataUrl) {
+    if (dataUrl) {
+      profilAvatar.style.backgroundImage = "url('" + dataUrl + "')";
+      profilAvatar.classList.add('avatar--foto');
+    } else {
+      profilAvatar.style.backgroundImage = '';
+      profilAvatar.classList.remove('avatar--foto');
+    }
+  }
+
+  (function eigenesProfilbildLadenUndAnwenden() {
+    try {
+      const gespeichert = localStorage.getItem(EIGENES_PROFILBILD_KEY);
+      if (gespeichert) eigenesProfilbildAnwenden(gespeichert);
+    } catch (e) {}
+  })();
+
+  profilFotoUploadBtn.addEventListener('click', function () { profilFotoInput.click(); });
+
+  profilFotoInput.addEventListener('change', function () {
+    const datei = profilFotoInput.files[0];
+    if (!datei) return;
+    const leser = new FileReader();
+    leser.onload = function () {
+      eigenesProfilbildAnwenden(leser.result);
+      try {
+        localStorage.setItem(EIGENES_PROFILBILD_KEY, leser.result);
+      } catch (e) {
+        console.error('[Profil] Profilbild konnte nicht gespeichert werden (evtl. zu groß für localStorage):', e);
+      }
+    };
+    leser.readAsDataURL(datei);
+  });
+
+  // ── Aktuelle Werte (Puls/Stabilität/Schlaf) ─────────────────────
+  // Reine Anzeige der jeweils zuletzt bekannten Werte – KEIN Verlauf,
+  // wie gefordert. Schlafqualität: liest denselben, bereits an anderer
+  // Stelle gespeicherten Wert (NACHT_STUFE_KEY, siehe Abschnitt
+  // "Nacht-Erfassung: Morgen-Auswertung" weiter oben), "wach" als
+  // Fallback, wenn heute noch keine Nacht ausgewertet wurde.
+  function aktuelleSchlafstufeText() {
+    try {
+      const gespeichert = JSON.parse(localStorage.getItem(NACHT_STUFE_KEY) || 'null');
+      if (gespeichert && gespeichert.datum === heutigesDatum()) return gespeichert.stufe;
+    } catch (e) {}
+    return 'wach';
+  }
+
+  function profilStatsAktualisieren() {
+    profilWertPuls.textContent        = letzterBpmWert == null ? '—' : letzterBpmWert + ' bpm';
+    profilWertStabilitaet.textContent = Math.round(aktuelleRohwerte.stabilitaet);
+    profilWertSchlaf.textContent      = aktuelleSchlafstufeText();
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  TAGEBUCH – eigenständiger Bereich, nutzt denselben tippAnalysieren-
+  //  Mechanismus wie Chat/Moment (siehe dort – UNVERÄNDERT), aber mit
+  //  eigenem, getrenntem Wort-Zustand (exakt nach dem Muster von
+  //  momentWortZustaende/momentWortZustaendeSynchronisieren weiter
+  //  oben). Im Unterschied zu MOMENT: kein "einmal pro Tag"-Limit,
+  //  beliebig viele Einträge, DAUERHAFT sichtbar statt 24h-Story.
+  // ═══════════════════════════════════════════════════════════════
+  const TAGEBUCH_KEY = 'situativeTypografie_tagebuchEintraege';
+
+  function tagebuchEintraegeLaden() {
+    try { return JSON.parse(localStorage.getItem(TAGEBUCH_KEY)) || []; } catch (e) { return []; }
+  }
+
+  let tagebuchEintraege = tagebuchEintraegeLaden(); // [{ text, wortSnapshots, zeitstempel }], neueste zuerst
+
+  function tagebuchEintraegeSpeichern() {
+    try {
+      localStorage.setItem(TAGEBUCH_KEY, JSON.stringify(tagebuchEintraege));
+    } catch (e) {
+      console.error('[Tagebuch] Eintrag konnte nicht gespeichert werden:', e);
+    }
+  }
+
+  const tagebuchEingabe      = document.getElementById('tagebuch-eingabe');
+  const tagebuchSpeichernBtn = document.getElementById('tagebuch-speichern-btn');
+  const tagebuchListe        = document.getElementById('tagebuch-liste');
+
+  let tagebuchWortZustaende = [];
+  let tagebuchIstEingefuegt = false;
+
+  function tagebuchWortZustaendeSynchronisieren() {
+    const anzahl = abgeschlosseneWortAnzahl(tagebuchEingabe.value);
+    const leblos = !emotionAktiv || tagebuchIstEingefuegt;
+
+    while (tagebuchWortZustaende.length < anzahl) {
+      tagebuchWortZustaende.push({ achsen: { ...aktuelleAchsen }, leblos: leblos });
+    }
+    if (tagebuchWortZustaende.length > anzahl) {
+      tagebuchWortZustaende.length = anzahl;
+    }
+  }
+
+  // Tippverhalten (Tempo/Stabilität): derselbe geteilte Mechanismus wie
+  // Chat/Moment – tippAnalysieren bleibt komplett unverändert, wird nur
+  // zusätzlich an dieses dritte Textfeld gehängt (siehe Kommentar bei
+  // momentEingabe weiter oben, identisches Prinzip).
+  tagebuchEingabe.addEventListener('keydown', tippAnalysieren);
+
+  tagebuchEingabe.addEventListener('input', function (e) {
+    if (e.inputType === 'insertFromPaste') {
+      tagebuchIstEingefuegt = true;
+    } else if (tagebuchIstEingefuegt && e.inputType === 'insertText') {
+      tagebuchIstEingefuegt = false;
+    }
+    tagebuchWortZustaendeSynchronisieren();
+  });
+
+  const TAGEBUCH_DATUM_FORMAT = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+
+  function tagebuchEintragRendern(eintrag) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'tagebuch-eintrag';
+
+    const datumEl = document.createElement('div');
+    datumEl.className = 'tagebuch-datum';
+    datumEl.textContent = new Date(eintrag.zeitstempel).toLocaleString('de-DE', TAGEBUCH_DATUM_FORMAT);
+
+    const textEl = document.createElement('div');
+    textEl.className = 'tagebuch-text';
+    // Wiederverwendet dieselbe Wort-für-Wort-Render-Funktion wie MOMENT
+    // (siehe momentTextRendern weiter oben) – identisches Prinzip,
+    // eingefrorene Achsen pro Wort in Stil übersetzen.
+    momentTextRendern(textEl, eintrag.text, eintrag.wortSnapshots);
+
+    wrapper.appendChild(datumEl);
+    wrapper.appendChild(textEl);
+    return wrapper;
+  }
+
+  function tagebuchListeRendern() {
+    tagebuchListe.innerHTML = '';
+    if (tagebuchEintraege.length === 0) {
+      const hinweis = document.createElement('p');
+      hinweis.className = 'tagebuch-leer-hinweis';
+      hinweis.textContent = 'Noch keine Einträge.';
+      tagebuchListe.appendChild(hinweis);
+      return;
+    }
+    tagebuchEintraege.forEach(function (eintrag) {
+      tagebuchListe.appendChild(tagebuchEintragRendern(eintrag));
+    });
+  }
+
+  function tagebuchSpeichern() {
+    const text = tagebuchEingabe.value.trim();
+    if (!text) return;
+
+    const woerter = text.split(/\s+/).filter(function (w) { return w.length > 0; });
+    const wortSnapshots = tagebuchWortZustaende.slice(0, woerter.length);
+    if (wortSnapshots.length < woerter.length) {
+      wortSnapshots.push({ achsen: { ...aktuelleAchsen }, leblos: !emotionAktiv || tagebuchIstEingefuegt });
+    }
+
+    tagebuchEintraege.unshift({ text: text, wortSnapshots: wortSnapshots, zeitstempel: Date.now() });
+    tagebuchEintraegeSpeichern();
+
+    // Eigener Durchschnitt (siehe Abschnitt PROFIL oben) fließt auch aus
+    // Tagebuch-Einträgen – genau wie aus Chat-Nachrichten.
+    eigenerMittelwertAktualisieren(aktuelleRohwerte.intensitaet);
+
+    tagebuchEingabe.value = '';
+    tagebuchWortZustaende = [];
+    tagebuchIstEingefuegt = false;
+
+    // Gemeinsamer Tempo-/Stabilitäts-Reset – exakt wie nach Chat-/
+    // Moment-Senden (siehe dort).
+    stabilitaet_wert = STAB_START;
+    tipp_zeitstempel = [];
+    aktuelleRohwerte.tempo = 100;
+    wertTempoAnzeige.textContent = 100;
+    balkenTempo.style.width = '0%';
+    stabilitaetUebernehmen();
+
+    tagebuchListeRendern();
+  }
+
+  tagebuchSpeichernBtn.addEventListener('click', tagebuchSpeichern);
+
+  tagebuchListeRendern();
 
 </script>
 </body>

@@ -12,6 +12,8 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 
+import java.util.Calendar;
+
 import androidx.core.app.NotificationCompat;
 
 /**
@@ -48,7 +50,19 @@ public class MomentumBleForegroundService extends Service {
     // Instanz gebunden ist (nur Start-/Stop-Intents) und so trotzdem lesend/
     // schreibend zugreifen kann. Bewusst nur zwei Summen + ein Zähler im
     // Arbeitsspeicher – keine Einzelmesspunkte (siehe Plan).
-    private static final long NACHT_TICK_INTERVALL_MS = 5 * 60 * 1000L; // 5 Minuten
+    // Zwei Takte statt einem: NUR innerhalb des Nacht-Fensters (22:00–08:00,
+    // siehe istNachtzeit()) wird tatsächlich in die Schlaf-Summen aufsummiert
+    // (grobe 4-Stufen-Einordnung, siehe nachtAuswertungPruefen in chat.html –
+    // avgHF/avgBewegung = Summe/anzahlMesspunkte, keine Zeitreihen-Analyse,
+    // daher unkritisch, ob daraus 96 oder 32 Ticks pro Nacht werden).
+    // Außerhalb des Fensters (Tag) tickt der Handler weiterhin (alle 5 Min,
+    // der ursprüngliche/"bisherige" Takt von vor dieser Optimierung), macht
+    // dabei aber NICHTS außer erneut die Uhrzeit zu prüfen – so wird der
+    // Tag→Nacht-Übergang spätestens nach 5 Minuten erkannt, der
+    // Nacht→Tag-Übergang spätestens nach 15 Minuten (die Zeit wird bei
+    // JEDEM Tick neu geprüft, nicht nur einmal beim Verbindungsaufbau).
+    private static final long NACHT_TICK_INTERVALL_MS = 15 * 60 * 1000L; // 15 Minuten (nachts)
+    private static final long TAG_TICK_INTERVALL_MS   =  5 * 60 * 1000L; // 5 Minuten (tagsüber, unverändert zum ursprünglichen Takt)
 
     private static volatile int letzteHerzfrequenz     = 0;
     private static volatile double bewegungSeitTick     = 0;
@@ -56,13 +70,30 @@ public class MomentumBleForegroundService extends Service {
     private static volatile double summeBewegung        = 0;
     private static volatile int anzahlMesspunkte        = 0;
 
+    /**
+     * Echte Uhrzeit-Prüfung (Systemzeit des Geräts, java.util.Calendar statt
+     * java.time – minSdkVersion 24 < 26, kein Desugaring konfiguriert).
+     * Bewusst NICHT an document.hidden/Bildschirmsperre gekoppelt: kurzes
+     * Sperren tagsüber soll NICHT in den Nacht-/Akku-Sparmodus wechseln.
+     * Bestimmt ausschließlich, ob nachtTick() gerade summiert und welches
+     * Tick-Intervall als Nächstes gilt – der Foreground Service selbst
+     * läuft davon komplett unabhängig durchgehend weiter.
+     */
+    private static boolean istNachtzeit() {
+        int stunde = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        return stunde >= 22 || stunde < 8;
+    }
+
     private Handler nachtHandler;
     private final Runnable nachtTickRunnable = new Runnable() {
         @Override
         public void run() {
-            nachtTick();
+            boolean nachts = istNachtzeit();
+            if (nachts) {
+                nachtTick();
+            }
             if (nachtHandler != null) {
-                nachtHandler.postDelayed(this, NACHT_TICK_INTERVALL_MS);
+                nachtHandler.postDelayed(this, nachts ? NACHT_TICK_INTERVALL_MS : TAG_TICK_INTERVALL_MS);
             }
         }
     };
@@ -157,8 +188,11 @@ public class MomentumBleForegroundService extends Service {
         // aufgerufen werden, solange der Service bereits läuft.
         if (nachtHandler == null) {
             nachtHandler = new Handler(Looper.getMainLooper());
-            nachtHandler.postDelayed(nachtTickRunnable, NACHT_TICK_INTERVALL_MS);
-            Log.d(TAG, "onStartCommand: Nacht-Erfassungstakt gestartet (alle " + (NACHT_TICK_INTERVALL_MS / 60000) + " Min).");
+            boolean nachts = istNachtzeit();
+            long ersterDelay = nachts ? NACHT_TICK_INTERVALL_MS : TAG_TICK_INTERVALL_MS;
+            nachtHandler.postDelayed(nachtTickRunnable, ersterDelay);
+            Log.d(TAG, "onStartCommand: Erfassungstakt gestartet (alle " + (ersterDelay / 60000)
+                + " Min, " + (nachts ? "Nacht-Fenster aktiv, summiert" : "Tag – summiert nicht") + ").");
         }
 
         // START_STICKY: Falls das System den Prozess trotz Foreground-Status

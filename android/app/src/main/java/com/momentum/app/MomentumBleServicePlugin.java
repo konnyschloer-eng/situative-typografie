@@ -100,7 +100,7 @@ public class MomentumBleServicePlugin extends Plugin {
     // ── Nacht-Erfassung (Schlafqualität) ────────────────────────────
     // Reine Weiterleitung an die statischen Felder in
     // MomentumBleForegroundService (siehe dort für die eigentliche
-    // 5-Minuten-Verdichtungslogik) – dieses Plugin bündelt nur den
+    // 15-Minuten-Verdichtungslogik) – dieses Plugin bündelt nur den
     // JS-seitigen Zugriff darauf.
 
     @PluginMethod
