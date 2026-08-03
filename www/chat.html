@@ -916,9 +916,13 @@
 
     .gespraechs-eintrag {
       display: flex;
-      align-items: stretch;
+      /* center statt stretch: .gespraechs-info enthält jetzt nur noch
+         eine Zeile (Name, keine Nachrichtenvorschau mehr) – der Avatar
+         bleibt der Höhen-Anker der Zeile, Name + Meta-Spalte werden
+         daran vertikal zentriert statt künstlich gestreckt. */
+      align-items: center;
       gap: 14px;
-      padding: 14px 20px;
+      padding: 16px 20px; /* etwas mehr Luft für die jetzt einzeilige, größere Namenszeile */
       border-bottom: 1px solid var(--border-light);
       cursor: pointer;
       user-select: none;
@@ -986,11 +990,25 @@
     }
 
     .gespraechs-name {
-      font-size: 14px;
+      /* Deutlich größer (vorher 14px) – der Name ist jetzt das
+         zentrale Element der Zeile: die typografische Charakteristik
+         der Person (Strichstärke/Schnitt per JS, Zittern, Unschärfe
+         bei Demo-Kontakten) soll klar im Vordergrund stehen, statt
+         von einer Nachrichtenvorschau in den Hintergrund gedrängt zu
+         werden. Reagierende Typografie-Logik selbst unverändert –
+         reine Größenänderung. */
+      font-size: 22px;
+      line-height: 1.15;
       color: #222; /* bleibt konstant – Lesbarkeit */
       font-family: 'Situra-Regular', 'Inter', sans-serif;
     }
 
+    /* Nachrichtenvorschau: nur noch für GRUPPEN in Gebrauch (zeigt dort
+       die Mitgliederliste statt einer Nachricht, siehe
+       gruppenEintragErstellen) – für 1:1-Kontakte wurde das Element
+       komplett entfernt (kein CSS-Verstecken nötig), siehe
+       kontaktEintragErstellen weiter unten und die feste HTML-Liste
+       oben. */
     .gespraechs-vorschau {
       font-size: 13px;
       color: var(--text-3);
@@ -1000,20 +1018,17 @@
     }
 
     /* ── Rechte Spalte: Uhrzeit der letzten Nachricht + Ungelesen-
-       Punkt darunter. flex-shrink:0 hält die Spalte auf fester
-       Breite, wodurch .gespraechs-info (s.o., min-width:0) den
-       verbleibenden Platz nimmt und korrekt ellipsiert.
-       Durch align-items:stretch auf .gespraechs-eintrag (s.o.) hat
-       diese Spalte dieselbe Höhe wie .gespraechs-info – justify-
-       content:space-between verankert die Uhrzeit fest oben (auf
-       Höhe des Namens) und den Punkt (falls vorhanden) fest unten
-       (auf Höhe der Vorschau), statt frei zu schweben. ── */
+       Punkt darunter, dezent (kleine Schrift/Punkt, gedeckte Farbe)
+       und knapp gruppiert, damit sie den nun deutlich größeren Namen
+       nicht überstrahlen. flex-shrink:0 hält die Spalte auf fester
+       Breite. Durch align-items:center auf .gespraechs-eintrag (s.o.)
+       wird die ganze Spalte (statt einzelner Kinder per space-between)
+       vertikal zum Avatar zentriert. ── */
     .gespraechs-meta {
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      justify-content: space-between;
       gap: 7px;
     }
 
@@ -1641,7 +1656,6 @@
         <div class="avatar" data-name="Anna">A</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="Anna">Anna</span>
-          <span class="gespraechs-vorschau">Schick mir mal einen Screenshot, wenn's fertig ist.</span>
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">09:41</span>
@@ -1653,7 +1667,6 @@
         <div class="avatar" data-name="Ben">B</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="Ben">Ben</span>
-          <span class="gespraechs-vorschau">Bin gleich so weit, gib mir 5 Minuten.</span>
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">09:12</span>
@@ -1665,7 +1678,6 @@
         <div class="avatar" data-name="Clara">C</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="Clara">Clara</span>
-          <span class="gespraechs-vorschau">Das klingt nach einem guten Plan.</span>
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">Gestern</span>
@@ -1676,7 +1688,6 @@
         <div class="avatar" data-name="David">D</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="David">David</span>
-          <span class="gespraechs-vorschau">Wann sollen wir starten?</span>
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">Gestern</span>
@@ -1687,7 +1698,6 @@
         <div class="avatar" data-name="Elena">E</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="Elena">Elena</span>
-          <span class="gespraechs-vorschau">Ich schau's mir heute Abend an.</span>
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">07:58</span>
@@ -1699,7 +1709,6 @@
         <div class="avatar" data-name="Felix">F</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="Felix">Felix</span>
-          <span class="gespraechs-vorschau">Perfekt, bis später!</span>
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">Mo</span>
@@ -1710,7 +1719,6 @@
         <div class="avatar" data-name="Luca">L</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="Luca">Luca</span>
-          <span class="gespraechs-vorschau">Klingt interessant – wie funktioniert das genau?</span>
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">So</span>
@@ -1721,7 +1729,6 @@
         <div class="avatar" data-name="Mia">M</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="Mia">Mia</span>
-          <span class="gespraechs-vorschau">Hast du schon was zum Zeigen?</span>
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">08:03</span>
@@ -1733,7 +1740,6 @@
         <div class="avatar" data-name="Noah">N</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="Noah">Noah</span>
-          <span class="gespraechs-vorschau">Können wir das morgen besprechen?</span>
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">Fr</span>
@@ -1744,7 +1750,6 @@
         <div class="avatar" data-name="Sophie">S</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="Sophie">Sophie</span>
-          <span class="gespraechs-vorschau">Danke, hilft mir sehr weiter.</span>
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">Do</span>
@@ -2857,24 +2862,13 @@
     return stamm.charAt(0).toUpperCase() + stamm.slice(1);
   }
 
-  // Vorschau-Text/Uhrzeit/Ungelesen-Status sind für aus Fotos
-  // abgeleitete Kontakte frei erfunden (keine echte Nachrichten-
-  // Historie vorhanden) – ohne sie fehlten in der Liste sichtbar
-  // Uhrzeit, Vorschautext und der Ungelesen-Punkt (waren bei der
-  // festen Anna/Ben-Liste ja hart codiert). Zyklisch aus kleinen
-  // Pools befüllt, damit die Liste nicht komplett gleichförmig wirkt.
-  const KONTAKT_VORSCHAU_PLATZHALTER = [
-    'Hey, was gibt’s Neues?',
-    'Bin gleich da.',
-    'Klingt gut!',
-    'Bis später!',
-    'Schreib mir, wenn du Zeit hast.',
-    'Alles klar, bis dann.',
-    'Kannst du kurz telefonieren?',
-    'Danke dir!',
-    'Wir sehen uns.',
-    'Gute Frage, muss ich nachschauen.'
-  ];
+  // Uhrzeit/Ungelesen-Status sind für aus Fotos abgeleitete Kontakte
+  // frei erfunden (keine echte Nachrichten-Historie vorhanden) – ohne
+  // sie fehlten in der Liste sichtbar Uhrzeit und Ungelesen-Punkt
+  // (waren bei der festen Anna/Ben-Liste ja hart codiert). Zyklisch aus
+  // einem kleinen Pool befüllt, damit die Liste nicht komplett
+  // gleichförmig wirkt. Kein Vorschautext mehr (siehe kontaktEintragErstellen
+  // unten) – die Kontaktliste zeigt keine Nachrichtenvorschau mehr.
   const KONTAKT_ZEIT_PLATZHALTER = ['09:41', 'Gestern', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'So', '08:15', 'Jetzt'];
 
   // Baut einen 1:1-Kontakt-Eintrag (gleiches Markup wie die feste
@@ -2900,12 +2894,7 @@
     nameEl.dataset.name = kontakt.name;
     nameEl.textContent = kontakt.name;
 
-    const vorschauEl = document.createElement('span');
-    vorschauEl.className = 'gespraechs-vorschau';
-    vorschauEl.textContent = KONTAKT_VORSCHAU_PLATZHALTER[index % KONTAKT_VORSCHAU_PLATZHALTER.length];
-
     info.appendChild(nameEl);
-    info.appendChild(vorschauEl);
     eintrag.appendChild(info);
 
     const meta = document.createElement('div');
