@@ -117,27 +117,46 @@
 
 
     /* ══════════════════════════════════════════════════════════════
-       SCROLLBALKEN – einheitlicher, dezenter Stil für alle
+       SCROLLBALKEN – einheitlicher, dezenter Stil für ALLE
        scrollbaren Bereiche der App (Kontaktliste, Chat-Verlauf,
-       Eingabefeld, Overlay-Karte, Kontaktauswahl in "Neue Gruppe").
+       Eingabefeld, Overlay-Karten inkl. Kontaktauswahl in "Neue
+       Gruppe" und Story-Ansicht, Tagebuch-Liste/-Monatsansicht).
        Schmale Linie statt System-Balken, kein sichtbarer Track,
        abgerundete Enden, Farbe folgt dem aktuellen Modus über
        --scrollbar-farbe (siehe oben). Rein optisch – betrifft keine
        Typografie-/Zustandslogik.
-       ══════════════════════════════════════════════════════════════ */
-    .gespraechs-liste,
-    .chat-bereich,
-    .overlay-karte,
-    .kontakt-auswahl-liste,
-    #eingabe {
-      scrollbar-width: thin;                              /* Firefox */
-      scrollbar-color: var(--scrollbar-farbe) transparent; /* Firefox */
+       WICHTIG: scrollbar-width/-color (Standard-Properties, nur für
+       Browser ohne ::-webkit-scrollbar-Unterstützung wie Firefox)
+       ausdrücklich in @supports not selector(::-webkit-scrollbar)
+       gekapselt – neuere Chromium-Versionen kennen inzwischen BEIDE
+       Property-Familien, und wenn scrollbar-width/-color gesetzt
+       sind, rendern sie dort ihren nativen "thin"-Balken (klobiger,
+       sichtbarer Track, keine abgerundeten Enden) statt unser
+       exaktes ::-webkit-scrollbar-thumb-Styling zu übernehmen – genau
+       der Fall, der die dezente Optik "regressieren" ließ. Mit dem
+       @supports-Gate bekommt jede Engine nur genau einen der beiden
+       Mechanismen. ══════════════════════════════════════════════════ */
+    @supports not selector(::-webkit-scrollbar) {
+      .gespraechs-liste,
+      .chat-bereich,
+      .overlay-karte,
+      .moment-ansicht-karte,
+      .kontakt-auswahl-liste,
+      .tagebuch-liste,
+      .tagebuch-monat,
+      #eingabe {
+        scrollbar-width: thin;                              /* Firefox */
+        scrollbar-color: var(--scrollbar-farbe) transparent; /* Firefox */
+      }
     }
 
     .gespraechs-liste::-webkit-scrollbar,
     .chat-bereich::-webkit-scrollbar,
     .overlay-karte::-webkit-scrollbar,
+    .moment-ansicht-karte::-webkit-scrollbar,
     .kontakt-auswahl-liste::-webkit-scrollbar,
+    .tagebuch-liste::-webkit-scrollbar,
+    .tagebuch-monat::-webkit-scrollbar,
     #eingabe::-webkit-scrollbar {
       width: 4px;
     }
@@ -145,7 +164,10 @@
     .gespraechs-liste::-webkit-scrollbar-track,
     .chat-bereich::-webkit-scrollbar-track,
     .overlay-karte::-webkit-scrollbar-track,
+    .moment-ansicht-karte::-webkit-scrollbar-track,
     .kontakt-auswahl-liste::-webkit-scrollbar-track,
+    .tagebuch-liste::-webkit-scrollbar-track,
+    .tagebuch-monat::-webkit-scrollbar-track,
     #eingabe::-webkit-scrollbar-track {
       background: transparent;
     }
@@ -153,7 +175,10 @@
     .gespraechs-liste::-webkit-scrollbar-thumb,
     .chat-bereich::-webkit-scrollbar-thumb,
     .overlay-karte::-webkit-scrollbar-thumb,
+    .moment-ansicht-karte::-webkit-scrollbar-thumb,
     .kontakt-auswahl-liste::-webkit-scrollbar-thumb,
+    .tagebuch-liste::-webkit-scrollbar-thumb,
+    .tagebuch-monat::-webkit-scrollbar-thumb,
     #eingabe::-webkit-scrollbar-thumb {
       background: var(--scrollbar-farbe);
       border-radius: 999px;
@@ -162,7 +187,10 @@
     .gespraechs-liste::-webkit-scrollbar-button,
     .chat-bereich::-webkit-scrollbar-button,
     .overlay-karte::-webkit-scrollbar-button,
+    .moment-ansicht-karte::-webkit-scrollbar-button,
     .kontakt-auswahl-liste::-webkit-scrollbar-button,
+    .tagebuch-liste::-webkit-scrollbar-button,
+    .tagebuch-monat::-webkit-scrollbar-button,
     #eingabe::-webkit-scrollbar-button {
       display: none;
     }
@@ -599,8 +627,17 @@
       overflow-x: auto;
       overflow-y: hidden;
       border-bottom: 1px solid var(--border-light);
-      scrollbar-width: thin;
-      scrollbar-color: var(--scrollbar-farbe) transparent;
+    }
+
+    /* Siehe Kommentar beim großen Scrollbalken-Block oben – dasselbe
+       @supports-Gate, damit Chromium-Versionen mit Unterstützung für
+       BEIDE Property-Familien nicht den klobigeren nativen "thin"-
+       Balken statt unseres ::-webkit-scrollbar-Thumb zeigen. */
+    @supports not selector(::-webkit-scrollbar) {
+      .moment-leiste {
+        scrollbar-width: thin;
+        scrollbar-color: var(--scrollbar-farbe) transparent;
+      }
     }
 
     .moment-leiste::-webkit-scrollbar { height: 4px; }
@@ -814,10 +851,22 @@
       letter-spacing: 0.04em;
     }
 
-    /* Aktuelle Werte: dieselben .sensor-dimension/.dimension-*-Klassen
-       wie oben bei Intensität/Tempo/… (siehe ANSICHT 1) – rein
-       lesend, kein Regler, exakt wie Tempo/Stabilität dort schon. */
-    .profil-stats {
+    /* ── Tagebuch ─────────────────────────────────────────────────
+       Aktuelle Werte (Puls/Schlaf) liegen bewusst VOR der "Tagebuch"-
+       Überschrift (ganz oben im Profilbereich, direkt unter Foto/
+       Name) – die Überschrift steht direkt über den Einträgen/der
+       Ansicht, wie gefordert. Zwei Ansichten (Liste/Monat) über einen
+       dezenten Pillen-Umschalter (gleiche Optik wie .filter-chip).
+       Kopfzeile mit dezentem "+"-Button (öffnet den Composer, sonst
+       verborgen), Einträge im Editorial-Stil (großes Datum links,
+       Text rechts, Trennlinien statt Kästen).
+       Schriftschnitt: alle UI-Texte hier in Situra-Medium – AUSNAHME
+       ist das große Datum (Situra-Black, siehe .tagebuch-tag). NICHT
+       betroffen ist .tagebuch-text (der eigentliche Eintragstext):
+       der bleibt vollständig der reagierenden Wort-für-Wort-Typografie
+       überlassen (momentTextRendern/stilAnwenden) – hier absichtlich
+       kein statischer font-family-Wert gesetzt. ── */
+    .tagebuch-werte {
       flex-shrink: 0;
       display: flex;
       gap: 20px;
@@ -825,16 +874,90 @@
       border-bottom: 1px solid var(--border-light);
     }
 
-    .profil-stats .sensor-dimension { flex: 1; }
+    .tagebuch-werte .sensor-dimension { flex: 1; }
 
-    /* ── Tagebuch ─────────────────────────────────────────────── */
+    .tagebuch-werte .dimension-label,
+    .tagebuch-werte .dimension-wert {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+    }
+
     .tagebuch-kopf {
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 16px 20px 8px;
+    }
+
+    .tagebuch-kopf-label {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
       font-size: 12px;
       color: var(--text-3);
       letter-spacing: 0.06em;
       text-transform: uppercase;
+    }
+
+    /* Wiederverwendet exakt dieselbe Optik wie der bestehende
+       "+"-Button für neue Gruppen (.neue-gruppe-btn) – dezenter
+       Outline-Kreis mit zentriertem "+" statt auffälligem
+       Eingabe-Kasten oder freistehendem Symbol. */
+    .tagebuch-neu-btn {
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--text-2);
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tagebuch-neu-btn:hover { border-color: var(--text-2); }
+
+    /* [hidden] MUSS hier explizit gewinnen: display:flex oben hat
+       dieselbe Spezifität wie die UA-Regel "[hidden] { display:none }"
+       und würde sie sonst durch die Reihenfolge im Stylesheet
+       überschreiben – der Button bliebe trotz .hidden = true sichtbar. */
+    .tagebuch-neu-btn[hidden] { display: none; }
+
+    /* ── Ansicht-Umschalter: Liste / Monat ────────────────────────
+       Zusammenhängende Segmented-Control in derselben Pillen-Optik
+       wie .filter-chip (Outline-Rahmen, aktiv = gefüllt), nur dezenter
+       dimensioniert – passt in die schmale Kopfzeile. ── */
+    .tagebuch-ansicht-umschalter {
+      flex-shrink: 0;
+      display: flex;
+      gap: 2px;
+      width: fit-content;
+      margin: 0 20px 16px;
+      padding: 2px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+
+    .tagebuch-ansicht-btn {
+      background: none;
+      border: none;
+      color: var(--text-3);
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      padding: 5px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .tagebuch-ansicht-btn:hover { color: var(--text-2); }
+
+    .tagebuch-ansicht-btn--aktiv,
+    .tagebuch-ansicht-btn--aktiv:hover {
+      background: var(--accent);
+      color: var(--bg);
     }
 
     .tagebuch-composer {
@@ -846,13 +969,17 @@
       border-bottom: 1px solid var(--border-light);
     }
 
+    /* Siehe Kommentar bei .tagebuch-neu-btn[hidden] oben – derselbe
+       Spezifitäts-Konflikt, hier für den Composer. */
+    .tagebuch-composer[hidden] { display: none; }
+
     .tagebuch-eingabe {
       width: 100%;
       resize: none;
       background: none;
       border: 1px solid var(--border);
       outline: none;
-      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
       font-size: 14px;
       color: #222;
       padding: 8px 10px;
@@ -860,13 +987,31 @@
 
     .phone-frame.emotion-an .tagebuch-eingabe { color: #eee; }
 
+    .tagebuch-composer-aktionen {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .tagebuch-abbrechen-btn {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      color: var(--text-3);
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 7px 4px;
+      cursor: pointer;
+    }
+
+    .tagebuch-abbrechen-btn:hover { color: var(--text-2); }
+
     .tagebuch-speichern-btn {
-      align-self: flex-end;
       flex-shrink: 0;
       background: none;
       border: 1px solid var(--border);
       color: var(--text-2);
-      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
       font-size: 12px;
       padding: 7px 12px;
       cursor: pointer;
@@ -878,22 +1023,61 @@
       padding: 4px 20px 20px;
     }
 
+    .tagebuch-liste[hidden] { display: none; }
+
+    /* Editorial-Layout statt Kästen: Datum groß links, Text rechts,
+       dünne Trennlinie statt Rahmen. */
     .tagebuch-eintrag {
-      padding: 16px 0;
+      display: flex;
+      gap: 16px;
+      padding: 20px 0;
       border-bottom: 1px solid var(--border-light);
     }
 
     .tagebuch-eintrag:last-child { border-bottom: none; }
 
-    .tagebuch-datum {
-      font-size: 11px;
+    .tagebuch-datum-spalte {
+      flex-shrink: 0;
+      width: 76px; /* Platz für zweistellige Tage bei 42px Situra-Black, siehe .tagebuch-tag */
+      text-align: center;
+    }
+
+    /* Situra-Black (fettester Schnitt) – Datum als klarer Ankerpunkt,
+       wie gefordert; einzige Ausnahme von Situra-Medium im Tagebuch-
+       Bereich. Reine Darstellung eines gespeicherten Zeitstempels,
+       KEIN reaktiver/eingefrorener Zustand – rührt nicht an der
+       Wort-für-Wort-Typografie des Eintragstexts daneben.
+       WICHTIG zur Größe: Situra-Black ist ein derart extrem fetter
+       Schnitt, dass die Ziffern-Innenräume (z. B. bei 0/8) bei kleiner
+       Schriftgröße fast vollständig zulaufen und kaum noch
+       unterscheidbar sind (im Browser mit vergrößerter Darstellung
+       geprüft) – 26px war praktisch unlesbar. 42px ist ein
+       Kompromiss: deutlich lesbarer, ohne die Datumsspalte
+       unverhältnismäßig groß wirken zu lassen. Der volle Zeitstempel
+       bleibt zusätzlich als title-Tooltip erhalten (siehe
+       tagebuchEintragRendern, JS). */
+    .tagebuch-tag {
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: 42px;
+      line-height: 1;
+      color: #111;
+    }
+
+    .phone-frame.emotion-an .tagebuch-tag { color: #eee; }
+
+    .tagebuch-wochentag {
+      margin-top: 3px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
       color: var(--text-3);
-      letter-spacing: 0.04em;
-      margin-bottom: 8px;
-      font-variant-numeric: tabular-nums;
     }
 
     .tagebuch-text {
+      flex: 1;
+      min-width: 0;
+      padding-top: 2px;
       font-size: 16px;
       line-height: 1.5;
       color: #111;
@@ -903,11 +1087,181 @@
     .phone-frame.emotion-an .tagebuch-text { color: #d8d6d1; }
 
     .tagebuch-leer-hinweis {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
       font-size: 12px;
       color: var(--text-3);
       font-style: italic;
       padding: 8px 0;
     }
+
+    /* ── Schlaf-Verlauf: dauerhaft sichtbar OBERHALB des Tagebuch-
+       Bereichs (über der "Tagebuch"-Überschrift), keine der beiden
+       Umschalt-Ansichten. Schlichte, handgebaute Linien-Grafik (kein
+       Chart-Framework): eine geschwungene SVG-Kurve (Catmull-Rom-
+       Glättung, siehe glatterSvgPfad in JS) über kontinuierliche
+       Werte 0–100 ("Schlaftiefe/-qualität"), Y-Achse links, X-Achse
+       unten, keine Flächenfüllung/Balken/Farbe außer der bestehenden
+       Schwarz/Weiß-Palette. Bis genug echte Nächte ausgewertet sind
+       (schlafVerlaufLaden), werden die übrigen Tage mit deterministi-
+       schen Platzhalterwerten aufgefüllt (tagebuchSchlafPlatzhalter-
+       Serie, JS) – jeder bereits ausgewertete echte Tag ersetzt den
+       Platzhalter an exakt seinem Datum, die Grafik wächst also
+       nahtlos in echte Werte hinein. ── */
+    .tagebuch-schlafgraph {
+      flex-shrink: 0;
+      padding: 10px 20px 14px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .tagebuch-graph-titel {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-2);
+      margin-bottom: 8px;
+    }
+
+    .tagebuch-graph-karte {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tagebuch-graph-y-achse {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 2px 0;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .tagebuch-graph-plot {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tagebuch-graph-svg {
+      display: block;
+      width: 100%;
+      height: 64px;
+    }
+
+    .tagebuch-graph-gitter {
+      stroke: var(--border-light);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .tagebuch-graph-linie {
+      fill: none;
+      stroke: #222;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .phone-frame.emotion-an .tagebuch-graph-linie { stroke: #d8d6d1; }
+
+    .tagebuch-graph-x-achse {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 9px;
+      color: var(--text-3);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Monatsübersicht: Kalender-Raster der Tagebucheinträge ───────
+       Klassische Monatsansicht (Wochentage Mo–So als Spalten, aktueller
+       Kalendermonat). Tage mit mindestens einem Eintrag sind über
+       .tagebuch-kalender-tag--belegt markiert (Punkt unter der Zahl,
+       siehe .tagebuch-kalender-punkt) und klickbar – tagebuchZuEintrag-
+       Springen (JS) wechselt dafür in die Listenansicht und scrollt
+       zum ersten Eintrag dieses Tages. Rein Schwarz/Weiß, keine
+       Flächenfarbe außer der bestehenden --bg-hover beim Hover. ── */
+    .tagebuch-monat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 20px 20px;
+    }
+
+    .tagebuch-monat[hidden] { display: none; }
+
+    .tagebuch-kalender-titel {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-2);
+      text-transform: capitalize;
+      margin-bottom: 10px;
+    }
+
+    .tagebuch-kalender-kopf,
+    .tagebuch-kalender-raster {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .tagebuch-kalender-kopf {
+      margin-bottom: 6px;
+    }
+
+    .tagebuch-kalender-kopf span {
+      text-align: center;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .tagebuch-kalender-raster { gap: 2px 0; }
+
+    .tagebuch-kalender-tag {
+      height: 34px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      border-radius: 50%;
+      color: var(--text-3);
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 13px;
+      cursor: default;
+    }
+
+    .tagebuch-kalender-tag--leer { visibility: hidden; }
+
+    .tagebuch-kalender-tag--heute { box-shadow: inset 0 0 0 1px var(--border); }
+
+    .tagebuch-kalender-tag--belegt {
+      color: #111;
+      cursor: pointer;
+    }
+
+    .phone-frame.emotion-an .tagebuch-kalender-tag--belegt { color: #eee; }
+
+    .tagebuch-kalender-tag--belegt:hover { background: var(--bg-hover); }
+
+    .tagebuch-kalender-punkt {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* Kurzes, dezentes Aufblitzen, wenn tagebuchZuEintragSpringen
+       (JS) per Kalendertag zu einem Eintrag scrollt – reine visuelle
+       Orientierungshilfe, keine Zustandsänderung. */
+    .tagebuch-eintrag--hervorgehoben { background: var(--bg-hover); }
 
     .gespraechs-liste {
       flex: 1;
@@ -1815,17 +2169,11 @@
         </div>
       </div>
 
-      <div class="profil-stats">
+      <div class="tagebuch-werte">
         <div class="sensor-dimension">
           <div class="dimension-header">
             <span class="dimension-label dimension-label--live">Puls</span>
             <span class="dimension-wert" id="profil-wert-puls">—</span>
-          </div>
-        </div>
-        <div class="sensor-dimension">
-          <div class="dimension-header">
-            <span class="dimension-label dimension-label--live">Stabilität</span>
-            <span class="dimension-wert" id="profil-wert-stabilitaet">—</span>
           </div>
         </div>
         <div class="sensor-dimension">
@@ -1836,15 +2184,42 @@
         </div>
       </div>
 
-      <div class="tagebuch-kopf">Tagebuch</div>
+      <div class="tagebuch-schlafgraph">
+        <p class="tagebuch-graph-titel">Schlaf – letzte 4 Wochen</p>
+        <div class="tagebuch-graph-karte">
+          <div class="tagebuch-graph-y-achse">
+            <span>Gut</span>
+            <span>Schlecht</span>
+          </div>
+          <div class="tagebuch-graph-plot" id="tagebuch-graph-plot"></div>
+        </div>
+      </div>
 
-      <div class="tagebuch-composer">
+      <div class="tagebuch-kopf">
+        <span class="tagebuch-kopf-label">Tagebuch</span>
+        <button class="tagebuch-neu-btn" id="tagebuch-neu-btn" type="button" title="Neuer Eintrag" aria-label="Neuer Eintrag">+</button>
+      </div>
+
+      <div class="tagebuch-ansicht-umschalter" id="tagebuch-ansicht-umschalter" role="tablist">
+        <button class="tagebuch-ansicht-btn tagebuch-ansicht-btn--aktiv" type="button" data-ansicht="liste" role="tab" aria-selected="true">Liste</button>
+        <button class="tagebuch-ansicht-btn" type="button" data-ansicht="monat" role="tab" aria-selected="false">Monat</button>
+      </div>
+
+      <div class="tagebuch-composer" id="tagebuch-composer" hidden>
         <textarea class="tagebuch-eingabe" id="tagebuch-eingabe" rows="3"
           placeholder="Was ist heute passiert?" autocomplete="off" maxlength="2000"></textarea>
-        <button class="tagebuch-speichern-btn" id="tagebuch-speichern-btn" type="button">Eintragen</button>
+        <div class="tagebuch-composer-aktionen">
+          <button class="tagebuch-abbrechen-btn" id="tagebuch-abbrechen-btn" type="button">Abbrechen</button>
+          <button class="tagebuch-speichern-btn" id="tagebuch-speichern-btn" type="button">Eintragen</button>
+        </div>
       </div>
 
       <div class="tagebuch-liste" id="tagebuch-liste"></div>
+
+      <div class="tagebuch-monat" id="tagebuch-monat" hidden>
+        <p class="tagebuch-kalender-titel" id="tagebuch-kalender-titel"></p>
+        <div class="tagebuch-kalender" id="tagebuch-kalender"></div>
+      </div>
 
     </div><!-- /#tab-profil -->
 
@@ -2254,7 +2629,10 @@
     uebersichtTitel.textContent = TAB_TITEL[tabName];
     // Aktuelle Werte (Puls/Stabilität/Schlaf) erst beim Anzeigen
     // auffrischen – siehe Abschnitt PROFIL weiter unten (JS).
-    if (tabName === 'profil') profilStatsAktualisieren();
+    if (tabName === 'profil') {
+      profilStatsAktualisieren();
+      tagebuchSchlafGraphRendern(); // Verlauf kann sich seit dem letzten Aufruf geändert haben (neue Nacht ausgewertet)
+    }
   }
 
   document.querySelectorAll('.tab-btn').forEach(function (btn) {
@@ -4030,6 +4408,33 @@
   // ab (Quartils-Mitten, analog zum Slider-Wertebereich).
   const NACHT_STUFE_ZU_ROHWERT = { schlecht: 150, mittel: 400, gut: 650, 'sehr gut': 850 };
 
+  // ── Schlaf-VERLAUF (mehrere Nächte) – für die Grafik im Tagebuch ──
+  // Getrennt von NACHT_STUFE_KEY oben (das speichert nur die JEWEILS
+  // letzte Nacht, überschrieben bei jeder neuen Auswertung). Hier: ein
+  // Array, ein Eintrag pro Tag, damit sich ein Verlauf über mehrere
+  // Wochen zeichnen lässt (siehe tagebuchSchlafGraphRendern weiter
+  // unten). Datum bewusst im ISO-Format (heutigesDatum(), 'YYYY-MM-DD')
+  // – sortiert sich lexikographisch korrekt, anders als das
+  // toDateString()-Format von NACHT_STUFE_KEY.
+  const SCHLAF_VERLAUF_KEY      = 'situativeTypografie_schlafVerlauf';
+  const SCHLAF_VERLAUF_MAX_TAGE = 30; // ← nachjustieren: wie viele Wochen zurück angezeigt werden
+
+  function schlafVerlaufLaden() {
+    try { return JSON.parse(localStorage.getItem(SCHLAF_VERLAUF_KEY)) || []; } catch (e) { return []; }
+  }
+
+  function schlafVerlaufEintragen(stufe) {
+    const datum = heutigesDatum();
+    let verlauf = schlafVerlaufLaden();
+    verlauf = verlauf.filter(function (eintrag) { return eintrag.datum !== datum; }); // ersetzt einen evtl. bereits vorhandenen Eintrag von heute
+    verlauf.push({ datum: datum, stufe: stufe });
+    verlauf.sort(function (a, b) { return a.datum.localeCompare(b.datum); });
+    if (verlauf.length > SCHLAF_VERLAUF_MAX_TAGE) {
+      verlauf = verlauf.slice(verlauf.length - SCHLAF_VERLAUF_MAX_TAGE);
+    }
+    try { localStorage.setItem(SCHLAF_VERLAUF_KEY, JSON.stringify(verlauf)); } catch (e) {}
+  }
+
   function schlafStufeAnwenden(stufe) {
     const rohwert = NACHT_STUFE_ZU_ROHWERT[stufe];
     if (rohwert == null) return;
@@ -4066,6 +4471,7 @@
 
         schlafStufeAnwenden(stufe);
         try { localStorage.setItem(NACHT_STUFE_KEY, JSON.stringify({ stufe: stufe, datum: heute })); } catch (e) {}
+        schlafVerlaufEintragen(stufe);
 
         await MomentumBleService.nachtDatenZuruecksetzen();
         return;
@@ -4717,7 +5123,6 @@
   const profilFotoInput       = document.getElementById('profil-foto-input');
   const profilNameEingabe     = document.getElementById('profil-name-eingabe');
   const profilWertPuls        = document.getElementById('profil-wert-puls');
-  const profilWertStabilitaet = document.getElementById('profil-wert-stabilitaet');
   const profilWertSchlaf      = document.getElementById('profil-wert-schlaf');
 
   function profilNameSchriftAktualisieren() {
@@ -4789,24 +5194,34 @@
     leser.readAsDataURL(datei);
   });
 
-  // ── Aktuelle Werte (Puls/Stabilität/Schlaf) ─────────────────────
-  // Reine Anzeige der jeweils zuletzt bekannten Werte – KEIN Verlauf,
-  // wie gefordert. Schlafqualität: liest denselben, bereits an anderer
-  // Stelle gespeicherten Wert (NACHT_STUFE_KEY, siehe Abschnitt
-  // "Nacht-Erfassung: Morgen-Auswertung" weiter oben), "wach" als
-  // Fallback, wenn heute noch keine Nacht ausgewertet wurde.
+  // ── Aktuelle Werte (Puls/Schlaf) ─────────────────────────────────
+  // Reine Anzeige der jeweils zuletzt bekannten Werte – KEIN Verlauf
+  // (der Schlaf-VERLAUF als Grafik ist ein separates Konzept, siehe
+  // schlafVerlaufLaden/tagebuchSchlafGraphRendern weiter unten).
+  // Schlafqualität: liest denselben, bereits an anderer Stelle
+  // gespeicherten Wert (NACHT_STUFE_KEY, siehe Abschnitt "Nacht-
+  // Erfassung: Morgen-Auswertung" weiter oben), "wach" als Fallback,
+  // wenn heute noch keine Nacht ausgewertet wurde. Stabilität wird
+  // hier bewusst NICHT mehr angezeigt (reines Tipp-/Chat-Signal, im
+  // Tagebuch-Kontext nicht relevant) – die zugrundeliegende Berechnung
+  // (aktuelleRohwerte.stabilitaet, HRV-Näherung) bleibt unverändert
+  // aktiv, nur die Profil-Anzeige davon entfernt.
   function aktuelleSchlafstufeText() {
     try {
       const gespeichert = JSON.parse(localStorage.getItem(NACHT_STUFE_KEY) || 'null');
-      if (gespeichert && gespeichert.datum === heutigesDatum()) return gespeichert.stufe;
+      // WICHTIG: NACHT_STUFE_KEY wird in nachtAuswertungPruefen mit
+      // new Date().toDateString() geschrieben (nicht mit dem ISO-Format
+      // von heutigesDatum() aus dem MOMENT-Abschnitt) – hier muss exakt
+      // dasselbe Format zum Vergleich verwendet werden, sonst würde
+      // "wach" fälschlich auch nach einer echten Auswertung angezeigt.
+      if (gespeichert && gespeichert.datum === new Date().toDateString()) return gespeichert.stufe;
     } catch (e) {}
     return 'wach';
   }
 
   function profilStatsAktualisieren() {
-    profilWertPuls.textContent        = letzterBpmWert == null ? '—' : letzterBpmWert + ' bpm';
-    profilWertStabilitaet.textContent = Math.round(aktuelleRohwerte.stabilitaet);
-    profilWertSchlaf.textContent      = aktuelleSchlafstufeText();
+    profilWertPuls.textContent   = letzterBpmWert == null ? '—' : letzterBpmWert + ' bpm';
+    profilWertSchlaf.textContent = aktuelleSchlafstufeText();
   }
 
 
@@ -4834,9 +5249,63 @@
     }
   }
 
-  const tagebuchEingabe      = document.getElementById('tagebuch-eingabe');
-  const tagebuchSpeichernBtn = document.getElementById('tagebuch-speichern-btn');
-  const tagebuchListe        = document.getElementById('tagebuch-liste');
+  const tagebuchEingabe        = document.getElementById('tagebuch-eingabe');
+  const tagebuchSpeichernBtn   = document.getElementById('tagebuch-speichern-btn');
+  const tagebuchAbbrechenBtn   = document.getElementById('tagebuch-abbrechen-btn');
+  const tagebuchNeuBtn         = document.getElementById('tagebuch-neu-btn');
+  const tagebuchComposer       = document.getElementById('tagebuch-composer');
+  const tagebuchListe          = document.getElementById('tagebuch-liste');
+  const tagebuchMonat          = document.getElementById('tagebuch-monat');
+  const tagebuchKalenderTitel  = document.getElementById('tagebuch-kalender-titel');
+  const tagebuchKalender       = document.getElementById('tagebuch-kalender');
+  const tagebuchGraphPlot      = document.getElementById('tagebuch-graph-plot');
+  const tagebuchAnsichtUmschalter = document.getElementById('tagebuch-ansicht-umschalter');
+
+  // ── Ansicht-Umschalter: Liste (bestehende chronologische Liste) /
+  // Monat (Kalender-Monatsübersicht der Tagebucheinträge, siehe weiter
+  // unten). Der Schlaf-Verlauf ist KEINE der beiden Ansichten mehr,
+  // sondern dauerhaft sichtbar oberhalb (siehe .tagebuch-schlafgraph
+  // im Markup + tagebuchSchlafGraphRendern, wird beim Tab-Wechsel
+  // aufgefrischt, siehe tabAnzeigen weiter oben). Rein UI-seitig,
+  // nichts wird beim Umschalten neu geladen außer dem Kalender (er
+  // könnte sich seit dem letzten Öffnen durch einen neuen Eintrag
+  // geändert haben).
+  function tagebuchAnsichtSetzen(ansicht) {
+    tagebuchAnsichtUmschalter.querySelectorAll('.tagebuch-ansicht-btn').forEach(function (btn) {
+      const aktiv = btn.dataset.ansicht === ansicht;
+      btn.classList.toggle('tagebuch-ansicht-btn--aktiv', aktiv);
+      btn.setAttribute('aria-selected', String(aktiv));
+    });
+    tagebuchListe.hidden = ansicht !== 'liste';
+    tagebuchMonat.hidden = ansicht !== 'monat';
+    if (ansicht === 'monat') tagebuchKalenderRendern();
+  }
+
+  tagebuchAnsichtUmschalter.addEventListener('click', function (e) {
+    const btn = e.target.closest('.tagebuch-ansicht-btn');
+    if (btn) tagebuchAnsichtSetzen(btn.dataset.ansicht);
+  });
+
+  // ── Composer: verborgen hinter dezentem "+"-Button statt auffälligem
+  // Eingabe-Kasten (siehe .tagebuch-neu-btn, gleiche Optik wie der
+  // bestehende "+"-Button für neue Gruppen). Abbrechen verwirft nur die
+  // UI-Sichtbarkeit – der eingegebene Text bleibt bewusst NICHT stehen
+  // beim Wiederöffnen (siehe tagebuchComposerUmschalten), einfacher als
+  // ein Entwurfs-Zwischenspeicher und für ein "Grundgerüst" ausreichend.
+  function tagebuchComposerUmschalten(offen) {
+    tagebuchNeuBtn.hidden = offen;
+    tagebuchComposer.hidden = !offen;
+    if (offen) {
+      tagebuchEingabe.focus();
+    } else {
+      tagebuchEingabe.value = '';
+      tagebuchWortZustaende = [];
+      tagebuchIstEingefuegt = false;
+    }
+  }
+
+  tagebuchNeuBtn.addEventListener('click', function () { tagebuchComposerUmschalten(true); });
+  tagebuchAbbrechenBtn.addEventListener('click', function () { tagebuchComposerUmschalten(false); });
 
   let tagebuchWortZustaende = [];
   let tagebuchIstEingefuegt = false;
@@ -4868,15 +5337,46 @@
     tagebuchWortZustaendeSynchronisieren();
   });
 
-  const TAGEBUCH_DATUM_FORMAT = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+  // Tag groß (Situra-Black, siehe .tagebuch-tag) + Wochentag klein
+  // darunter als Ankerpunkt, statt vollem Datum/Uhrzeit-String. Die
+  // vollständige Uhrzeit bleibt als title-Tooltip erhalten (kein
+  // Informationsverlust, nur visuell zurückhaltender). Rein
+  // darstellend – KEIN reaktiver/typografischer Zustand, rührt an der
+  // Wort-für-Wort-Logik des Eintragstexts (momentTextRendern) nichts.
+  const TAGEBUCH_WOCHENTAG_KURZ = ['SO.', 'MO.', 'DI.', 'MI.', 'DO.', 'FR.', 'SA.']; // Date.getDay(): 0 = Sonntag
+  const TAGEBUCH_TOOLTIP_FORMAT = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+
+  // Lokaler (nicht UTC-verschobener) Datums-Schlüssel – dieselbe
+  // Zeitzonen-Basis wie datum.getDate()/getDay() oben, mit der die
+  // Einträge ohnehin schon gerendert werden. Verbindet einen Kalender-
+  // Tag (tagebuchKalenderRendern) mit dem/den passenden Einträgen in
+  // der Liste (tagebuchZuEintragSpringen) – rein zur Navigation, keine
+  // Typografie-/Zustandslogik.
+  function tagebuchLokalDatumSchluessel(datum) {
+    return datum.getFullYear() + '-' + datum.getMonth() + '-' + datum.getDate();
+  }
 
   function tagebuchEintragRendern(eintrag) {
     const wrapper = document.createElement('div');
     wrapper.className = 'tagebuch-eintrag';
 
-    const datumEl = document.createElement('div');
-    datumEl.className = 'tagebuch-datum';
-    datumEl.textContent = new Date(eintrag.zeitstempel).toLocaleString('de-DE', TAGEBUCH_DATUM_FORMAT);
+    const datum = new Date(eintrag.zeitstempel);
+    wrapper.dataset.datumSchluessel = tagebuchLokalDatumSchluessel(datum);
+
+    const datumSpalte = document.createElement('div');
+    datumSpalte.className = 'tagebuch-datum-spalte';
+    datumSpalte.title = datum.toLocaleString('de-DE', TAGEBUCH_TOOLTIP_FORMAT);
+
+    const tagEl = document.createElement('div');
+    tagEl.className = 'tagebuch-tag';
+    tagEl.textContent = String(datum.getDate());
+
+    const wochentagEl = document.createElement('div');
+    wochentagEl.className = 'tagebuch-wochentag';
+    wochentagEl.textContent = TAGEBUCH_WOCHENTAG_KURZ[datum.getDay()];
+
+    datumSpalte.appendChild(tagEl);
+    datumSpalte.appendChild(wochentagEl);
 
     const textEl = document.createElement('div');
     textEl.className = 'tagebuch-text';
@@ -4885,7 +5385,7 @@
     // eingefrorene Achsen pro Wort in Stil übersetzen.
     momentTextRendern(textEl, eintrag.text, eintrag.wortSnapshots);
 
-    wrapper.appendChild(datumEl);
+    wrapper.appendChild(datumSpalte);
     wrapper.appendChild(textEl);
     return wrapper;
   }
@@ -4902,6 +5402,88 @@
     tagebuchEintraege.forEach(function (eintrag) {
       tagebuchListe.appendChild(tagebuchEintragRendern(eintrag));
     });
+  }
+
+  // ── Monatsübersicht: Kalender-Raster der Tagebucheinträge ─────────
+  // Klassischer Kalendermonat (aktueller Monat, Woche startet Montag),
+  // Tage mit >= 1 Eintrag sind markiert und klickbar (Punkt unter der
+  // Zahl). Klick springt in die Listenansicht und scrollt zum ersten
+  // Eintrag dieses Tages – siehe tagebuchZuEintragSpringen.
+  const TAGEBUCH_MONATSNAMEN = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  const TAGEBUCH_WOCHENTAG_KOPF = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+
+  function tagebuchBelegteTageErmitteln() {
+    const menge = new Set();
+    tagebuchEintraege.forEach(function (eintrag) {
+      menge.add(tagebuchLokalDatumSchluessel(new Date(eintrag.zeitstempel)));
+    });
+    return menge;
+  }
+
+  function tagebuchZuEintragSpringen(schluessel) {
+    tagebuchAnsichtSetzen('liste');
+    const ziel = tagebuchListe.querySelector('[data-datum-schluessel="' + schluessel + '"]');
+    if (!ziel) return;
+    ziel.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    ziel.classList.add('tagebuch-eintrag--hervorgehoben');
+    setTimeout(function () { ziel.classList.remove('tagebuch-eintrag--hervorgehoben'); }, 1400);
+  }
+
+  function tagebuchKalenderRendern() {
+    const heute = new Date();
+    const jahr = heute.getFullYear(), monat = heute.getMonth();
+
+    tagebuchKalenderTitel.textContent = TAGEBUCH_MONATSNAMEN[monat] + ' ' + jahr;
+
+    tagebuchKalender.innerHTML = '';
+
+    const kopf = document.createElement('div');
+    kopf.className = 'tagebuch-kalender-kopf';
+    TAGEBUCH_WOCHENTAG_KOPF.forEach(function (kuerzel) {
+      const span = document.createElement('span');
+      span.textContent = kuerzel;
+      kopf.appendChild(span);
+    });
+    tagebuchKalender.appendChild(kopf);
+
+    const raster = document.createElement('div');
+    raster.className = 'tagebuch-kalender-raster';
+
+    const ersterTag = new Date(jahr, monat, 1);
+    const startOffset = (ersterTag.getDay() + 6) % 7; // Date.getDay(): 0=So..6=Sa → Woche beginnt Montag
+    const tageImMonat = new Date(jahr, monat + 1, 0).getDate();
+    const belegteTage = tagebuchBelegteTageErmitteln();
+
+    for (let i = 0; i < startOffset; i++) {
+      const leer = document.createElement('div');
+      leer.className = 'tagebuch-kalender-tag tagebuch-kalender-tag--leer';
+      raster.appendChild(leer);
+    }
+
+    for (let tag = 1; tag <= tageImMonat; tag++) {
+      const schluessel = jahr + '-' + monat + '-' + tag;
+      const belegt = belegteTage.has(schluessel);
+
+      const zelle = document.createElement('button');
+      zelle.type = 'button';
+      zelle.className = 'tagebuch-kalender-tag';
+      if (tag === heute.getDate()) zelle.classList.add('tagebuch-kalender-tag--heute');
+      if (!belegt) zelle.disabled = true;
+
+      const zahl = document.createElement('span');
+      zahl.textContent = tag;
+      zelle.appendChild(zahl);
+
+      if (belegt) {
+        zelle.classList.add('tagebuch-kalender-tag--belegt');
+        zelle.appendChild(document.createElement('span')).className = 'tagebuch-kalender-punkt';
+        zelle.addEventListener('click', function () { tagebuchZuEintragSpringen(schluessel); });
+      }
+
+      raster.appendChild(zelle);
+    }
+
+    tagebuchKalender.appendChild(raster);
   }
 
   function tagebuchSpeichern() {
@@ -4921,9 +5503,7 @@
     // Tagebuch-Einträgen – genau wie aus Chat-Nachrichten.
     eigenerMittelwertAktualisieren(aktuelleRohwerte.intensitaet);
 
-    tagebuchEingabe.value = '';
-    tagebuchWortZustaende = [];
-    tagebuchIstEingefuegt = false;
+    tagebuchComposerUmschalten(false); // leert Eingabe + Wort-Zustand, blendet zurück auf den "+"-Button
 
     // Gemeinsamer Tempo-/Stabilitäts-Reset – exakt wie nach Chat-/
     // Moment-Senden (siehe dort).
@@ -4935,11 +5515,158 @@
     stabilitaetUebernehmen();
 
     tagebuchListeRendern();
+    tagebuchKalenderRendern(); // Kalender-Markierung für heute sofort nachziehen, auch wenn Monatsansicht gerade nicht sichtbar ist
   }
 
   tagebuchSpeichernBtn.addEventListener('click', tagebuchSpeichern);
 
+  // ── Schlaf-Verlauf-Grafik (dauerhaft sichtbar oberhalb des
+  // Tagebuchs, siehe .tagebuch-schlafgraph im Markup) ──────────────
+  // Schlichte, handgebaute Linien-Grafik (kein Chart-Framework): eine
+  // geschwungene SVG-Kurve über die letzten TAGEBUCH_MONAT_TAGE Tage,
+  // X-Achse = Datum, Y-Achse = kontinuierlicher Wert 0–100
+  // ("Schlaftiefe/-qualität", dieselbe Skala wie NACHT_STUFE_ZU_ROHWERT
+  // weiter oben, nur /10). Rein darstellend, keine Interaktion, keine
+  // Farben außer der bestehenden Schwarz/Weiß-Palette der App.
+  //
+  // Platzhalter-Daten: solange schlafVerlaufLaden() noch keine (oder
+  // nur wenige) echte Nächte enthält, würde die Grafik leer oder kaum
+  // aussagekräftig aussehen. tagebuchSchlafPlatzhalterSerie() erzeugt
+  // deshalb DETERMINISTISCH (reine Funktion des Datums, kein
+  // Math.random) einen organisch wirkenden Verlauf für jeden Tag der
+  // letzten TAGEBUCH_MONAT_TAGE Tage – deterministisch ist wichtig,
+  // sonst würde die Kurve bei jedem Tab-Wechsel neu "springen".
+  // tagebuchSchlafSerieErmitteln() überschreibt darin jeden Tag, für
+  // den bereits eine echte Nacht ausgewertet wurde (schlafVerlaufLaden)
+  // – die Grafik wächst so nahtlos in echte Werte hinein, ohne dass
+  // später Platzhalter- und Echt-Logik getrennt werden müssten.
+  const TAGEBUCH_MONAT_TAGE = 28;
+
+  function einfacherHash(text) {
+    let h = 0;
+    for (let i = 0; i < text.length; i++) {
+      h = (h * 31 + text.charCodeAt(i)) | 0;
+    }
+    return h;
+  }
+
+  function tagebuchSchlafPlatzhalterSerie(tageAnzahl) {
+    const heute = new Date();
+    const serie = [];
+    for (let i = tageAnzahl - 1; i >= 0; i--) {
+      const tag = new Date(heute);
+      tag.setDate(tag.getDate() - i);
+      const iso = tag.toISOString().slice(0, 10);
+      const rauschen = (Math.abs(einfacherHash(iso)) % 21) - 10; // -10..10, deterministisch pro Datum
+      const wert = 55 + 24 * Math.sin(i / 4.3) + rauschen * 0.6;
+      serie.push({ datum: iso, wert: Math.max(4, Math.min(96, wert)) });
+    }
+    return serie;
+  }
+
+  function tagebuchSchlafSerieErmitteln() {
+    const serie = tagebuchSchlafPlatzhalterSerie(TAGEBUCH_MONAT_TAGE);
+    const indexNachDatum = {};
+    serie.forEach(function (eintrag, i) { indexNachDatum[eintrag.datum] = i; });
+
+    schlafVerlaufLaden().forEach(function (eintrag) {
+      const rohwert = NACHT_STUFE_ZU_ROHWERT[eintrag.stufe];
+      if (rohwert == null) return;
+      const punkt = { datum: eintrag.datum, wert: rohwert / 10 };
+      if (indexNachDatum.hasOwnProperty(eintrag.datum)) {
+        serie[indexNachDatum[eintrag.datum]] = punkt;
+      } else {
+        serie.push(punkt);
+        indexNachDatum[eintrag.datum] = serie.length - 1;
+      }
+    });
+
+    serie.sort(function (a, b) { return a.datum.localeCompare(b.datum); });
+    return serie;
+  }
+
+  function tagebuchGraphDatumKurz(isoDatum) {
+    const teile = isoDatum.split('-'); // 'YYYY-MM-DD'
+    return teile[2] + '.' + teile[1] + '.';
+  }
+
+  // Catmull-Rom → kubische Bézier (Tension 1/6) – erzeugt aus geraden
+  // Wertepunkten eine weiche, geschwungene Linie ohne externe
+  // Bibliothek. Reines Geometrie-Handwerk, keine Chart-Lib.
+  function glatterSvgPfad(punkte) {
+    if (punkte.length === 0) return '';
+    if (punkte.length === 1) return '';
+    let d = 'M' + punkte[0][0].toFixed(1) + ',' + punkte[0][1].toFixed(1);
+    for (let i = 0; i < punkte.length - 1; i++) {
+      const p0 = punkte[i - 1] || punkte[i];
+      const p1 = punkte[i];
+      const p2 = punkte[i + 1];
+      const p3 = punkte[i + 2] || p2;
+      const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+      const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+      const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+      const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d += ' C' + c1x.toFixed(1) + ',' + c1y.toFixed(1) + ' ' + c2x.toFixed(1) + ',' + c2y.toFixed(1) + ' ' + p2[0].toFixed(1) + ',' + p2[1].toFixed(1);
+    }
+    return d;
+  }
+
+  function tagebuchSchlafGraphRendern() {
+    tagebuchGraphPlot.innerHTML = '';
+
+    const serie = tagebuchSchlafSerieErmitteln();
+    const breite = 280, hoehe = 64, randX = 4, randY = 6;
+
+    const punkte = serie.map(function (eintrag, i) {
+      const x = serie.length === 1 ? breite / 2 : randX + (i / (serie.length - 1)) * (breite - randX * 2);
+      const y = randY + (1 - eintrag.wert / 100) * (hoehe - randY * 2);
+      return [x, y];
+    });
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + breite + ' ' + hoehe);
+    svg.setAttribute('preserveAspectRatio', 'none');
+    svg.setAttribute('class', 'tagebuch-graph-svg');
+
+    // Dezente horizontale Hilfslinien (25/50/75%) zur Orientierung –
+    // keine Beschriftung pro Linie, das übernehmen die zwei Y-Achsen-
+    // Labels "Gut"/"Schlecht" außerhalb des SVGs.
+    [0.25, 0.5, 0.75].forEach(function (anteil) {
+      const y = randY + anteil * (hoehe - randY * 2);
+      const gitterlinie = document.createElementNS(svgNS, 'line');
+      gitterlinie.setAttribute('x1', randX);
+      gitterlinie.setAttribute('x2', breite - randX);
+      gitterlinie.setAttribute('y1', y.toFixed(1));
+      gitterlinie.setAttribute('y2', y.toFixed(1));
+      gitterlinie.setAttribute('class', 'tagebuch-graph-gitter');
+      svg.appendChild(gitterlinie);
+    });
+
+    const linie = document.createElementNS(svgNS, 'path');
+    linie.setAttribute('d', glatterSvgPfad(punkte));
+    linie.setAttribute('class', 'tagebuch-graph-linie');
+    svg.appendChild(linie);
+
+    tagebuchGraphPlot.appendChild(svg);
+
+    // X-Achse: wenige, gleichmäßig verteilte Datums-Labels (wöchentlich)
+    // statt eines Labels pro Tag – bleibt bei 28 Tagen lesbar.
+    const xAchse = document.createElement('div');
+    xAchse.className = 'tagebuch-graph-x-achse';
+    const anzahlLabels = Math.min(5, serie.length);
+    for (let i = 0; i < anzahlLabels; i++) {
+      const index = anzahlLabels === 1 ? 0 : Math.round(i * (serie.length - 1) / (anzahlLabels - 1));
+      const label = document.createElement('span');
+      label.textContent = tagebuchGraphDatumKurz(serie[index].datum);
+      xAchse.appendChild(label);
+    }
+    tagebuchGraphPlot.appendChild(xAchse);
+  }
+
   tagebuchListeRendern();
+  tagebuchAnsichtSetzen('liste');
+  tagebuchSchlafGraphRendern(); // dauerhaft sichtbar (siehe .tagebuch-schlafgraph), unabhängig von der Liste/Monat-Ansicht
 
 </script>
 </body>
