@@ -3373,8 +3373,14 @@
     // zwischen 7 Dateien statt fließender Gewichts-Verschiebung)
     const schriftschnitt = intensitaetZuSchriftschnitt(rohwerte.intensitaet);
 
-    // BEHELF – Tempo → letter-spacing (−0.04 em … 0.12 em)
-    const spacing = umrechnen(rohwerte.tempo, 100, 900, -0.04, 0.12);
+    // BEHELF – Tempo → letter-spacing (0.12 em … 0.04 em)
+    // RICHTUNG: schnelles Tippen (tempo hoch) = enge Laufweite, langsames
+    // Tippen (tempo niedrig) = weite Laufweite – Hast lässt den Text
+    // zusammenrücken, Zögern zieht ihn auseinander. Bewusst noch nicht bis
+    // ins Negative (wie zuvor bis −0.04em): bei den fetteren Situra-
+    // Schnitten kann negative Laufweite zu Buchstaben-Überschneidungen
+    // führen – erst nach visueller Prüfung ggf. absenken (0.02 oder 0).
+    const spacing = umrechnen(rohwerte.tempo, 100, 900, 0.12, 0.04);
 
     // Tempo → Dauer der Einblend-Animation neuer Nachrichten
     // Niedrig (100) = langsam/bedächtig (0.5 s) · hoch (900) = schnell/knapp (0.06 s)
@@ -3517,6 +3523,16 @@
 
     // ══ TEST/DEMO – Atemfrequenz → Transparenz (opacity) ═══════════
     element.style.opacity = achsen.transparenz.toFixed(2);
+
+    // ── Pause vor diesem Wort → zusätzlicher Wortabstand ────────────
+    // word-spacing griffe hier nicht zuverlässig: jedes Wort ist ein
+    // eigenes Element mit eigenem Inline-Style, das Leerzeichen davor
+    // liegt außerhalb dieses Elements als eigener Textknoten (siehe
+    // nachrichtHinzufuegen/momentTextRendern). margin-left auf dem
+    // FOLGENDEN Wort wirkt dagegen zuverlässig auf Inline-Elementen.
+    // achsen.pausenZuschlag ist bereits 0, wenn keine/zu kurze Pause
+    // vorlag oder das Wort leblos ist (siehe pausenZuschlagVerbrauchen).
+    element.style.marginLeft = `${(achsen.pausenZuschlag || 0).toFixed(3)}em`;
   }
 
   // Setzt ein Element auf den neutralen "leblosen" Zustand zurück
@@ -3530,6 +3546,8 @@
     element.style.animation             = 'none';
     element.style.filter                = 'none';
     element.style.opacity               = '1';
+    // Kein Pausenzuschlag im leblosen Zustand (siehe pausenZuschlagVerbrauchen)
+    element.style.marginLeft            = '0em';
   }
 
   // Eingabefeld bleibt beim Tippen IMMER neutral.
@@ -3567,16 +3585,55 @@
   // ═══════════════════════════════════════════════════════════════
   //  TIPP-ANALYSE  ←  ECHTES TIPPVERHALTEN
   //
-  //  Tempo:      Zeichen pro Sekunde (rollendes Zeitfenster)
+  //  Tempo:      Zeichen pro Sekunde, WORTINTERN gemessen (s. u.)
   //  Stabilität: Ereignis-Modell — Backspace = Unruhe, Space = Ruhe.
   //              Ruhe ist der Ausgangszustand und die Standardannahme.
   // ═══════════════════════════════════════════════════════════════
 
-  // ── Tempo ────────────────────────────────────────────────────
-  const TIPP_FENSTER_MS = 4000; // Rollierendes Zeitfenster (ms)
-  const CPS_MAXIMUM     = 8;    // ← nachjustieren: Zeichen/s → Tempo 900
+  // ── Tempo: wortintern statt gleitendem Fenster ───────────────────
+  // Jedes Wort bekommt sein EIGENES Tempo, gemessen ausschließlich aus
+  // den innerhalb dieses Worts getippten Zeichen – ein schnell
+  // getipptes Wort beeinflusst das folgende, langsame Wort nicht mehr
+  // (anders als beim früheren 4000ms-Rollfenster, das über
+  // Wortgrenzen hinweglief und ein Wort noch mit dem Tempo des
+  // vorigen einfärben konnte). Umrechnung cps → tempo (0–8 → 100–900)
+  // bleibt unverändert (siehe CPS_MAXIMUM/umrechnen unten).
+  const CPS_MAXIMUM            = 8; // ← nachjustieren: Zeichen/s → Tempo 900
+  const WORT_TEMPO_MIN_ZEICHEN = 4; // ← nachjustieren: darunter ist die wortinterne Messung zu instabil (ein einzelner Tastendruck ergibt rechnerisch extreme cps) – der zuletzt stabil gemessene Tempo-Rohwert wird stattdessen übernommen
 
-  let tipp_zeitstempel = [];
+  let wortStartZeit        = null; // Date.now() beim ERSTEN Zeichen des aktuell offenen Worts, null = kein Wort offen
+  let wortZeichenAnzahl    = 0;    // Anzahl "echter" Zeichen (kein Leerzeichen/Backspace/Delete) seit wortStartZeit
+  let letzterStabilerTempo = 100;  // Fallback für zu kurze Wörter + Ausgangswert vor dem allerersten Wort (= tippbasiertes Minimum, wie bisher)
+
+  // ── Pause zwischen Wörtern → zusätzlicher Wortabstand ───────────
+  // Ergänzt die Laufweite (die das DURCHSCHNITTSTEMPO einer ganzen
+  // Nachricht abbildet) um eine punktuelle Markierung: eine längere
+  // Pause VOR einem Wort macht genau diese eine Stelle im Satz
+  // sichtbar. Messung: Zeitpunkt des letzten Leerzeichens merken: das
+  // nächste "echte" Zeichen (istTippTaste, aber kein Leerzeichen/
+  // Backspace/Delete – s. u.) schließt die Messung ab und hinterlegt
+  // den Zuschlag für GENAU das gerade begonnene Wort. Läuft wie Tempo
+  // IMMER tippbasiert, unabhängig vom Band (kein sinnvolles Pendant
+  // über die Puls-Variabilität).
+  const PAUSE_SCHWELLE_MS  = 800;  // ← nachjustieren: darunter kein Effekt (normale Tipp-Rhythmen, z. B. beim Nachdenken über die Formulierung)
+  const PAUSE_MAX_MS       = 4000; // ← nachjustieren: ab hier keine weitere Steigerung (Deckelung – Geräte ablegen/Unterbrechung darf den Satz nicht zerreißen)
+  const PAUSE_ZUSCHLAG_MAX = 0.6;  // ← nachjustieren (em): Zuschlag bei PAUSE_MAX_MS, linear zwischen Schwelle und Max
+
+  let letzteLeerzeichenZeit      = null; // Date.now() beim letzten Leerzeichen, null = keine offene Messung
+  let ausstehenderPausenZuschlag = 0;    // em-Zuschlag fürs NÄCHSTE neu besiegelte Wort – siehe *WortZustaendeSynchronisieren
+
+  // Liest den ausstehenden Pausen-Zuschlag EINMAL aus und verbraucht ihn
+  // (zurücksetzen auf 0) – gemeinsam genutzt von allen drei
+  // *WortZustaendeSynchronisieren-Varianten (Chat/Moment/Tagebuch), damit
+  // er nicht versehentlich mehrfach vergeben wird, falls in einem Aufruf
+  // mehr als ein Wort auf einmal besiegelt wird. leblos (Paste/Emotion
+  // aus) bekommt bewusst NIE einen Zuschlag – dort gibt es keine erfasste
+  // Entstehung (siehe istEingefuegt/emotionAktiv).
+  function pausenZuschlagVerbrauchen(leblos) {
+    const zuschlag = leblos ? 0 : ausstehenderPausenZuschlag;
+    ausstehenderPausenZuschlag = 0;
+    return zuschlag;
+  }
 
   // ── Stabilität: Schrittwerte (alle gut sichtbar hier) ─────────
   const STAB_START              = 900; // Startzustand: vollständige Ruhe
@@ -3644,7 +3701,7 @@
     // ★★★ BESIEGELUNG: für jedes neu abgeschlossene Wort jetzt   ★★★
     // ★★★ den aktuellen Zustand einfrieren – danach unangetastet. ★★★
     while (wortZustaende.length < anzahl) {
-      wortZustaende.push({ achsen: { ...aktuelleAchsen }, leblos });
+      wortZustaende.push({ achsen: { ...aktuelleAchsen, pausenZuschlag: pausenZuschlagVerbrauchen(leblos) }, leblos });
     }
     // Wortgrenze per Backspace wieder aufgehoben → zugehörigen
     // eingefrorenen Zustand verwerfen (Wort ist wieder "in Arbeit",
@@ -3698,6 +3755,49 @@
     stabilitaetUebernehmen();
   }, STAB_ERHOLUNGS_MS);
 
+  // Schließt die wortinterne Tempo-Messung DEFINITIV ab (Leerzeichen ODER
+  // Senden des letzten, noch offenen Worts – siehe tippAnalysieren unten
+  // bzw. die "letztes Wort"-Behandlung in den drei Sende-Handlern) und
+  // setzt sie danach zurück (wortStartZeit=null), damit das nächste Wort
+  // bei 0 beginnt. Kurze Wörter (< WORT_TEMPO_MIN_ZEICHEN): die Messung
+  // ist bei so wenigen Tastendrücken zu instabil (ein einzelner Anschlag
+  // ergäbe rechnerisch extreme cps) – stattdessen wird der zuletzt STABIL
+  // gemessene Tempo-Rohwert übernommen, letzterStabilerTempo bleibt dabei
+  // unangetastet (kein "Verwässern" des Referenzwerts durch instabile
+  // Kurzwörter).
+  function wortTempoAbschliessen(jetzt) {
+    if (wortStartZeit == null) return letzterStabilerTempo; // kein offenes Wort (z. B. Senden direkt nach einem Leerzeichen)
+
+    let tempo;
+    if (wortZeichenAnzahl < WORT_TEMPO_MIN_ZEICHEN) {
+      tempo = letzterStabilerTempo;
+    } else {
+      const sekunden = Math.max((jetzt - wortStartZeit) / 1000, 0.001); // gegen Division durch 0
+      const cps      = wortZeichenAnzahl / sekunden;
+      tempo = Math.min(900, Math.max(100, Math.round(umrechnen(cps, 0, CPS_MAXIMUM, 100, 900))));
+      letzterStabilerTempo = tempo;
+    }
+
+    wortStartZeit     = null;
+    wortZeichenAnzahl = 0;
+    return tempo;
+  }
+
+  // Live-Schätzung des Tempos für das GERADE OFFENE (noch nicht
+  // abgeschlossene) Wort – wie wortTempoAbschliessen, aber rein lesend:
+  // verändert weder letzterStabilerTempo noch die laufende Messung
+  // selbst. Dient nur der laufenden Tempo-Anzeige/den Achsen während des
+  // Tippens; der tatsächlich eingefrorene Wert für das Wort-Snapshot
+  // entsteht erst in wortTempoAbschliessen bei Wortende.
+  function wortTempoLiveSchaetzen(jetzt) {
+    if (wortStartZeit == null || wortZeichenAnzahl < WORT_TEMPO_MIN_ZEICHEN) {
+      return letzterStabilerTempo;
+    }
+    const sekunden = Math.max((jetzt - wortStartZeit) / 1000, 0.001);
+    const cps      = wortZeichenAnzahl / sekunden;
+    return Math.min(900, Math.max(100, Math.round(umrechnen(cps, 0, CPS_MAXIMUM, 100, 900))));
+  }
+
   function tippAnalysieren(event) {
     const istTippTaste =
       event.key.length === 1 ||
@@ -3706,10 +3806,24 @@
     if (!istTippTaste) return;
 
     const jetzt = Date.now();
+    const istEchtesZeichen = event.key.length === 1 && event.key !== ' '; // einzelnes Glyphen-Zeichen, explizit kein Leerzeichen
 
-    // ── Tempo: Zeitstempel im Fenster verwalten ───────────────
-    tipp_zeitstempel.push(jetzt);
-    tipp_zeitstempel = tipp_zeitstempel.filter(t => t >= jetzt - TIPP_FENSTER_MS);
+    // ── Pause zwischen Wörtern: Messung abschließen bzw. neu beginnen ──
+    // Leerzeichen beginnt eine offene Messung. Das nächste echte Zeichen
+    // schließt sie ab und hinterlegt den Zuschlag für das gerade
+    // begonnene Wort. Ein Backspace, der das Leerzeichen selbst wieder
+    // löscht (Wortgrenze aufgehoben), lässt die offene Messung bewusst
+    // unangetastet stehen – das nächste tatsächlich neue Wort bekommt
+    // den Zuschlag dann trotzdem.
+    if (event.key === ' ') {
+      letzteLeerzeichenZeit = jetzt;
+    } else if (istEchtesZeichen && letzteLeerzeichenZeit != null) {
+      const pause = jetzt - letzteLeerzeichenZeit;
+      ausstehenderPausenZuschlag = pause < PAUSE_SCHWELLE_MS ? 0 : umrechnen(
+        Math.min(pause, PAUSE_MAX_MS), PAUSE_SCHWELLE_MS, PAUSE_MAX_MS, 0, PAUSE_ZUSCHLAG_MAX
+      );
+      letzteLeerzeichenZeit = null; // verbraucht – erst das nächste Leerzeichen eröffnet die nächste Messung
+    }
 
     // ── Stabilität: Ereignisse auswerten – NUR ohne verbundenes Band.
     // Bei verbundenem Band liefert die Puls-Variabilität die Stabilität
@@ -3728,8 +3842,25 @@
     }
     // Buchstaben: keine direkte Wirkung; Erholung läuft über den Timer
 
-    // ── Tempo berechnen (immer tippbasiert, unabhängig vom Band) ──────
-    const tempo = tempoBerechnen();
+    // ── Tempo: wortintern (immer tippbasiert, unabhängig vom Band) ──────
+    // Leerzeichen = Wortende → Messung abschließen und einfrieren.
+    // Echtes Zeichen = ggf. neues Wort beginnen/verlängern, danach nur
+    // eine LIVE Schätzung fürs offene Wort (siehe wortTempoLiveSchaetzen
+    // – verändert weder letzterStabilerTempo noch die Messung selbst).
+    // Backspace/Delete lassen die wortinterne Messung unangetastet.
+    let tempo;
+    if (event.key === ' ') {
+      tempo = wortTempoAbschliessen(jetzt);
+    } else {
+      if (istEchtesZeichen) {
+        if (wortStartZeit == null) {
+          wortStartZeit     = jetzt; // erstes Zeichen eines neuen Worts
+          wortZeichenAnzahl = 0;
+        }
+        wortZeichenAnzahl++;
+      }
+      tempo = wortTempoLiveSchaetzen(jetzt);
+    }
     aktuelleRohwerte.tempo = tempo;
 
     wertTempoAnzeige.textContent = tempo;
@@ -3745,12 +3876,6 @@
       aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
       if (!document.hidden) vorschauAktualisieren();
     }
-  }
-
-  function tempoBerechnen() {
-    const cps     = tipp_zeitstempel.length / (TIPP_FENSTER_MS / 1000);
-    const gemappt = Math.round(umrechnen(cps, 0, CPS_MAXIMUM, 100, 900));
-    return Math.min(900, Math.max(100, gemappt));
   }
 
 
@@ -3927,10 +4052,17 @@
 
     // ═══ Letztes Wort einfrieren, falls noch kein Leerzeichen folgte ═══
     // (Senden gilt – wie ein Leerzeichen – als Wortabschluss, siehe Konzept)
+    // Tempo-Messung hier explizit abschließen (wortTempoAbschliessen), sonst
+    // bliebe das letzte Wort jeder Nachricht ohne wortinternen Tempowert –
+    // plus derselbe Pausen-Zuschlag-Verbrauch wie die reguläre Besiegelung
+    // in wortZustaendeSynchronisieren.
     const woerter = text.split(/\s+/).filter(w => w.length > 0);
     const wortSnapshots = wortZustaende.slice(0, woerter.length);
     if (wortSnapshots.length < woerter.length) {
-      wortSnapshots.push({ achsen: { ...aktuelleAchsen }, leblos: !emotionAktiv || istEingefuegt });
+      const leblos = !emotionAktiv || istEingefuegt;
+      aktuelleRohwerte.tempo = wortTempoAbschliessen(Date.now());
+      aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+      wortSnapshots.push({ achsen: { ...aktuelleAchsen, pausenZuschlag: pausenZuschlagVerbrauchen(leblos) }, leblos });
     }
 
     nachrichtHinzufuegen(text, true, wortSnapshots);
@@ -3956,12 +4088,21 @@
     // Stabilität: sofort auf Ausgangswert (vollständige Ruhe)
     stabilitaet_wert = STAB_START;
 
-    // Tempo: Zeitstempel-Puffer leeren → nächste Nachricht beginnt
-    // ohne Tipp-Vorgeschichte (Tempo startet bei Minimum)
-    tipp_zeitstempel = [];
+    // Tempo: wortinterne Messung + stabilen Referenzwert zurücksetzen →
+    // nächste Nachricht beginnt ohne Tipp-Vorgeschichte (Tempo startet
+    // bei Minimum, wie bisher).
+    wortStartZeit         = null;
+    wortZeichenAnzahl     = 0;
+    letzterStabilerTempo  = 100;
     aktuelleRohwerte.tempo = 100;
     wertTempoAnzeige.textContent = 100;
     balkenTempo.style.width      = '0%';
+
+    // Pause zwischen Wörtern: offene Messung + ausstehenden Zuschlag
+    // verwerfen, damit keine Pause aus der vorigen Nachricht auf das
+    // erste Wort der nächsten überschwappt.
+    letzteLeerzeichenZeit = null;
+    ausstehenderPausenZuschlag = 0;
 
     // Intensität und Tonalität: Slider-Werte bleiben (spiegeln Sensor-Zustand);
     // nichts zurücksetzen – die Regler sind Platzhalter für externe Daten.
@@ -4122,7 +4263,13 @@
       async stop() {},
       async meldeHerzfrequenz() {},
       async meldeBewegung() {},
-      async holeNachtDaten() { return { summeHerzfrequenz: 0, summeBewegung: 0, anzahlMesspunkte: 0 }; },
+      async meldeVariabilitaet() {},
+      async holeNachtDaten() {
+        return {
+          summeHerzfrequenz: 0, summeBewegung: 0, anzahlMesspunkte: 0,
+          summeVariabilitaet: 0, anzahlVariabilitaetsmesspunkte: 0
+        };
+      },
       async nachtDatenZuruecksetzen() {}
     })
   });
@@ -4389,6 +4536,13 @@
   // gesetzt wird.
   const NACHT_STUFE_KEY = 'situativeTypografie_nachtSchlafstufe';
 
+  // ── Nächtliche Puls-Variabilität (separat, siehe nachtAuswertungPruefen) ──
+  // Wird NUR abgelegt, NICHT in die Schlafqualitäts-Stufe (gesamtScore
+  // oben) eingerechnet – bewusste, vorsichtigere Variante: die Schlafstufe
+  // bleibt unverändert, die nächtliche Variabilität lässt sich erst einmal
+  // separat beobachten, bevor sie irgendeine Bewertung beeinflusst.
+  const NACHT_PULS_VARIABILITAET_KEY = 'situativeTypografie_nachtPulsVariabilitaet';
+
   // Formel-Konstanten (analog BAND_BPM_MIN/MAX oben, bewusst einfach
   // gehalten): zwei 0–1-Teil-Scores (Herzfrequenz, Bewegung), gleich
   // gewichtet gemittelt zu einem Gesamt-Score, der in 4 gleich große Viertel
@@ -4472,6 +4626,23 @@
         schlafStufeAnwenden(stufe);
         try { localStorage.setItem(NACHT_STUFE_KEY, JSON.stringify({ stufe: stufe, datum: heute })); } catch (e) {}
         schlafVerlaufEintragen(stufe);
+
+        // Nächtliche Puls-Variabilität: rein informativ ablegen, siehe
+        // Kommentar bei NACHT_PULS_VARIABILITAET_KEY oben – fließt bewusst
+        // NICHT in gesamtScore/stufe ein. anzahlVariabilitaetsmesspunkte
+        // kann 0 sein (z. B. sehr kurze Nacht direkt nach Verbindungsaufbau,
+        // bevor das 45s-Fenster erstmals gefüllt war) – dann gibt es nichts
+        // abzulegen.
+        if (daten.anzahlVariabilitaetsmesspunkte > 0) {
+          const avgVariabilitaet = daten.summeVariabilitaet / daten.anzahlVariabilitaetsmesspunkte;
+          console.log('[HRV] Nächtliche Puls-Variabilität: avg=' + avgVariabilitaet.toFixed(2)
+            + ' (' + daten.anzahlVariabilitaetsmesspunkte + ' Messpunkte)');
+          try {
+            localStorage.setItem(NACHT_PULS_VARIABILITAET_KEY, JSON.stringify({
+              wert: avgVariabilitaet, datum: heute
+            }));
+          } catch (e) {}
+        }
 
         await MomentumBleService.nachtDatenZuruecksetzen();
         return;
@@ -4585,6 +4756,15 @@
     // MomentumBleForegroundService) – rein additiv, fire-and-forget, beeinflusst
     // die obige Intensitäts-/Strichstärke-Logik in keiner Weise.
     MomentumBleService.meldeHerzfrequenz({ bpm }).catch(err => console.error('[Bewegung] Herzfrequenz konnte nicht ans Plugin gemeldet werden:', err));
+
+    // Dasselbe für die Puls-Variabilität – NUR wenn pulsVariabilitaetMessen
+    // oben bereits einen Wert lieferte (vor den ersten 5 Messpunkten im
+    // 45s-Fenster ist variabilitaet null, dann gibt es nichts zu melden).
+    // Ermöglicht MomentumBleForegroundService, die Variabilität analog zu
+    // Herzfrequenz/Bewegung über Nacht zu summieren (siehe nachtTick dort).
+    if (variabilitaet != null) {
+      MomentumBleService.meldeVariabilitaet({ wert: variabilitaet }).catch(err => console.error('[HRV] Pulsvariabilität konnte nicht ans Plugin gemeldet werden:', err));
+    }
   }
 
   // ── Beschleunigungsdaten empfangen (PMD ACC) ────────────────────
@@ -5011,7 +5191,7 @@
     const leblos = !emotionAktiv || momentIstEingefuegt;
 
     while (momentWortZustaende.length < anzahl) {
-      momentWortZustaende.push({ achsen: { ...aktuelleAchsen }, leblos: leblos });
+      momentWortZustaende.push({ achsen: { ...aktuelleAchsen, pausenZuschlag: pausenZuschlagVerbrauchen(leblos) }, leblos: leblos });
     }
     if (momentWortZustaende.length > anzahl) {
       momentWortZustaende.length = anzahl;
@@ -5039,10 +5219,15 @@
     const text = momentEingabe.value.trim();
     if (!text) return;
 
+    // Letztes Wort einfrieren, falls noch kein Leerzeichen folgte – siehe
+    // ausführlicher Kommentar beim Chat-Enter-Handler (identisches Prinzip).
     const woerter = text.split(/\s+/).filter(function (w) { return w.length > 0; });
     const wortSnapshots = momentWortZustaende.slice(0, woerter.length);
     if (wortSnapshots.length < woerter.length) {
-      wortSnapshots.push({ achsen: { ...aktuelleAchsen }, leblos: !emotionAktiv || momentIstEingefuegt });
+      const leblos = !emotionAktiv || momentIstEingefuegt;
+      aktuelleRohwerte.tempo = wortTempoAbschliessen(Date.now());
+      aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+      wortSnapshots.push({ achsen: { ...aktuelleAchsen, pausenZuschlag: pausenZuschlagVerbrauchen(leblos) }, leblos });
     }
 
     momente['Du'] = { text: text, wortSnapshots: wortSnapshots, datum: heutigesDatum() };
@@ -5055,10 +5240,14 @@
     // Gemeinsamer Tempo-/Stabilitäts-Reset – exakt wie nach dem Senden
     // einer Chat-Nachricht (siehe Enter-Handler des Chat-Eingabefelds).
     stabilitaet_wert = STAB_START;
-    tipp_zeitstempel = [];
+    wortStartZeit = null;
+    wortZeichenAnzahl = 0;
+    letzterStabilerTempo = 100;
     aktuelleRohwerte.tempo = 100;
     wertTempoAnzeige.textContent = 100;
     balkenTempo.style.width = '0%';
+    letzteLeerzeichenZeit = null;
+    ausstehenderPausenZuschlag = 0;
     stabilitaetUebernehmen();
 
     momentLeisteRendern();
@@ -5315,7 +5504,7 @@
     const leblos = !emotionAktiv || tagebuchIstEingefuegt;
 
     while (tagebuchWortZustaende.length < anzahl) {
-      tagebuchWortZustaende.push({ achsen: { ...aktuelleAchsen }, leblos: leblos });
+      tagebuchWortZustaende.push({ achsen: { ...aktuelleAchsen, pausenZuschlag: pausenZuschlagVerbrauchen(leblos) }, leblos: leblos });
     }
     if (tagebuchWortZustaende.length > anzahl) {
       tagebuchWortZustaende.length = anzahl;
@@ -5490,10 +5679,15 @@
     const text = tagebuchEingabe.value.trim();
     if (!text) return;
 
+    // Letztes Wort einfrieren, falls noch kein Leerzeichen folgte – siehe
+    // ausführlicher Kommentar beim Chat-Enter-Handler (identisches Prinzip).
     const woerter = text.split(/\s+/).filter(function (w) { return w.length > 0; });
     const wortSnapshots = tagebuchWortZustaende.slice(0, woerter.length);
     if (wortSnapshots.length < woerter.length) {
-      wortSnapshots.push({ achsen: { ...aktuelleAchsen }, leblos: !emotionAktiv || tagebuchIstEingefuegt });
+      const leblos = !emotionAktiv || tagebuchIstEingefuegt;
+      aktuelleRohwerte.tempo = wortTempoAbschliessen(Date.now());
+      aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
+      wortSnapshots.push({ achsen: { ...aktuelleAchsen, pausenZuschlag: pausenZuschlagVerbrauchen(leblos) }, leblos });
     }
 
     tagebuchEintraege.unshift({ text: text, wortSnapshots: wortSnapshots, zeitstempel: Date.now() });
@@ -5508,10 +5702,14 @@
     // Gemeinsamer Tempo-/Stabilitäts-Reset – exakt wie nach Chat-/
     // Moment-Senden (siehe dort).
     stabilitaet_wert = STAB_START;
-    tipp_zeitstempel = [];
+    wortStartZeit = null;
+    wortZeichenAnzahl = 0;
+    letzterStabilerTempo = 100;
     aktuelleRohwerte.tempo = 100;
     wertTempoAnzeige.textContent = 100;
     balkenTempo.style.width = '0%';
+    letzteLeerzeichenZeit = null;
+    ausstehenderPausenZuschlag = 0;
     stabilitaetUebernehmen();
 
     tagebuchListeRendern();

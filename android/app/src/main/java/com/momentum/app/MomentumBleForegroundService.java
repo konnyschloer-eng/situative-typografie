@@ -4,7 +4,9 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.Handler;
@@ -48,8 +50,11 @@ public class MomentumBleForegroundService extends Service {
     // Handler in diesem bereits geschützten Prozess dagegen nicht. Felder
     // sind static, weil MomentumBleServicePlugin nicht an die Service-
     // Instanz gebunden ist (nur Start-/Stop-Intents) und so trotzdem lesend/
-    // schreibend zugreifen kann. Bewusst nur zwei Summen + ein Zähler im
-    // Arbeitsspeicher – keine Einzelmesspunkte (siehe Plan).
+    // schreibend zugreifen kann. Bewusst nur Summen + Zähler im
+    // Arbeitsspeicher – keine Einzelmesspunkte (siehe Plan). Zusätzlich bei
+    // jedem Tick in SharedPreferences abgesichert (siehe nachtSummen-
+    // Persistieren/-Wiederherstellen weiter unten), falls der Prozess vor
+    // der Morgen-Auswertung endet.
     // Zwei Takte statt einem: NUR innerhalb des Nacht-Fensters (22:00–08:00,
     // siehe istNachtzeit()) wird tatsächlich in die Schlaf-Summen aufsummiert
     // (grobe 4-Stufen-Einordnung, siehe nachtAuswertungPruefen in chat.html –
@@ -70,6 +75,38 @@ public class MomentumBleForegroundService extends Service {
     private static volatile double summeBewegung        = 0;
     private static volatile int anzahlMesspunkte        = 0;
 
+    // ── Pulsvariabilität (Annäherung an HRV) – eigenes Summenpaar ───────
+    // EIGENER Zähler nötig (statt anzahlMesspunkte mitzuverwenden): laut
+    // pulsVariabilitaetMessen() in chat.html liefert die Variabilität erst
+    // ab 5 Messpunkten im gleitenden 45s-Fenster einen Wert – direkt nach
+    // Verbindungsaufbau oder nach kurzen Empfangslücken kann
+    // letzteVariabilitaet also noch null sein, während bereits ein
+    // gültiger letzteHerzfrequenz-Wert vorliegt. Double (statt double)
+    // bewusst, damit "noch kein Wert gemeldet" (null) von "Wert 0.0"
+    // unterscheidbar bleibt.
+    private static volatile Double letzteVariabilitaet         = null;
+    private static volatile double summeVariabilitaet          = 0;
+    private static volatile int anzahlVariabilitaetsmesspunkte = 0;
+
+    // ── Absicherung der Nacht-Summen (SharedPreferences) ────────────────
+    // Die obigen Felder leben NUR im Arbeitsspeicher dieses Prozesses –
+    // wird der Prozess vor der Morgen-Auswertung beendet (Speicherdruck,
+    // Reboot), sind sie ohne diese Absicherung verloren, auch wenn
+    // START_STICKY den Service danach neu startet (die statischen Felder
+    // beginnen dann wieder bei 0). Deshalb: bei jedem Nacht-Tick den
+    // aktuellen Stand persistieren, beim Service-Start wiederherstellen –
+    // aber NUR, wenn der gespeicherte Stand nachweislich aus derselben
+    // Nacht stammt (siehe nachtKennung()), sonst verwerfen.
+    private static Context appKontext; // ApplicationContext, NICHT die Service-Instanz selbst (kein Leak-Risiko über den static-Verweis)
+
+    private static final String NACHT_PREFS_NAME = "momentum_nacht_erfassung";
+    private static final String PREF_KENNUNG     = "nachtKennung";
+    private static final String PREF_SUMME_HF    = "summeHerzfrequenz";
+    private static final String PREF_SUMME_BEW   = "summeBewegung";
+    private static final String PREF_ANZAHL      = "anzahlMesspunkte";
+    private static final String PREF_SUMME_VAR   = "summeVariabilitaet";
+    private static final String PREF_ANZAHL_VAR  = "anzahlVariabilitaetsmesspunkte";
+
     /**
      * Echte Uhrzeit-Prüfung (Systemzeit des Geräts, java.util.Calendar statt
      * java.time – minSdkVersion 24 < 26, kein Desugaring konfiguriert).
@@ -82,6 +119,74 @@ public class MomentumBleForegroundService extends Service {
     private static boolean istNachtzeit() {
         int stunde = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         return stunde >= 22 || stunde < 8;
+    }
+
+    /**
+     * Eindeutige Kennung für die AKTUELLE Nacht, stabil über den
+     * Mitternachts-Wechsel hinweg – das Nacht-Fenster 22:00–08:00 liegt
+     * auf zwei Kalendertagen, ein einfacher Datums-String würde also
+     * mitten in der Nacht wechseln. Liegt die Uhrzeit vor 8:00, gehört
+     * sie noch zur Nacht des VORTAGES, daher der Tagesversatz. Dient
+     * ausschließlich dem Vergleich "stammen die in SharedPreferences
+     * abgelegten Summen aus derselben, noch laufenden Nacht?".
+     */
+    private static String nachtKennung() {
+        Calendar cal = Calendar.getInstance();
+        if (cal.get(Calendar.HOUR_OF_DAY) < 8) {
+            cal.add(Calendar.DAY_OF_YEAR, -1); // 00:00–08:00 gehört noch zur Nacht des Vortages
+        }
+        return cal.get(Calendar.YEAR) + "-" + cal.get(Calendar.DAY_OF_YEAR);
+    }
+
+    /** Schreibt den aktuellen Nacht-Summenstand nach SharedPreferences (siehe nachtTick()). */
+    private static void nachtSummenPersistieren() {
+        if (appKontext == null) return; // sollte nach onCreate() nie eintreten, defensiv trotzdem
+        SharedPreferences.Editor editor = appKontext
+            .getSharedPreferences(NACHT_PREFS_NAME, Context.MODE_PRIVATE)
+            .edit();
+        editor.putString(PREF_KENNUNG, nachtKennung());
+        editor.putLong(PREF_SUMME_HF, summeHerzfrequenz);
+        // SharedPreferences kennt kein putDouble – als String statt Float
+        // gespeichert, um keine Präzision zu verlieren.
+        editor.putString(PREF_SUMME_BEW, String.valueOf(summeBewegung));
+        editor.putInt(PREF_ANZAHL, anzahlMesspunkte);
+        editor.putString(PREF_SUMME_VAR, String.valueOf(summeVariabilitaet));
+        editor.putInt(PREF_ANZAHL_VAR, anzahlVariabilitaetsmesspunkte);
+        editor.apply();
+    }
+
+    /**
+     * Stellt die Nacht-Summen aus SharedPreferences wieder her – NUR, wenn
+     * die dort abgelegte Kennung zur aktuellen Nacht passt (siehe
+     * nachtKennung()). Gehören die gespeicherten Daten zu einer anderen
+     * (bereits ausgewerteten oder länger zurückliegenden) Nacht, werden
+     * sie stattdessen verworfen, damit sie sich nicht fälschlich als
+     * "laufende Nacht" ausgeben. Wird einmalig beim Service-Start
+     * aufgerufen (siehe onStartCommand()).
+     */
+    private static void nachtSummenWiederherstellen() {
+        if (appKontext == null) return;
+        SharedPreferences prefs = appKontext.getSharedPreferences(NACHT_PREFS_NAME, Context.MODE_PRIVATE);
+        String gespeicherteKennung = prefs.getString(PREF_KENNUNG, null);
+
+        if (gespeicherteKennung == null || !gespeicherteKennung.equals(nachtKennung())) {
+            nachtPrefsLoeschen(); // veraltete/fremde Nacht – nicht stehen lassen
+            return;
+        }
+
+        summeHerzfrequenz = prefs.getLong(PREF_SUMME_HF, 0);
+        summeBewegung = Double.parseDouble(prefs.getString(PREF_SUMME_BEW, "0"));
+        anzahlMesspunkte = prefs.getInt(PREF_ANZAHL, 0);
+        summeVariabilitaet = Double.parseDouble(prefs.getString(PREF_SUMME_VAR, "0"));
+        anzahlVariabilitaetsmesspunkte = prefs.getInt(PREF_ANZAHL_VAR, 0);
+        Log.d(TAG, "nachtSummenWiederherstellen: Summen derselben Nacht übernommen (anzahlMesspunkte="
+            + anzahlMesspunkte + ", anzahlVariabilitaetsmesspunkte=" + anzahlVariabilitaetsmesspunkte + ").");
+    }
+
+    /** Löscht den abgesicherten Stand vollständig (nach erfolgter Morgen-Auswertung oder bei fremder Nacht-Kennung). */
+    private static void nachtPrefsLoeschen() {
+        if (appKontext == null) return;
+        appKontext.getSharedPreferences(NACHT_PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply();
     }
 
     private Handler nachtHandler;
@@ -108,29 +213,51 @@ public class MomentumBleForegroundService extends Service {
         bewegungSeitTick += betrag;
     }
 
+    /**
+     * Wird von MomentumBleServicePlugin bei jeder NEUEN, nicht-null
+     * Pulsvariabilitäts-Messung aufgerufen (letzter Wert wird gehalten,
+     * analog meldeHerzfrequenz – NICHT aufsummiert wie meldeBewegung).
+     * Ruft die JS-Seite (bpmEmpfangen in chat.html) nur auf, wenn
+     * pulsVariabilitaetMessen() nicht null liefert – vor den ersten 5
+     * Messpunkten im 45s-Fenster bleibt letzteVariabilitaet entsprechend
+     * unangetastet (null).
+     */
+    public static synchronized void meldeVariabilitaet(double wert) {
+        letzteVariabilitaet = wert;
+    }
+
     /** Einfacher Werte-Container für holeNachtDaten() – reine Datenhaltung, keine Logik. */
     public static final class NachtDaten {
         public final long summeHerzfrequenz;
         public final double summeBewegung;
         public final int anzahlMesspunkte;
+        public final double summeVariabilitaet;
+        public final int anzahlVariabilitaetsmesspunkte;
 
-        NachtDaten(long summeHerzfrequenz, double summeBewegung, int anzahlMesspunkte) {
+        NachtDaten(long summeHerzfrequenz, double summeBewegung, int anzahlMesspunkte,
+                   double summeVariabilitaet, int anzahlVariabilitaetsmesspunkte) {
             this.summeHerzfrequenz = summeHerzfrequenz;
             this.summeBewegung = summeBewegung;
             this.anzahlMesspunkte = anzahlMesspunkte;
+            this.summeVariabilitaet = summeVariabilitaet;
+            this.anzahlVariabilitaetsmesspunkte = anzahlVariabilitaetsmesspunkte;
         }
     }
 
     /** Liefert die bisherigen Nacht-Summen (read-only) für die Morgen-Auswertung in chat.html. */
     public static synchronized NachtDaten holeNachtDaten() {
-        return new NachtDaten(summeHerzfrequenz, summeBewegung, anzahlMesspunkte);
+        return new NachtDaten(summeHerzfrequenz, summeBewegung, anzahlMesspunkte,
+            summeVariabilitaet, anzahlVariabilitaetsmesspunkte);
     }
 
-    /** Verwirft die Nacht-Summen nach erfolgter Morgen-Auswertung. */
+    /** Verwirft die Nacht-Summen nach erfolgter Morgen-Auswertung (im Arbeitsspeicher UND im abgesicherten Stand). */
     public static synchronized void nachtDatenZuruecksetzen() {
         summeHerzfrequenz = 0;
         summeBewegung = 0;
         anzahlMesspunkte = 0;
+        summeVariabilitaet = 0;
+        anzahlVariabilitaetsmesspunkte = 0;
+        nachtPrefsLoeschen(); // die Rohsummen sind ausgewertet – der abgesicherte Stand muss mit verschwinden, sonst würde ein Neustart derselben Nacht sie fälschlich wiederherstellen
         Log.d(TAG, "nachtDatenZuruecksetzen: Nacht-Summen verworfen.");
     }
 
@@ -138,10 +265,23 @@ public class MomentumBleForegroundService extends Service {
         summeHerzfrequenz += letzteHerzfrequenz;
         summeBewegung += bewegungSeitTick;
         anzahlMesspunkte++;
+
+        // Lokale Kopie: vermeidet, dass zwischen Null-Prüfung und Verwendung
+        // ein Race mit meldeVariabilitaet() den Wert unter der Hand ändert.
+        Double variabilitaet = letzteVariabilitaet;
+        if (variabilitaet != null) {
+            summeVariabilitaet += variabilitaet;
+            anzahlVariabilitaetsmesspunkte++;
+        }
+
         Log.d(TAG, "Nacht-Tick #" + anzahlMesspunkte + ": HF=" + letzteHerzfrequenz
-            + ", Bewegung=" + bewegungSeitTick + " (Summen bisher: HF=" + summeHerzfrequenz
-            + ", Bewegung=" + summeBewegung + ")");
+            + ", Bewegung=" + bewegungSeitTick
+            + ", Variabilität=" + (variabilitaet != null ? variabilitaet : "–")
+            + " (Summen bisher: HF=" + summeHerzfrequenz + ", Bewegung=" + summeBewegung
+            + ", Variabilität=" + summeVariabilitaet + "/" + anzahlVariabilitaetsmesspunkte + ")");
+
         bewegungSeitTick = 0;
+        nachtSummenPersistieren(); // Absicherung: sofort schreiben, falls der Prozess vor der Morgen-Auswertung endet
     }
 
     @Override
@@ -156,6 +296,7 @@ public class MomentumBleForegroundService extends Service {
     public void onCreate() {
         Log.d(TAG, "onCreate: Service-Instanz wird erstellt.");
         super.onCreate();
+        appKontext = getApplicationContext(); // für die SharedPreferences-Absicherung der Nacht-Summen, siehe oben
         benachrichtigungskanalErstellen();
     }
 
@@ -187,6 +328,12 @@ public class MomentumBleForegroundService extends Service {
         // erneutem MomentumBleService.start() (z. B. Reconnect) mehrfach
         // aufgerufen werden, solange der Service bereits läuft.
         if (nachtHandler == null) {
+            // Absicherung (Change 4): falls dieser Prozess seit dem letzten
+            // Nacht-Tick derselben Nacht neu gestartet wurde (Speicherdruck-
+            // Kill + START_STICKY-Neustart), hier den Summenstand aus
+            // SharedPreferences übernehmen, BEVOR der Handler weiterzählt.
+            nachtSummenWiederherstellen();
+
             nachtHandler = new Handler(Looper.getMainLooper());
             boolean nachts = istNachtzeit();
             long ersterDelay = nachts ? NACHT_TICK_INTERVALL_MS : TAG_TICK_INTERVALL_MS;

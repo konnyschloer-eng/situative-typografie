@@ -121,6 +121,18 @@ public class MomentumBleServicePlugin extends Plugin {
         call.resolve();
     }
 
+    // Wird von chat.html (bpmEmpfangen) nur aufgerufen, wenn
+    // pulsVariabilitaetMessen() nicht null liefert (ab 5 Messpunkten im
+    // 45s-Fenster) – siehe MomentumBleForegroundService.meldeVariabilitaet.
+    @PluginMethod
+    public void meldeVariabilitaet(PluginCall call) {
+        Double wert = call.getDouble("wert");
+        if (wert != null) {
+            MomentumBleForegroundService.meldeVariabilitaet(wert);
+        }
+        call.resolve();
+    }
+
     @PluginMethod
     public void holeNachtDaten(PluginCall call) {
         MomentumBleForegroundService.NachtDaten daten = MomentumBleForegroundService.holeNachtDaten();
@@ -128,8 +140,12 @@ public class MomentumBleServicePlugin extends Plugin {
         ergebnis.put("summeHerzfrequenz", daten.summeHerzfrequenz);
         ergebnis.put("summeBewegung", daten.summeBewegung);
         ergebnis.put("anzahlMesspunkte", daten.anzahlMesspunkte);
+        ergebnis.put("summeVariabilitaet", daten.summeVariabilitaet);
+        ergebnis.put("anzahlVariabilitaetsmesspunkte", daten.anzahlVariabilitaetsmesspunkte);
         Log.d(TAG, "holeNachtDaten: summeHerzfrequenz=" + daten.summeHerzfrequenz
-            + ", summeBewegung=" + daten.summeBewegung + ", anzahlMesspunkte=" + daten.anzahlMesspunkte);
+            + ", summeBewegung=" + daten.summeBewegung + ", anzahlMesspunkte=" + daten.anzahlMesspunkte
+            + ", summeVariabilitaet=" + daten.summeVariabilitaet
+            + ", anzahlVariabilitaetsmesspunkte=" + daten.anzahlVariabilitaetsmesspunkte);
         call.resolve(ergebnis);
     }
 
