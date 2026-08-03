@@ -144,6 +144,7 @@
       .kontakt-auswahl-liste,
       .tagebuch-liste,
       .tagebuch-monat,
+      .moment-feed,
       #eingabe {
         scrollbar-width: thin;                              /* Firefox */
         scrollbar-color: var(--scrollbar-farbe) transparent; /* Firefox */
@@ -157,6 +158,7 @@
     .kontakt-auswahl-liste::-webkit-scrollbar,
     .tagebuch-liste::-webkit-scrollbar,
     .tagebuch-monat::-webkit-scrollbar,
+    .moment-feed::-webkit-scrollbar,
     #eingabe::-webkit-scrollbar {
       width: 4px;
     }
@@ -168,6 +170,7 @@
     .kontakt-auswahl-liste::-webkit-scrollbar-track,
     .tagebuch-liste::-webkit-scrollbar-track,
     .tagebuch-monat::-webkit-scrollbar-track,
+    .moment-feed::-webkit-scrollbar-track,
     #eingabe::-webkit-scrollbar-track {
       background: transparent;
     }
@@ -179,6 +182,7 @@
     .kontakt-auswahl-liste::-webkit-scrollbar-thumb,
     .tagebuch-liste::-webkit-scrollbar-thumb,
     .tagebuch-monat::-webkit-scrollbar-thumb,
+    .moment-feed::-webkit-scrollbar-thumb,
     #eingabe::-webkit-scrollbar-thumb {
       background: var(--scrollbar-farbe);
       border-radius: 999px;
@@ -191,6 +195,7 @@
     .kontakt-auswahl-liste::-webkit-scrollbar-button,
     .tagebuch-liste::-webkit-scrollbar-button,
     .tagebuch-monat::-webkit-scrollbar-button,
+    .moment-feed::-webkit-scrollbar-button,
     #eingabe::-webkit-scrollbar-button {
       display: none;
     }
@@ -288,6 +293,13 @@
       align-items: center;
       padding: 0 20px;
     }
+
+    /* [hidden] muss hier explizit gewinnen – siehe Kommentar bei
+       .tagebuch-neu-btn[hidden] weiter unten, derselbe Spezifitäts-
+       Konflikt mit display:flex oben. Wird für den MOMENT-Tab gesetzt
+       (siehe tabAnzeigen, JS), damit dort keine doppelte "Moment"-
+       Beschriftung entsteht. */
+    .kopfzeile-uebersicht[hidden] { display: none; }
 
     .seitentitel {
       font-size: 12px;
@@ -615,15 +627,19 @@
     .bestaetigung-aktionen .overlay-btn { flex: 1; }
 
     /* ══════════════════════════════════════════════════════════════
-       MOMENT – horizontale Story-Leiste + Composer + Story-Ansicht.
+       MOMENT – horizontale Story-Leiste + Composer (versteckt hinter
+       dem eigenen Kreis) + Feed der Momente anderer + Story-Ansicht.
        Separater Bereich: rein visuell eigenständig, die eigentliche
        Wort-Einfrier-Logik lebt im JS-Abschnitt "MOMENT" und rührt
-       nicht an der Chat-Logik. ══════════════════════════════════ */
+       nicht an der Chat-Logik. Keine eigene "Moment"-Überschrift mehr
+       (weder die geteilte Kopfzeile noch ein lokales Label) – der
+       Bereich ist über die Tab-Leiste unten bereits eindeutig benannt,
+       siehe tabAnzeigen (JS). ══════════════════════════════════ */
     .moment-leiste {
       flex-shrink: 0;
       display: flex;
-      gap: 16px;
-      padding: 16px 20px;
+      gap: 18px;
+      padding: 20px 20px 18px;
       overflow-x: auto;
       overflow-y: hidden;
       border-bottom: 1px solid var(--border-light);
@@ -650,8 +666,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
-      width: 60px;
+      gap: 8px;
+      width: 74px; /* breiter als vorher (60px) – Platz für den deutlich größeren Namen darunter */
       background: none;
       border: none;
       cursor: pointer;
@@ -674,8 +690,37 @@
       box-shadow: 0 0 0 2px #ffffff;
     }
 
+    /* Eigener Kreis: Profilbild (falls vorhanden) statt Buchstabe,
+       plus kleines "+"-Badge unten rechts – derselbe Aufbau wie der
+       Stift-Button auf dem Profilbild im PROFIL-Tab (position:relative
+       Wrapper + absolut positioniertes Badge), zum Wiedererkennen. */
+    .moment-kreis-du {
+      position: relative;
+    }
+
+    .moment-kreis-plus {
+      position: absolute;
+      right: -2px; bottom: -2px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 13px;
+      line-height: 1;
+      pointer-events: none; /* Klick soll den ganzen Kreis treffen, nicht nur das kleine Badge */
+    }
+
+    /* Deutlich größer als vorher (11px) – dieselbe Idee wie bei
+       .gespraechs-name in der Kontaktliste: der Name ist der Ort, an
+       dem die typografische Charakteristik der Person sichtbar wird. */
     .moment-kreis-name {
-      font-size: 11px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 15px;
       color: var(--text-2);
       max-width: 100%;
       white-space: nowrap;
@@ -683,13 +728,19 @@
       text-overflow: ellipsis;
     }
 
+    /* Composer: standardmäßig verborgen, öffnet sich erst durch Tippen
+       auf den eigenen Kreis (siehe momentOeffnen/momentComposerOffen,
+       JS) – kein dauerhaft sichtbares Eingabefeld mehr. */
     .moment-composer {
       flex-shrink: 0;
       display: flex;
       align-items: center;
       gap: 10px;
       padding: 14px 20px;
+      border-bottom: 1px solid var(--border-light);
     }
+
+    .moment-composer[hidden] { display: none; }
 
     .moment-eingabe {
       flex: 1;
@@ -726,12 +777,61 @@
 
     .moment-senden-btn:disabled { opacity: 0.3; cursor: default; }
 
-    .moment-hinweis {
-      flex-shrink: 0;
-      padding: 0 20px 16px;
+    /* ── Feed: Momente der anderen Personen als große Karten ─────────
+       Füllt den vormals leeren Bereich unterhalb der Kreis-Leiste. Der
+       gepostete Satz (momentTextRendern – UNVERÄNDERTE reagierende
+       Wort-für-Wort-Typografie, exakt wie in der Story-Ansicht/im Chat)
+       ist bewusst das dominante, große Element; Profilbild + Name
+       bilden nur eine kleine, zurückhaltende Kopfzeile darüber. "Du"
+       taucht hier nie auf – der eigene Moment lebt im Kreis mit "+"
+       bzw. in der Story-Ansicht (siehe momentOeffnen). ── */
+    .moment-feed {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 20px 24px;
+    }
+
+    .moment-karte {
+      padding: 26px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .moment-karte:last-child { border-bottom: none; }
+
+    .moment-karte-kopf {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .avatar--moment-karte {
+      width: 30px; height: 30px;
+      font-size: 12px;
+    }
+
+    .moment-karte-name {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--text-2);
+      letter-spacing: 0.02em;
+    }
+
+    .moment-karte-text {
+      font-size: 24px;
+      line-height: 1.35;
+      color: #111;
+      overflow-wrap: break-word;
+    }
+
+    .phone-frame.emotion-an .moment-karte-text { color: #d8d6d1; }
+
+    .moment-feed-leer {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
       font-size: 12px;
       color: var(--text-3);
       font-style: italic;
+      padding: 20px 0;
     }
 
     /* ── Story-Ansicht: großer, eingefrorener Text – dieselbe
@@ -1986,7 +2086,7 @@
       </button>
     </header>
 
-    <header class="kopfzeile-uebersicht">
+    <header class="kopfzeile-uebersicht" id="kopfzeile-uebersicht">
       <span class="seitentitel" id="uebersicht-titel">Chats</span>
     </header>
 
@@ -2125,25 +2225,26 @@
 
     </div><!-- /#tab-gruppen -->
 
-    <!-- ── Tab-Panel: Moment (Story-artige Leiste) ──────────────────
+    <!-- ── Tab-Panel: Moment (Story-artige Leiste + Feed) ────────────
          Separater Bereich: nutzt denselben Wort-für-Wort-Einfrier-
          Mechanismus wie der Chat (siehe JS-Abschnitt "MOMENT"), aber
          mit eigenem Composer/eigenem Zustand – rührt nicht an
-         wortZustaende/eingabe des Chats. ── -->
+         wortZustaende/eingabe des Chats. Keine eigene "Moment"-
+         Überschrift (weder geteilte Kopfzeile noch lokales Label) –
+         der Tab unten benennt den Bereich bereits eindeutig, siehe
+         tabAnzeigen (JS). Composer ist standardmäßig verborgen, öffnet
+         sich erst durch Tippen auf den eigenen Kreis (momentOeffnen). -->
     <div class="tab-inhalt" id="tab-moment">
-
-      <div class="gruppen-kopf">
-        <span class="gruppen-kopf-label">Moment</span>
-      </div>
 
       <div class="moment-leiste" id="moment-leiste"></div>
 
-      <div class="moment-composer" id="moment-composer">
+      <div class="moment-composer" id="moment-composer" hidden>
         <input class="moment-eingabe" type="text" id="moment-eingabe"
           placeholder="Was ist gerade los?" autocomplete="off" maxlength="140">
         <button class="moment-senden-btn" id="moment-senden-btn">Senden</button>
       </div>
-      <p class="moment-hinweis" id="moment-hinweis" hidden>Du hast heute schon einen Moment geteilt.</p>
+
+      <div class="moment-feed" id="moment-feed"></div>
 
     </div><!-- /#tab-moment -->
 
@@ -2611,7 +2712,8 @@
   // Schaltet nur um, welches der vier Panels innerhalb der Übersicht
   // sichtbar ist – keine Auswirkung auf Such-/Filter- oder
   // Typografie-Logik.
-  const uebersichtTitel = document.getElementById('uebersicht-titel');
+  const uebersichtTitel   = document.getElementById('uebersicht-titel');
+  const kopfzeileUebersicht = document.getElementById('kopfzeile-uebersicht');
   const tabChats        = document.getElementById('tab-chats');
   const tabGruppen      = document.getElementById('tab-gruppen');
   const tabMoment       = document.getElementById('tab-moment');
@@ -2627,11 +2729,23 @@
     tabMoment.classList.toggle('aktiv', tabName === 'moment');
     tabProfil.classList.toggle('aktiv', tabName === 'profil');
     uebersichtTitel.textContent = TAB_TITEL[tabName];
+    // Moment zeigt weder die geteilte Kopfzeile noch ein lokales Label
+    // (siehe #tab-moment) – der Bereich ist über die Tab-Leiste unten
+    // bereits eindeutig benannt, eine zusätzliche "MOMENT"-Zeile hier
+    // wäre eine Dopplung.
+    kopfzeileUebersicht.hidden = (tabName === 'moment');
     // Aktuelle Werte (Puls/Stabilität/Schlaf) erst beim Anzeigen
     // auffrischen – siehe Abschnitt PROFIL weiter unten (JS).
     if (tabName === 'profil') {
       profilStatsAktualisieren();
       tagebuchSchlafGraphRendern(); // Verlauf kann sich seit dem letzten Aufruf geändert haben (neue Nacht ausgewertet)
+    }
+    // Momente-Leiste/-Feed auffrischen (z. B. neues eigenes Profilbild
+    // seit dem letzten Aufruf im PROFIL-Tab hochgeladen, siehe
+    // eigenesProfilbildLaden) – analog zum PROFIL-Refresh oben.
+    if (tabName === 'moment') {
+      momentLeisteRendern();
+      momentFeedRendern();
     }
   }
 
@@ -3325,6 +3439,7 @@
     // statt erst beim nächsten manuellen Tab-Wechsel zu aktualisieren.
     momentePlatzhalterErgaenzen();
     momentLeisteRendern();
+    momentFeedRendern();
     momentComposerAktualisieren();
 
     console.log('[Kontaktliste] aus AVATARS_MANIFEST aufgebaut:', kontakte.length, 'Kontakt(e).');
@@ -4886,6 +5001,19 @@
   }
 
 
+  // Zentral hier (statt erst im PROFIL-Abschnitt weiter unten) definiert,
+  // weil MOMENT (dieser Abschnitt) im Skript VOR PROFIL steht und
+  // momentLeisteRendern() das eigene Profilbild für den "Du"-Kreis schon
+  // beim allerersten Aufruf braucht (siehe dort) – eine Deklaration erst
+  // im PROFIL-Abschnitt wäre zu diesem Zeitpunkt (Temporal Dead Zone)
+  // noch nicht erreichbar, exakt dasselbe Problem wie beim zitterStyleEl-
+  // Kommentar weiter oben.
+  const EIGENES_PROFILBILD_KEY = 'situativeTypografie_eigenesProfilbild';
+
+  function eigenesProfilbildLaden() {
+    try { return localStorage.getItem(EIGENES_PROFILBILD_KEY); } catch (e) { return null; }
+  }
+
   // ═══════════════════════════════════════════════════════════════
   //  MOMENT – Story-artige Leiste, separater Bereich
   //
@@ -5076,7 +5204,7 @@
   const momentComposer        = document.getElementById('moment-composer');
   const momentEingabe         = document.getElementById('moment-eingabe');
   const momentSendenBtn       = document.getElementById('moment-senden-btn');
-  const momentHinweis         = document.getElementById('moment-hinweis');
+  const momentFeed            = document.getElementById('moment-feed');
   const momentAnsichtOverlay  = document.getElementById('moment-ansicht-overlay');
   const momentAnsichtAvatar   = document.getElementById('moment-ansicht-avatar');
   const momentAnsichtName     = document.getElementById('moment-ansicht-name');
@@ -5093,6 +5221,9 @@
   }
 
   // Baut die Story-Leiste aus dem aktuellen momente-Objekt neu auf.
+  // Der eigene Kreis ("Du") zeigt das eigene Profilbild (falls
+  // vorhanden) statt eines Buchstabens, plus ein kleines "+"-Badge als
+  // Hinweis, dass hier der eigene Moment eingetragen wird.
   function momentLeisteRendern() {
     momentLeiste.innerHTML = '';
 
@@ -5107,9 +5238,31 @@
       kreis.className = 'avatar avatar--moment';
       kreis.textContent = name.charAt(0).toUpperCase();
 
+      let kreisElement = kreis; // wird für "Du" unten durch den position:relative-Wrapper ersetzt
+
       if (name === 'Du') {
         // "Du" hat keinen Profilbild-Mittelwert (der beschreibt den
-        // Puls ANDERER Personen) – bleibt beim neutralen CSS-Default.
+        // Puls ANDERER Personen, siehe avatarDarstellungAktualisieren)
+        // – bleibt beim neutralen CSS-Default für die Strichstärke.
+        // Das eigene FOTO (falls hochgeladen, siehe PROFIL-Tab) zeigt
+        // sich hier aber genau wie beim Profilbild-Kreis im Profil.
+        const eigenesFoto = eigenesProfilbildLaden();
+        if (eigenesFoto) {
+          kreis.style.backgroundImage = "url('" + eigenesFoto + "')";
+          kreis.classList.add('avatar--foto');
+        }
+
+        const duWrapper = document.createElement('div');
+        duWrapper.className = 'moment-kreis-du';
+        duWrapper.appendChild(kreis);
+
+        const plus = document.createElement('span');
+        plus.className = 'moment-kreis-plus';
+        plus.setAttribute('aria-hidden', 'true');
+        plus.textContent = '+';
+        duWrapper.appendChild(plus);
+
+        kreisElement = duWrapper;
       } else {
         kreis.dataset.name = name;
         avatarDarstellungAktualisieren(name);
@@ -5123,27 +5276,91 @@
       nameEl.className = 'moment-kreis-name';
       nameEl.textContent = name;
 
-      wrapper.appendChild(kreis);
+      wrapper.appendChild(kreisElement);
       wrapper.appendChild(nameEl);
+      wrapper.setAttribute('aria-label', name === 'Du' ? 'Eigenen Moment eintragen' : 'Moment von ' + name + ' ansehen');
       wrapper.addEventListener('click', function () { momentOeffnen(name); });
 
       momentLeiste.appendChild(wrapper);
     });
   }
 
-  // Zeigt/versteckt Composer bzw. Hinweistext je nachdem, ob "Du"
-  // heute schon gepostet hast (einmal pro Tag).
+  // ── Feed: Momente der anderen Personen als große Karten ───────────
+  // "Du" taucht hier bewusst nie auf (siehe CSS-Kommentar bei
+  // .moment-feed) – der eigene Moment lebt im Kreis mit "+" bzw. in der
+  // Story-Ansicht. momentTextRendern (UNVERÄNDERT, siehe oben) erzeugt
+  // dieselbe reagierende Wort-für-Wort-Typografie wie im Chat/in der
+  // Story-Ansicht.
+  function momentFeedRendern() {
+    momentFeed.innerHTML = '';
+
+    const namenMitMoment = momentNamenErmitteln().filter(function (name) {
+      return name !== 'Du' && !!momente[name];
+    });
+
+    if (namenMitMoment.length === 0) {
+      const hinweis = document.createElement('p');
+      hinweis.className = 'moment-feed-leer';
+      hinweis.textContent = 'Noch keine Momente von anderen.';
+      momentFeed.appendChild(hinweis);
+      return;
+    }
+
+    namenMitMoment.forEach(function (name) {
+      const moment = momente[name];
+
+      const karte = document.createElement('div');
+      karte.className = 'moment-karte';
+
+      const kopf = document.createElement('div');
+      kopf.className = 'moment-karte-kopf';
+
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar avatar--moment-karte';
+      avatar.textContent = name.charAt(0).toUpperCase();
+      avatar.dataset.name = name;
+      avatarDarstellungAktualisieren(name);
+      avatarFotoAktualisieren(name, KONTAKT_DATEIEN[name]);
+
+      const nameEl = document.createElement('span');
+      nameEl.className = 'moment-karte-name';
+      nameEl.textContent = name;
+
+      kopf.appendChild(avatar);
+      kopf.appendChild(nameEl);
+
+      const textEl = document.createElement('p');
+      textEl.className = 'moment-karte-text';
+      momentTextRendern(textEl, moment.text, moment.wortSnapshots);
+
+      karte.appendChild(kopf);
+      karte.appendChild(textEl);
+      momentFeed.appendChild(karte);
+    });
+  }
+
+  // Composer standardmäßig verborgen (siehe [hidden] im Markup) – öffnet
+  // sich erst durch Tippen auf den eigenen Kreis, schließt sich durch
+  // erneutes Tippen darauf wieder (kein separates Abbrechen-Element,
+  // siehe momentOeffnen). Kann naturgemäß nicht offen sein, sobald "Du"
+  // heute schon gepostet hat (einmal pro Tag, siehe duHatHeuteGepostet).
+  let momentComposerOffen = false;
+
   function momentComposerAktualisieren() {
     const gepostet = duHatHeuteGepostet();
-    momentComposer.hidden = gepostet;
-    momentHinweis.hidden  = !gepostet;
+    if (gepostet) momentComposerOffen = false;
+    momentComposer.hidden = !momentComposerOffen;
   }
 
   // Öffnet die Story-Ansicht für eine Person – oder, falls "Du" noch
-  // keinen Moment gepostet hast, springt stattdessen ins Composer-Feld.
+  // keinen Moment gepostet hast, öffnet/schließt stattdessen den
+  // Composer (erneutes Tippen auf den eigenen Kreis schließt ihn
+  // wieder, siehe momentComposerOffen).
   function momentOeffnen(name) {
     if (name === 'Du' && !momente['Du']) {
-      momentEingabe.focus();
+      momentComposerOffen = !momentComposerOffen;
+      momentComposerAktualisieren();
+      if (momentComposerOffen) momentEingabe.focus();
       return;
     }
 
@@ -5236,6 +5453,7 @@
     momentEingabe.value = '';
     momentWortZustaende = [];
     momentIstEingefuegt = false;
+    momentComposerOffen = false; // Composer blendet nach dem Posten zurück auf den "+"-Kreis
 
     // Gemeinsamer Tempo-/Stabilitäts-Reset – exakt wie nach dem Senden
     // einer Chat-Nachricht (siehe Enter-Handler des Chat-Eingabefelds).
@@ -5265,6 +5483,7 @@
   // ── Initialer Aufbau ──────────────────────────────────────────
   momenteAufbauen();
   momentLeisteRendern();
+  momentFeedRendern();
   momentComposerAktualisieren();
 
   // Muss NACH den drei Aufrufen oben stehen (siehe Kommentar bei
@@ -5346,8 +5565,10 @@
   // lokal als Data-URL in localStorage, kein Server-Upload. Größere
   // Fotos können das localStorage-Kontingent sprengen, daher try/catch
   // – schlägt der Speicherversuch fehl, bleibt zumindest die Live-
-  // Anzeige (bis zum nächsten Neuladen) erhalten.
-  const EIGENES_PROFILBILD_KEY = 'situativeTypografie_eigenesProfilbild';
+  // Anzeige (bis zum nächsten Neuladen) erhalten. EIGENES_PROFILBILD_KEY/
+  // eigenesProfilbildLaden() sind zentral im MOMENT-Abschnitt weiter
+  // oben definiert (siehe Kommentar dort) – hier nur noch die auf
+  // profilAvatar spezifische Anwend-Funktion.
 
   function eigenesProfilbildAnwenden(dataUrl) {
     if (dataUrl) {
@@ -5361,7 +5582,7 @@
 
   (function eigenesProfilbildLadenUndAnwenden() {
     try {
-      const gespeichert = localStorage.getItem(EIGENES_PROFILBILD_KEY);
+      const gespeichert = eigenesProfilbildLaden();
       if (gespeichert) eigenesProfilbildAnwenden(gespeichert);
     } catch (e) {}
   })();
