@@ -81,11 +81,11 @@
 
     .phone-frame {
       /* ── Neutral (Standardzustand, Emotion AUS) ── */
-      --bg:           #f2f2f0;   /* Haupthintergrund */
+      --bg:           #ffffff;   /* Haupthintergrund */
       --bg-surface:   #eceae7;   /* Header, Footer, Flächen */
       --bg-hover:     #e8e5e1;   /* Hover auf Listenelementen */
       --border:       #d6d3cc;   /* Kräftigere Linien */
-      --border-light: #e4e1da;   /* Feine Trennlinien */
+      --border-light: #e4e1da;   /* Feine Linien (Diagramm-Gitter, dezente Rahmen) */
       --text-2:       #888888;   /* Sekundärtext */
       --text-3:       #aaaaaa;   /* Labels, schwacher Text */
       --text-4:       #bbbbbb;   /* Sehr schwacher Text, Wertanzeigen */
@@ -95,15 +95,16 @@
       --placeholder:  #c0bdb8;   /* Eingabefeld-Platzhalter */
       --bubble-outline: rgba(0, 0, 0, 0.75);   /* Sprechblasen-Outline, heller Modus */
       --scrollbar-farbe: rgba(0, 0, 0, 0.22);  /* Scroll-Indikator, heller Modus */
+      --emotion-karte-bg: rgba(0, 0, 0, 0.85); /* Karte hinter dem Emotion-Schalter, heller Modus */
     }
 
     .phone-frame.emotion-an {
       /* ── Invertiert/Dunkel (Emotion AN) ── */
-      --bg:           #111111;   /* Haupthintergrund – fast schwarz */
+      --bg:           #000000;   /* Haupthintergrund */
       --bg-surface:   #1a1a1a;   /* Header, Footer, Flächen */
       --bg-hover:     #222222;   /* Hover auf Listenelementen */
       --border:       #383838;   /* Kräftigere Linien */
-      --border-light: #2a2a2a;   /* Feine Trennlinien */
+      --border-light: #2a2a2a;   /* Feine Linien (Diagramm-Gitter, dezente Rahmen) */
       --text-2:       #999999;   /* Sekundärtext */
       --text-3:       #666666;   /* Labels, schwacher Text */
       --text-4:       #505050;   /* Sehr schwacher Text, Wertanzeigen */
@@ -113,6 +114,7 @@
       --placeholder:  #484848;   /* Eingabefeld-Platzhalter */
       --bubble-outline: var(--bubble-outline);  /* Sprechblasen-Outline, dunkler Modus */
       --scrollbar-farbe: rgba(255, 255, 255, 0.22); /* Scroll-Indikator, dunkler Modus */
+      --emotion-karte-bg: rgba(255, 255, 255, 0.10); /* Karte hinter dem Emotion-Schalter, dunkler Modus */
     }
 
 
@@ -145,6 +147,8 @@
       .tagebuch-liste,
       .tagebuch-monat,
       .moment-feed,
+      .moment-kommentar-liste,
+      #tab-profil,
       #eingabe {
         scrollbar-width: thin;                              /* Firefox */
         scrollbar-color: var(--scrollbar-farbe) transparent; /* Firefox */
@@ -159,6 +163,8 @@
     .tagebuch-liste::-webkit-scrollbar,
     .tagebuch-monat::-webkit-scrollbar,
     .moment-feed::-webkit-scrollbar,
+    .moment-kommentar-liste::-webkit-scrollbar,
+    #tab-profil::-webkit-scrollbar,
     #eingabe::-webkit-scrollbar {
       width: 4px;
     }
@@ -171,6 +177,8 @@
     .tagebuch-liste::-webkit-scrollbar-track,
     .tagebuch-monat::-webkit-scrollbar-track,
     .moment-feed::-webkit-scrollbar-track,
+    .moment-kommentar-liste::-webkit-scrollbar-track,
+    #tab-profil::-webkit-scrollbar-track,
     #eingabe::-webkit-scrollbar-track {
       background: transparent;
     }
@@ -183,6 +191,8 @@
     .tagebuch-liste::-webkit-scrollbar-thumb,
     .tagebuch-monat::-webkit-scrollbar-thumb,
     .moment-feed::-webkit-scrollbar-thumb,
+    .moment-kommentar-liste::-webkit-scrollbar-thumb,
+    #tab-profil::-webkit-scrollbar-thumb,
     #eingabe::-webkit-scrollbar-thumb {
       background: var(--scrollbar-farbe);
       border-radius: 999px;
@@ -196,6 +206,8 @@
     .tagebuch-liste::-webkit-scrollbar-button,
     .tagebuch-monat::-webkit-scrollbar-button,
     .moment-feed::-webkit-scrollbar-button,
+    .moment-kommentar-liste::-webkit-scrollbar-button,
+    #tab-profil::-webkit-scrollbar-button,
     #eingabe::-webkit-scrollbar-button {
       display: none;
     }
@@ -280,39 +292,14 @@
       cursor: pointer;
     }
 
-    .menu-btn:hover { background: var(--bg-hover); color: #222; }
+    .menu-btn:hover { background: var(--bg-hover); color: #000000; }
 
     .menu-btn svg { width: 18px; height: 18px; }
-
-    .kopfzeile-uebersicht {
-      flex-shrink: 0;
-      height: 52px;
-      background: var(--bg-surface);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-    }
-
-    /* [hidden] muss hier explizit gewinnen – siehe Kommentar bei
-       .tagebuch-neu-btn[hidden] weiter unten, derselbe Spezifitäts-
-       Konflikt mit display:flex oben. Wird für den MOMENT-Tab gesetzt
-       (siehe tabAnzeigen, JS), damit dort keine doppelte "Moment"-
-       Beschriftung entsteht. */
-    .kopfzeile-uebersicht[hidden] { display: none; }
-
-    .seitentitel {
-      font-size: 12px;
-      color: var(--text-3);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
 
     /* ── Suchfeld: schlicht, Outline, keine Farbe ────────────── */
     .suche-bereich {
       flex-shrink: 0;
       padding: 10px 20px;
-      border-bottom: 1px solid var(--border-light);
     }
 
     .suche-eingabe {
@@ -322,7 +309,7 @@
       outline: none;
       font-family: 'Situra-Regular', 'Inter', sans-serif;
       font-size: 13px;
-      color: #222;
+      color: #000000;
       padding: 7px 10px;
     }
 
@@ -338,7 +325,6 @@
       display: flex;
       gap: 8px;
       padding: 12px 20px 10px;
-      border-bottom: 1px solid var(--border-light);
     }
 
     .filter-chip {
@@ -348,6 +334,7 @@
       font-family: 'Situra-Regular', 'Inter', sans-serif;
       font-size: 11px;
       letter-spacing: 0.02em;
+      text-align: center;
       padding: 5px 12px;
       border-radius: 999px;
       cursor: pointer;
@@ -377,6 +364,13 @@
 
     .tab-inhalt.aktiv { display: flex; }
 
+    /* Profil-Tab scrollt als GANZES (Foto/Name/Werte/Schlafgraph/
+       Tagebuch zusammen) statt nur eines einzelnen Unterbereichs –
+       siehe .tagebuch-liste/.tagebuch-monat oben, die bewusst KEIN
+       eigenes overflow-y mehr haben, damit nicht zwei verschachtelte
+       Scrollbereiche entstehen. */
+    #tab-profil { overflow-y: auto; }
+
     /* ── Tab-Leiste: Chats / Gruppen (unten, wie Bottom-Nav) ──────── */
     .tab-leiste {
       flex-shrink: 0;
@@ -401,11 +395,11 @@
     .tab-btn:hover { color: var(--text-2); }
 
     .tab-btn--aktiv {
-      color: #222;
+      color: #000000;
       font-family: 'Situra-Regular', 'Inter', sans-serif;
     }
 
-    .phone-frame.emotion-an .tab-btn--aktiv { color: #d8d6d1; }
+    .phone-frame.emotion-an .tab-btn--aktiv { color: #ffffff; }
 
     /* ── Gruppen-Kopf: Titel + "+"-Button ──────────────────────── */
     .gruppen-kopf {
@@ -414,7 +408,6 @@
       align-items: center;
       justify-content: space-between;
       padding: 10px 20px;
-      border-bottom: 1px solid var(--border-light);
     }
 
     .gruppen-kopf-label {
@@ -642,7 +635,6 @@
       padding: 20px 20px 18px;
       overflow-x: auto;
       overflow-y: hidden;
-      border-bottom: 1px solid var(--border-light);
     }
 
     /* Siehe Kommentar beim großen Scrollbalken-Block oben – dasselbe
@@ -737,7 +729,6 @@
       align-items: center;
       gap: 10px;
       padding: 14px 20px;
-      border-bottom: 1px solid var(--border-light);
     }
 
     .moment-composer[hidden] { display: none; }
@@ -751,7 +742,7 @@
       outline: none;
       font-family: 'Situra-Regular', 'Inter', sans-serif;
       font-size: 14px;
-      color: #222;
+      color: #000000;
       padding: 6px 0;
     }
 
@@ -772,7 +763,7 @@
 
     .moment-senden-btn:hover:not(:disabled) {
       border-color: var(--text-2);
-      color: #222;
+      color: #000000;
     }
 
     .moment-senden-btn:disabled { opacity: 0.3; cursor: default; }
@@ -793,10 +784,7 @@
 
     .moment-karte {
       padding: 26px 0;
-      border-bottom: 1px solid var(--border-light);
     }
-
-    .moment-karte:last-child { border-bottom: none; }
 
     .moment-karte-kopf {
       display: flex;
@@ -820,11 +808,44 @@
     .moment-karte-text {
       font-size: 24px;
       line-height: 1.35;
-      color: #111;
+      color: #000000;
       overflow-wrap: break-word;
     }
 
-    .phone-frame.emotion-an .moment-karte-text { color: #d8d6d1; }
+    .phone-frame.emotion-an .moment-karte-text { color: #ffffff; }
+
+    /* ── Like-Leiste unter jeder Moment-Karte ─────────────────────── */
+    .moment-karte-footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 14px;
+    }
+
+    .moment-like-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px; height: 30px;
+      padding: 0;
+      background: none;
+      border: none;
+      color: var(--text-2);
+      font-size: 19px;
+      line-height: 1;
+      cursor: pointer;
+      transition: color 0.2s ease, transform 0.15s ease;
+    }
+
+    .moment-like-btn:active { transform: scale(0.9); }
+
+    .moment-like-btn--aktiv { color: var(--accent); }
+
+    .moment-like-zaehler {
+      font-size: 12px;
+      color: var(--text-2);
+      font-variant-numeric: tabular-nums;
+    }
 
     .moment-feed-leer {
       font-family: 'Situra-Medium', 'Inter', sans-serif;
@@ -838,6 +859,34 @@
        typografische Sprache wie die Chat-Nachrichten (30px, zentriert),
        aber als eigene Karte statt Sprechblase. ── */
     .moment-ansicht-overlay .overlay-schliessen { margin-left: auto; }
+
+    /* ── Story-Fortschrittsbalken (Instagram-artig): ein Segment pro
+       Person mit Moment, das aktuelle Segment füllt sich von links
+       nach rechts über MOMENT_STORY_DAUER, danach automatisch der
+       nächste Moment. Farbe wie .moment-ansicht-text (schwarz/weiß je
+       Modus statt fest "weiß"), damit der Balken auf hellem UND
+       dunklem Kartenhintergrund sichtbar bleibt. ── */
+    .moment-story-balken {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .moment-story-segment {
+      flex: 1;
+      height: 2px;
+      background: rgba(128, 128, 128, 0.35);
+      border-radius: 1px;
+      overflow: hidden;
+    }
+
+    .moment-story-segment-fill {
+      height: 100%;
+      width: 0%;
+      background: #000000;
+    }
+
+    .phone-frame.emotion-an .moment-story-segment-fill { background: #ffffff; }
 
     .moment-ansicht-karte {
       width: 300px;
@@ -869,11 +918,85 @@
       font-size: 26px;
       line-height: 1.35;
       text-align: center;
-      color: #111;
+      color: #000000;
       overflow-wrap: break-word;
     }
 
-    .phone-frame.emotion-an .moment-ansicht-text { color: #d8d6d1; }
+    .phone-frame.emotion-an .moment-ansicht-text { color: #ffffff; }
+
+    /* ── Footer der Story-Ansicht: Like (wiederverwendet
+       .moment-karte-footer/.moment-like-*, siehe MOMENT-Feed weiter
+       unten) + Kommentare. ── */
+    .moment-ansicht-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .moment-kommentar-liste {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .moment-kommentar-eintrag {
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--text-2);
+    }
+
+    .moment-kommentar-eintrag strong {
+      color: #000000;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-weight: normal;
+      margin-right: 5px;
+    }
+
+    .phone-frame.emotion-an .moment-kommentar-eintrag strong { color: #ffffff; }
+
+    .moment-kommentar-leer {
+      font-size: 12px;
+      color: var(--text-3);
+      font-style: italic;
+    }
+
+    .moment-kommentar-eingabe-zeile {
+      display: flex;
+      gap: 8px;
+    }
+
+    .moment-kommentar-eingabe {
+      flex: 1;
+      min-width: 0;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      outline: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 13px;
+      color: #000000;
+      padding: 4px 0;
+    }
+
+    .phone-frame.emotion-an .moment-kommentar-eingabe { color: #ffffff; }
+    .moment-kommentar-eingabe:focus { border-bottom-color: var(--text-2); }
+    .moment-kommentar-eingabe::placeholder { color: var(--placeholder); }
+
+    .moment-kommentar-senden-btn {
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    .moment-kommentar-senden-btn:hover { border-color: var(--text-2); color: #000000; }
+    .phone-frame.emotion-an .moment-kommentar-senden-btn:hover { color: #ffffff; }
 
 
     /* ══════════════════════════════════════════════════════════════
@@ -882,13 +1005,17 @@
        zu MOMENT: kein 24h-Limit, kein "einmal pro Tag"). Gleicher
        reduzierter Look wie der Rest der App (Outline-Stil, Situra).
        ══════════════════════════════════════════════════════════════ */
+    /* Mittig statt am linken Rand, mit mehr Luft rundherum – Avatar
+       über dem Namen statt nebeneinander, damit der Bereich weniger
+       gedrängt wirkt. */
     .profil-kopf {
       flex-shrink: 0;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 16px;
-      padding: 20px;
-      border-bottom: 1px solid var(--border-light);
+      text-align: center;
+      gap: 14px;
+      padding: 40px 24px 28px;
     }
 
     /* Größere Variante des bestehenden .avatar-Kreises (siehe dort) –
@@ -921,10 +1048,10 @@
       font-size: 11px;
     }
 
-    .profil-foto-upload-btn:hover { color: #222; }
-    .phone-frame.emotion-an .profil-foto-upload-btn:hover { color: #eee; }
+    .profil-foto-upload-btn:hover { color: #000000; }
+    .phone-frame.emotion-an .profil-foto-upload-btn:hover { color: #ffffff; }
 
-    .profil-info { flex: 1; min-width: 0; }
+    .profil-info { width: 100%; min-width: 0; }
 
     /* Eigener Name: kein Rahmen, sieht wie normaler Fließtext aus,
        trotzdem editierbar (Klick hinein zum Umbenennen). Schriftschnitt
@@ -937,13 +1064,14 @@
       background: none;
       border: none;
       outline: none;
+      text-align: center;
       font-size: 20px;
-      color: #111;
+      color: #000000;
       padding: 0 0 4px;
       font-family: 'Situra-Medium', 'Inter', sans-serif; /* Fallback, bis JS den echten Schnitt setzt */
     }
 
-    .phone-frame.emotion-an .profil-name-eingabe { color: #eee; }
+    .phone-frame.emotion-an .profil-name-eingabe { color: #ffffff; }
 
     .profil-name-hinweis {
       font-size: 10px;
@@ -959,7 +1087,7 @@
        dezenten Pillen-Umschalter (gleiche Optik wie .filter-chip).
        Kopfzeile mit dezentem "+"-Button (öffnet den Composer, sonst
        verborgen), Einträge im Editorial-Stil (großes Datum links,
-       Text rechts, Trennlinien statt Kästen).
+       Text rechts, statt Kästen).
        Schriftschnitt: alle UI-Texte hier in Situra-Medium – AUSNAHME
        ist das große Datum (Situra-Black, siehe .tagebuch-tag). NICHT
        betroffen ist .tagebuch-text (der eigentliche Eintragstext):
@@ -971,7 +1099,6 @@
       display: flex;
       gap: 20px;
       padding: 4px 20px 20px;
-      border-bottom: 1px solid var(--border-light);
     }
 
     .tagebuch-werte .sensor-dimension { flex: 1; }
@@ -1066,7 +1193,6 @@
       flex-direction: column;
       gap: 8px;
       padding: 0 20px 16px;
-      border-bottom: 1px solid var(--border-light);
     }
 
     /* Siehe Kommentar bei .tagebuch-neu-btn[hidden] oben – derselbe
@@ -1081,11 +1207,11 @@
       outline: none;
       font-family: 'Situra-Medium', 'Inter', sans-serif;
       font-size: 14px;
-      color: #222;
+      color: #000000;
       padding: 8px 10px;
     }
 
-    .phone-frame.emotion-an .tagebuch-eingabe { color: #eee; }
+    .phone-frame.emotion-an .tagebuch-eingabe { color: #ffffff; }
 
     .tagebuch-composer-aktionen {
       display: flex;
@@ -1117,24 +1243,35 @@
       cursor: pointer;
     }
 
+    .tagebuch-mehr-btn {
+      display: block;
+      width: 100%;
+      margin-top: 4px;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 12px;
+      text-align: center;
+      padding: 9px 0;
+      cursor: pointer;
+    }
+
+    .tagebuch-mehr-btn:hover { border-color: var(--text-2); color: #000000; }
+    .phone-frame.emotion-an .tagebuch-mehr-btn:hover { color: #ffffff; }
+
     .tagebuch-liste {
-      flex: 1;
-      overflow-y: auto;
       padding: 4px 20px 20px;
     }
 
     .tagebuch-liste[hidden] { display: none; }
 
-    /* Editorial-Layout statt Kästen: Datum groß links, Text rechts,
-       dünne Trennlinie statt Rahmen. */
+    /* Editorial-Layout statt Kästen: Datum groß links, Text rechts. */
     .tagebuch-eintrag {
       display: flex;
       gap: 16px;
       padding: 20px 0;
-      border-bottom: 1px solid var(--border-light);
     }
-
-    .tagebuch-eintrag:last-child { border-bottom: none; }
 
     .tagebuch-datum-spalte {
       flex-shrink: 0;
@@ -1160,10 +1297,10 @@
       font-family: 'Situra-Black', 'Inter', sans-serif;
       font-size: 42px;
       line-height: 1;
-      color: #111;
+      color: #000000;
     }
 
-    .phone-frame.emotion-an .tagebuch-tag { color: #eee; }
+    .phone-frame.emotion-an .tagebuch-tag { color: #ffffff; }
 
     .tagebuch-wochentag {
       margin-top: 3px;
@@ -1180,11 +1317,11 @@
       padding-top: 2px;
       font-size: 16px;
       line-height: 1.5;
-      color: #111;
+      color: #000000;
       overflow-wrap: break-word;
     }
 
-    .phone-frame.emotion-an .tagebuch-text { color: #d8d6d1; }
+    .phone-frame.emotion-an .tagebuch-text { color: #ffffff; }
 
     .tagebuch-leer-hinweis {
       font-family: 'Situra-Medium', 'Inter', sans-serif;
@@ -1210,7 +1347,6 @@
     .tagebuch-schlafgraph {
       flex-shrink: 0;
       padding: 10px 20px 14px;
-      border-bottom: 1px solid var(--border-light);
     }
 
     .tagebuch-graph-titel {
@@ -1260,13 +1396,21 @@
 
     .tagebuch-graph-linie {
       fill: none;
-      stroke: #222;
+      stroke: #000000;
       stroke-width: 1.5;
       stroke-linecap: round;
       vector-effect: non-scaling-stroke;
     }
 
-    .phone-frame.emotion-an .tagebuch-graph-linie { stroke: #d8d6d1; }
+    .phone-frame.emotion-an .tagebuch-graph-linie { stroke: #ffffff; }
+
+    /* Fläche unter der Linie: siehe linearGradient in
+       tagebuchSchlafGraphRendern (JS) – dezent getönt oben, zu 0
+       Deckkraft unten, damit sie weich in den Hintergrund ausfadet. */
+    .tagebuch-graph-flaeche-start { stop-color: #000000; stop-opacity: 0.16; }
+    .tagebuch-graph-flaeche-ende  { stop-color: #000000; stop-opacity: 0; }
+    .phone-frame.emotion-an .tagebuch-graph-flaeche-start { stop-color: #ffffff; stop-opacity: 0.16; }
+    .phone-frame.emotion-an .tagebuch-graph-flaeche-ende  { stop-color: #ffffff; stop-opacity: 0; }
 
     .tagebuch-graph-x-achse {
       display: flex;
@@ -1287,8 +1431,6 @@
        zum ersten Eintrag dieses Tages. Rein Schwarz/Weiß, keine
        Flächenfarbe außer der bestehenden --bg-hover beim Hover. ── */
     .tagebuch-monat {
-      flex: 1;
-      overflow-y: auto;
       padding: 12px 20px 20px;
     }
 
@@ -1344,11 +1486,11 @@
     .tagebuch-kalender-tag--heute { box-shadow: inset 0 0 0 1px var(--border); }
 
     .tagebuch-kalender-tag--belegt {
-      color: #111;
+      color: #000000;
       cursor: pointer;
     }
 
-    .phone-frame.emotion-an .tagebuch-kalender-tag--belegt { color: #eee; }
+    .phone-frame.emotion-an .tagebuch-kalender-tag--belegt { color: #ffffff; }
 
     .tagebuch-kalender-tag--belegt:hover { background: var(--bg-hover); }
 
@@ -1377,7 +1519,6 @@
       align-items: center;
       gap: 14px;
       padding: 16px 20px; /* etwas mehr Luft für die jetzt einzeilige, größere Namenszeile */
-      border-bottom: 1px solid var(--border-light);
       cursor: pointer;
       user-select: none;
     }
@@ -1453,7 +1594,7 @@
          reine Größenänderung. */
       font-size: 22px;
       line-height: 1.15;
-      color: #222; /* bleibt konstant – Lesbarkeit */
+      color: #000000; /* bleibt konstant – Lesbarkeit */
       font-family: 'Situra-Regular', 'Inter', sans-serif;
     }
 
@@ -1492,16 +1633,27 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* Ungelesen-Indikator: reines Weiß (Vorgabe), mit dünner Outline
-       in var(--border) – dieselbe Outline-Konvention wie Avatar-Kreise
-       und Buttons – damit der Punkt im hellen Modus auf dem hellen
-       Hintergrund nicht in den Konturen verschwindet. */
-    .ungelesen-punkt {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #ffffff;
-      border: 1px solid var(--border);
+    /* Ungelesen-Indikator: statt eines Punkts bekommt die ganze Zeile
+       einen Farbverlauf. Heller Modus: bewusst NICHT var(--border) (die
+       ist dort warm/beige für echte Trennlinien und ließ den Verlauf
+       bräunlich wirken) – stattdessen reines, neutrales Schwarz mit
+       sinkender Deckkraft über das ebenfalls neutrale --bg, Richtung
+       dunkel (links) → hell (rechts). Dunkler Modus: unverändert, dort
+       ist --border bereits neutral (kein Farbstich). */
+    .gespraechs-eintrag[data-ungelesen] {
+      background: linear-gradient(to right, rgba(0, 0, 0, 0.16), var(--bg));
     }
+
+    .phone-frame.emotion-an .gespraechs-eintrag[data-ungelesen] {
+      background: linear-gradient(to left, var(--border), var(--bg));
+    }
+
+    /* Die Uhrzeit sitzt rechts, also genau im hellsten Teil des
+       Verlaufs (Hellmodus) bzw. im dunkelsten Teil (Dunkelmodus) – das
+       normale var(--text-3) (bewusst blass) ist dort zu kontrastarm.
+       Feste, starke Kontrastfarbe je Modus statt der blassen Variable. */
+    .gespraechs-eintrag[data-ungelesen] .gespraechs-zeit { color: #000000; }
+    .phone-frame.emotion-an .gespraechs-eintrag[data-ungelesen] .gespraechs-zeit { color: #ffffff; }
 
 
     /* ══════════════════════════════════════════════════════
@@ -1665,6 +1817,55 @@
       letter-spacing: 0.03em;
     }
 
+    /* ── Sensor-Anzeige (Intensität/Tempo/Stabilität/Tonalität):
+       ein-/ausfahrbar an derselben Stelle statt dauerhaft sichtbar –
+       exakt dieselbe Auf-/Zuklapp-Mechanik wie .test-drawer unten
+       (grid-template-rows 0fr → 1fr), nur eigene Klassen, damit beide
+       Schubladen unabhängig voneinander auf-/zuklappen. Standardmäßig
+       eingeklappt, nur der Griff ist sichtbar. ── */
+    .info-drawer-griff {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      width: 100%;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: 3px 0;
+    }
+
+    .info-drawer-griff:hover { color: var(--text-2); }
+
+    .info-drawer-griff svg {
+      transition: transform 0.4s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .info-drawer.offen .info-drawer-griff svg {
+      transform: rotate(180deg);
+    }
+
+    .info-drawer-inhalt {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.45s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .info-drawer.offen .info-drawer-inhalt {
+      grid-template-rows: 1fr;
+    }
+
+    .info-drawer-inneres {
+      min-height: 0;
+      overflow: hidden;
+      padding-top: 10px;
+    }
+
     /* ── Test-/Demo-Panel: ein-/ausfahrbares Dropdown ──────────
        Beide simulierten Eingaben (kein Live-Sensor) liegen
        gemeinsam in EINEM Panel. Standardmäßig eingeklappt – nur
@@ -1772,7 +1973,7 @@
     }
 
     .nachricht-andere .text {
-      color: #111; /* wie eigene Nachrichten – nur die Outline unterscheidet den Absender */
+      color: #000000; /* wie eigene Nachrichten – nur die Outline unterscheidet den Absender */
       font-variation-settings: 'wght' 400;
       display: inline-block;
       max-width: 88%;
@@ -1809,7 +2010,7 @@
     }
 
     .nachricht-ich .text {
-      color: #111; /* bleibt konstant – Lesbarkeit */
+      color: #000000; /* bleibt konstant – Lesbarkeit */
       font-variation-settings: 'wght' 400;
       display: inline-block;
       max-width: 88%;
@@ -1940,7 +2141,7 @@
       font-family: 'Situra-Regular', 'Inter', sans-serif;
       font-size: 15px;
       line-height: 1.5;       /* explizit – Basis für die Höhenberechnung */
-      color: #222;            /* bleibt konstant */
+      color: #000000;            /* bleibt konstant */
       padding: 5px 0;
       resize: none;           /* kein manuelles Ziehen */
       overflow-y: hidden;     /* wird per JS auf auto gesetzt, wenn Max-Höhe erreicht */
@@ -1985,11 +2186,14 @@
       transition: transform 0.4s ease;
     }
 
-    #emotion-toggle:checked + .schalter-visuell {
+    /* Klassenbasiert statt #emotion-toggle: es gibt zwei Schalter (Fuß-
+       leiste im Chat + Kopfzeile der Übersicht), die denselben globalen
+       Zustand spiegeln – siehe emotion-toggle-oben unten. */
+    .emotion-schalter input:checked + .schalter-visuell {
       background: var(--toggle-on);
     }
 
-    #emotion-toggle:checked + .schalter-visuell::after {
+    .emotion-schalter input:checked + .schalter-visuell::after {
       transform: translateX(15px);
     }
 
@@ -1998,6 +2202,30 @@
       color: var(--text-3);
       letter-spacing: 0.07em;
       text-transform: uppercase;
+    }
+
+    /* Beide Emotion-Schalter (Chat-Fußleiste + schwebender Schalter der
+       Übersicht) bekommen dieselbe Karte als Hintergrund, damit sie als
+       feststehendes Element über dem jeweiligen Inhalt erkennbar
+       bleiben. Farbe folgt dem Modus wie --scrollbar-farbe oben. */
+    .eingabe-innen .emotion-schalter,
+    .emotion-schalter--schwebend {
+      background: var(--emotion-karte-bg);
+      padding: 6px 10px;
+      border-radius: 12px;
+    }
+
+    /* Übersicht (Chats/Gruppen/Moment/Profil): der Schalter schwebt
+       unten rechts über der Tab-Leiste, statt oben in der Kopfzeile zu
+       stehen. position:absolute ist relativ zu #ansicht-uebersicht
+       (selbst position:absolute, siehe .ansicht) – dadurch bleibt er
+       beim Scrollen der Listen/des Feeds fest an Ort und Stelle, ganz
+       unabhängig davon, welcher Tab gerade aktiv ist. */
+    .emotion-schalter--schwebend {
+      position: absolute;
+      right: 16px;
+      bottom: 54px;
+      z-index: 5;
     }
 
 
@@ -2029,14 +2257,14 @@
     /* Überschreibt hartcodierte Farben, die nicht über CSS-Variablen laufen.  */
     .phone-frame.emotion-an .app-logo              { filter: invert(1); }
     .phone-frame.emotion-an .gespraechs-name       { color: #ffffff; }
-    .phone-frame.emotion-an .nachricht-andere .text         { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
+    .phone-frame.emotion-an .nachricht-andere .text         { color: #ffffff; border-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an .nachricht-andere .text::before { border-top-color: rgba(255,255,255,0.7); }
-    .phone-frame.emotion-an .nachricht-ich .text            { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
+    .phone-frame.emotion-an .nachricht-ich .text            { color: #ffffff; border-color: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an .nachricht-ich .text::before    { border-top-color: rgba(255,255,255,0.7); }
-    .phone-frame.emotion-an #eingabe                { color: #d8d6d1; }
-    .phone-frame.emotion-an .suche-eingabe          { color: #d8d6d1; }
-    .phone-frame.emotion-an .moment-eingabe         { color: #d8d6d1; }
-    .phone-frame.emotion-an .avatar                 { color: #d8d6d1; border-color: rgba(255,255,255,0.7); }
+    .phone-frame.emotion-an #eingabe                { color: #ffffff; }
+    .phone-frame.emotion-an .suche-eingabe          { color: #ffffff; }
+    .phone-frame.emotion-an .moment-eingabe         { color: #ffffff; }
+    .phone-frame.emotion-an .avatar                 { color: #ffffff; border-color: rgba(255,255,255,0.7); }
 
     /* ── Bluetooth-Band-Steuerung ─────────────────────────────── */
     .band-steuerung {
@@ -2086,12 +2314,12 @@
       </button>
     </header>
 
-    <header class="kopfzeile-uebersicht" id="kopfzeile-uebersicht">
-      <span class="seitentitel" id="uebersicht-titel">Chats</span>
-    </header>
-
     <!-- ── Tab-Panel: Chats (1:1-Gespräche) ── -->
     <div class="tab-inhalt aktiv" id="tab-chats">
+
+    <div class="gruppen-kopf">
+      <span class="gruppen-kopf-label">Chats</span>
+    </div>
 
     <div class="suche-bereich">
       <input class="suche-eingabe" type="text" id="kontakt-suche"
@@ -2113,7 +2341,6 @@
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">09:41</span>
-          <span class="ungelesen-punkt"></span>
         </div>
       </div>
 
@@ -2124,7 +2351,6 @@
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">09:12</span>
-          <span class="ungelesen-punkt"></span>
         </div>
       </div>
 
@@ -2155,7 +2381,6 @@
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">07:58</span>
-          <span class="ungelesen-punkt"></span>
         </div>
       </div>
 
@@ -2186,7 +2411,6 @@
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">08:03</span>
-          <span class="ungelesen-punkt"></span>
         </div>
       </div>
 
@@ -2353,15 +2577,29 @@
 
     <!-- ── Story-Ansicht: geöffneter Moment einer Person ── -->
     <div class="overlay overlay--zentriert moment-ansicht-overlay" id="moment-ansicht-overlay">
-      <div class="moment-ansicht-karte">
+      <div class="moment-ansicht-karte" id="moment-ansicht-karte">
+        <div class="moment-story-balken" id="moment-story-balken"></div>
         <div class="moment-ansicht-kopf">
           <div class="avatar avatar--chat" id="moment-ansicht-avatar">–</div>
           <span class="moment-ansicht-name" id="moment-ansicht-name">–</span>
           <button class="overlay-schliessen" id="moment-ansicht-schliessen" aria-label="Schließen">&times;</button>
         </div>
         <p class="moment-ansicht-text" id="moment-ansicht-text"></p>
+        <div class="moment-ansicht-footer" id="moment-ansicht-footer"></div>
       </div>
     </div>
+
+    <!-- Globaler Emotion-Schalter: schwebt fest unten rechts über der
+         Tab-Leiste (position:absolute relativ zu #ansicht-uebersicht,
+         daher unabhängig vom Scrollen der Listen), mit Karte als
+         Hintergrund – spiegelt denselben Zustand wie der Schalter in
+         der Chat-Fußleiste (siehe #emotion-toggle-oben-Handling im
+         Skript). -->
+    <label class="emotion-schalter emotion-schalter--schwebend" title="Emotionale Typografie an/aus">
+      <input type="checkbox" id="emotion-toggle-oben" checked>
+      <span class="schalter-visuell"></span>
+      <span class="schalter-label">Emotion</span>
+    </label>
 
   </div>
 
@@ -2386,46 +2624,65 @@
         </div>
       </div>
 
-      <div class="sensor-grid">
+      <!-- Ein-/ausfahrbares Info-Fenster (Sensor-Anzeige): standardmäßig
+           eingeklappt, an derselben Stelle wie zuvor die dauerhaft
+           sichtbare Anzeige – nur der Griff ist sichtbar, bis geöffnet. -->
+      <div class="info-drawer" id="info-drawer">
+        <button class="info-drawer-griff" id="info-drawer-griff"
+          aria-expanded="false" aria-controls="info-drawer-inhalt"
+          title="Sensor-Anzeige ein-/ausblenden">
+          <span>Sensor-Anzeige</span>
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </button>
 
-        <div class="sensor-dimension">
-          <div class="dimension-header">
-            <span class="dimension-label">Intensität</span>
-            <span class="dimension-wert" id="wert-intensitaet">500</span>
+        <div class="info-drawer-inhalt" id="info-drawer-inhalt">
+          <div class="info-drawer-inneres">
+            <div class="sensor-grid">
+
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label">Intensität</span>
+                  <span class="dimension-wert" id="wert-intensitaet">500</span>
+                </div>
+                <input class="dimension-slider" type="range"
+                  id="slider-intensitaet" min="100" max="900" value="500" step="1">
+              </div>
+
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label dimension-label--live">Tempo</span>
+                  <span class="dimension-wert" id="wert-tempo">—</span>
+                </div>
+                <div class="dimension-balken-spur">
+                  <div class="dimension-balken" id="balken-tempo"></div>
+                </div>
+              </div>
+
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label dimension-label--live">Stabilität</span>
+                  <span class="dimension-wert" id="wert-stabilitaet">—</span>
+                </div>
+                <div class="dimension-balken-spur">
+                  <div class="dimension-balken" id="balken-stabilitaet"></div>
+                </div>
+              </div>
+
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label">Tonalität</span>
+                  <span class="dimension-wert" id="wert-tonalitaet">500</span>
+                </div>
+                <input class="dimension-slider" type="range"
+                  id="slider-tonalitaet" min="100" max="900" value="500" step="1">
+              </div>
+
+            </div>
           </div>
-          <input class="dimension-slider" type="range"
-            id="slider-intensitaet" min="100" max="900" value="500" step="1">
         </div>
-
-        <div class="sensor-dimension">
-          <div class="dimension-header">
-            <span class="dimension-label dimension-label--live">Tempo</span>
-            <span class="dimension-wert" id="wert-tempo">—</span>
-          </div>
-          <div class="dimension-balken-spur">
-            <div class="dimension-balken" id="balken-tempo"></div>
-          </div>
-        </div>
-
-        <div class="sensor-dimension">
-          <div class="dimension-header">
-            <span class="dimension-label dimension-label--live">Stabilität</span>
-            <span class="dimension-wert" id="wert-stabilitaet">—</span>
-          </div>
-          <div class="dimension-balken-spur">
-            <div class="dimension-balken" id="balken-stabilitaet"></div>
-          </div>
-        </div>
-
-        <div class="sensor-dimension">
-          <div class="dimension-header">
-            <span class="dimension-label">Tonalität</span>
-            <span class="dimension-wert" id="wert-tonalitaet">500</span>
-          </div>
-          <input class="dimension-slider" type="range"
-            id="slider-tonalitaet" min="100" max="900" value="500" step="1">
-        </div>
-
       </div>
 
       <!-- Ein-/ausfahrbares Test-/Demo-Panel: standardmäßig eingeklappt,
@@ -2447,16 +2704,6 @@
           <div class="test-drawer-inneres">
             <span class="test-panel-label">Test-Eingaben · simuliert, kein Live-Sensor</span>
             <div class="sensor-grid">
-
-              <div class="sensor-dimension">
-                <div class="dimension-header">
-                  <span class="dimension-label">Schlafqualität<em class="test-badge">Testwert</em></span>
-                  <span class="dimension-wert" id="wert-schlafqualitaet">500</span>
-                </div>
-                <input class="dimension-slider" type="range"
-                  id="slider-schlafqualitaet" min="100" max="900" value="500" step="1">
-                <div class="dimension-endpunkte"><span>müde</span><span>wach</span></div>
-              </div>
 
               <div class="sensor-dimension">
                 <div class="dimension-header">
@@ -2571,9 +2818,10 @@
   }
 
   // Markiert den Kontakt-Eintrag in der Übersicht als gelesen: entfernt
-  // das data-ungelesen-Attribut (Grundlage des "Ungelesen"-Filters) und
-  // den sichtbaren Punkt in der Liste. Wird beim Öffnen des Chats
-  // aufgerufen – rein Listen-Anzeige, keine Auswirkung auf Typografie.
+  // das data-ungelesen-Attribut (Grundlage des "Ungelesen"-Filters UND
+  // des Farbverlaufs, siehe .gespraechs-eintrag[data-ungelesen] CSS).
+  // Wird beim Öffnen des Chats aufgerufen – rein Listen-Anzeige, keine
+  // Auswirkung auf Typografie.
   function alsGelesenMarkieren(name) {
     const eintrag = document.querySelector(
       '#gespraechs-liste .gespraechs-eintrag[data-name="' + CSS.escape(name) + '"]'
@@ -2581,8 +2829,6 @@
     if (!eintrag || !eintrag.hasAttribute('data-ungelesen')) return;
 
     eintrag.removeAttribute('data-ungelesen');
-    const punkt = eintrag.querySelector('.ungelesen-punkt');
-    if (punkt) punkt.remove();
 
     kontaktlisteFiltern(); // "Ungelesen"-Filter sofort aktualisieren, falls gerade aktiv
   }
@@ -2712,13 +2958,10 @@
   // Schaltet nur um, welches der vier Panels innerhalb der Übersicht
   // sichtbar ist – keine Auswirkung auf Such-/Filter- oder
   // Typografie-Logik.
-  const uebersichtTitel   = document.getElementById('uebersicht-titel');
-  const kopfzeileUebersicht = document.getElementById('kopfzeile-uebersicht');
   const tabChats        = document.getElementById('tab-chats');
   const tabGruppen      = document.getElementById('tab-gruppen');
   const tabMoment       = document.getElementById('tab-moment');
   const tabProfil       = document.getElementById('tab-profil');
-  const TAB_TITEL       = { chats: 'Chats', gruppen: 'Gruppen', moment: 'Moment', profil: 'Profil' };
 
   function tabAnzeigen(tabName) {
     document.querySelectorAll('.tab-btn').forEach(function (b) {
@@ -2728,12 +2971,6 @@
     tabGruppen.classList.toggle('aktiv', tabName === 'gruppen');
     tabMoment.classList.toggle('aktiv', tabName === 'moment');
     tabProfil.classList.toggle('aktiv', tabName === 'profil');
-    uebersichtTitel.textContent = TAB_TITEL[tabName];
-    // Moment zeigt weder die geteilte Kopfzeile noch ein lokales Label
-    // (siehe #tab-moment) – der Bereich ist über die Tab-Leiste unten
-    // bereits eindeutig benannt, eine zusätzliche "MOMENT"-Zeile hier
-    // wäre eine Dopplung.
-    kopfzeileUebersicht.hidden = (tabName === 'moment');
     // Aktuelle Werte (Puls/Stabilität/Schlaf) erst beim Anzeigen
     // auffrischen – siehe Abschnitt PROFIL weiter unten (JS).
     if (tabName === 'profil') {
@@ -3165,16 +3402,23 @@
   // Buchstaben spürbar in ihre Nachbarn hineinlaufen, obwohl Blur und
   // Transparenz für denselben Namen fast neutral waren. Deshalb hier
   // deutlich kleinere Zitter-Obergrenzen als ursprünglich angesetzt.
-  const DEMO_BLUR_MAX        = 1.6;  // px    – ← nachjustieren: "unscharf", aber noch lesbar
+  // Blur und Transparenz werden UNABHÄNGIG voneinander gewürfelt (siehe
+  // demoNameDimensionenVon unten) – jede Kombination ist also möglich,
+  // auch "beides gleichzeitig eher hoch/niedrig". Einzeln betrachtet
+  // war das noch lesbar, in Kombination (z. B. Blur nahe Maximum UND
+  // Opacity nahe Minimum am selben Namen) zu blass/verwaschen für den
+  // dunklen Modus. Deshalb hier beide Obergrenzen enger als früher.
+  const DEMO_BLUR_MAX        = 1.0;  // px    – ← nachjustieren: "unscharf", aber noch lesbar (auch kombiniert mit Transparenz)
   const DEMO_WOBBLE_MAX      = 1.2;  // px    – ← nachjustieren: "zitternd", ohne Buchstaben zu überlappen
   const DEMO_WOBBLE_ROT_MAX  = 2;    // Grad  – ← nachjustieren
-  const DEMO_TRANSPARENZ_MIN = 0.4;  // ← nachjustieren: "blass", noch ausreichend Kontrast
+  const DEMO_TRANSPARENZ_MIN = 0.6;  // ← nachjustieren: "blass", noch ausreichend Kontrast (auch kombiniert mit Blur)
 
-  // "_v2": Key bewusst umbenannt, als die Obergrenzen oben (v. a.
-  // DEMO_BLUR_MAX) nachträglich verschärft wurden – sonst würden
-  // bereits gespeicherte, zu extreme Alt-Werte unter altem Key
-  // weiterbestehen und stumm die neuen, sicheren Grenzen umgehen.
-  const DEMO_NAME_DIMENSIONEN_SPEICHER_KEY = 'situativeTypografie_demoNameDimensionen_v3';
+  // "_v4": Key bewusst umbenannt, als die Obergrenzen oben (Blur +
+  // Transparenz) nachträglich verschärft wurden – sonst würden bereits
+  // gespeicherte, zu extreme Alt-Werte unter altem Key weiterbestehen
+  // und stumm die neuen, sicheren Grenzen umgehen (siehe historischer
+  // Sprung v2 → v3 oben in der Git-Historie, gleicher Grund).
+  const DEMO_NAME_DIMENSIONEN_SPEICHER_KEY = 'situativeTypografie_demoNameDimensionen_v4';
 
   function demoNameDimensionenLaden() {
     try {
@@ -3397,12 +3641,6 @@
     zeitEl.textContent = KONTAKT_ZEIT_PLATZHALTER[index % KONTAKT_ZEIT_PLATZHALTER.length];
     meta.appendChild(zeitEl);
 
-    if (ungelesen) {
-      const punkt = document.createElement('span');
-      punkt.className = 'ungelesen-punkt';
-      meta.appendChild(punkt);
-    }
-
     eintrag.appendChild(meta);
 
     kontaktEintragEreignisseBinden(eintrag);
@@ -3466,6 +3704,19 @@
   });
 
 
+  // ── Info-Fenster (Sensor-Anzeige): ein-/ausfahrbare Schublade ───
+  // Betrifft nur die Sichtbarkeit der Anzeige – alle darin liegenden
+  // Elemente (Slider/Balken) bleiben im DOM und werden unverändert von
+  // der reagierenden Typografie-Logik aktualisiert, auch während
+  // eingeklappt.
+  const infoDrawer      = document.getElementById('info-drawer');
+  const infoDrawerGriff = document.getElementById('info-drawer-griff');
+
+  infoDrawerGriff.addEventListener('click', function () {
+    const offen = infoDrawer.classList.toggle('offen');
+    infoDrawerGriff.setAttribute('aria-expanded', offen ? 'true' : 'false');
+  });
+
   // ── Test-/Demo-Panel: ein-/ausfahrbare Schublade ────────────────
   // Betrifft nur die Sichtbarkeit der zwei simulierten Test-Regler –
   // keine Auswirkung auf Puls-, Tipp-Tempo- oder HRV-Logik.
@@ -3488,14 +3739,14 @@
     // zwischen 7 Dateien statt fließender Gewichts-Verschiebung)
     const schriftschnitt = intensitaetZuSchriftschnitt(rohwerte.intensitaet);
 
-    // BEHELF – Tempo → letter-spacing (0.12 em … 0.04 em)
+    // BEHELF – Tempo → letter-spacing (0.12 em … −0.02 em)
     // RICHTUNG: schnelles Tippen (tempo hoch) = enge Laufweite, langsames
     // Tippen (tempo niedrig) = weite Laufweite – Hast lässt den Text
-    // zusammenrücken, Zögern zieht ihn auseinander. Bewusst noch nicht bis
-    // ins Negative (wie zuvor bis −0.04em): bei den fetteren Situra-
-    // Schnitten kann negative Laufweite zu Buchstaben-Überschneidungen
-    // führen – erst nach visueller Prüfung ggf. absenken (0.02 oder 0).
-    const spacing = umrechnen(rohwerte.tempo, 100, 900, 0.12, 0.04);
+    // zusammenrücken, Zögern zieht ihn auseinander. Bei sehr schnellem
+    // Tippen (tempo nahe 900) wird die Laufweite leicht NEGATIV, sodass
+    // Buchstaben sichtbar ineinanderlaufen – bewusst nur dezent negativ,
+    // damit es bei den fetteren Situra-Schnitten noch lesbar bleibt.
+    const spacing = umrechnen(rohwerte.tempo, 100, 900, 0.12, -0.02);
 
     // Tempo → Dauer der Einblend-Animation neuer Nachrichten
     // Niedrig (100) = langsam/bedächtig (0.5 s) · hoch (900) = schnell/knapp (0.06 s)
@@ -3515,11 +3766,11 @@
     const wobbleRotRoh = umrechnen(rohwerte.stabilitaet, 100, 900, WOBBLE_ROT_MAX, 0);
     const wobbleRot    = wobbleRotRoh < WOBBLE_ROT_TOTZONE ? 0 : wobbleRotRoh;
 
-    // BEHELF – Tonalität → font-style: oblique (0° … 20°)
-    // Ersetzt transform: skewX() – oblique wirkt nur auf die Glyphen,
-    // nicht auf den Element-Container (Scrollbalken, Rahmen bleiben gerade).
-    // Kalt/neutral (100) = 0° · warm/persönlich (900) = 20°
-    const oblique = umrechnen(rohwerte.tonalitaet, 100, 900, 0, 20);
+    // Tonalität (Körpertemperatur) ist ein Testwert (nicht real gemessen)
+    // und wirkt bewusst NICHT auf die Typografie der eigentlichen App –
+    // die Farb-Zuordnung kühl→warm ist rein illustrativ im Onboarding zu
+    // sehen (siehe onboarding.html, demo-farbe). Chat/Momente bleiben
+    // schwarz/weiß je nach Modus (siehe .text/.moment-karte-text CSS).
 
     // ══ TEST/DEMO – Schlafqualität → Unschärfe (filter: blur) ══════
     // Simulierte Eingabe, kein Live-Sensor. Niedrig/"müde" (100) = unscharf,
@@ -3538,7 +3789,7 @@
     const TRANSPARENZ_MIN = 0.35; // ← nachjustieren: Minimum bei Atemfrequenz 100
     const transparenz = umrechnen(rohwerte.atemfrequenz, 100, 900, TRANSPARENZ_MIN, 1);
 
-    return { schriftschnitt, spacing, einblendDauer, wobble, wobbleRot, oblique, blur, transparenz };
+    return { schriftschnitt, spacing, einblendDauer, wobble, wobbleRot, blur, transparenz };
   }
 
   function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
@@ -3623,8 +3874,9 @@
     // Tempo steuert NICHT das Zittern – nur Laufweite und Einblend-Speed.
     element.style.letterSpacing = `${achsen.spacing.toFixed(3)}em`;
 
-    // BEHELF – Tonalität → font-style: oblique (nur Glyphen, kein Box-Transform)
-    element.style.fontStyle = `oblique ${achsen.oblique.toFixed(1)}deg`;
+    // Tonalität wirkt bewusst NICHT auf die Farbe hier (siehe Kommentar
+    // an sensorZuSchriftAchse) – Text bleibt schwarz/weiß je nach Modus
+    // (element.style.color bleibt unangetastet, siehe stilNeutralAnwenden).
 
     // BEHELF – Stabilität → per-Buchstaben-Zittern mit Zufallsanimation
     // Teilt KEINEN Parameter mit Tempo.
@@ -3656,7 +3908,7 @@
     // Neutraler Zustand entspricht dem mittleren Schnitt der 7-stufigen Skala
     element.style.fontFamily            = "'Situra-Regular', 'Inter', sans-serif";
     element.style.letterSpacing         = '0em';
-    element.style.fontStyle             = 'normal';
+    element.style.color                 = '';
     element.style.transform             = 'none';
     element.style.animation             = 'none';
     element.style.filter                = 'none';
@@ -4008,7 +4260,8 @@
   const chat          = document.getElementById('chat');
   const eingabe       = document.getElementById('eingabe');
   const antwortBtn    = document.getElementById('antwort-btn');
-  const emotionToggle = document.getElementById('emotion-toggle');
+  const emotionToggle     = document.getElementById('emotion-toggle');
+  const emotionToggleOben = document.getElementById('emotion-toggle-oben');
 
   const sliderIntensitaet      = document.getElementById('slider-intensitaet');
   const sliderTonalitaet       = document.getElementById('slider-tonalitaet');
@@ -4020,18 +4273,20 @@
   const balkenStabilitaet      = document.getElementById('balken-stabilitaet');
 
   // Test-/Demo-Regler (simulierte Eingaben, kein Live-Sensor)
-  const sliderSchlafqualitaet  = document.getElementById('slider-schlafqualitaet');
   const sliderAtemfrequenz     = document.getElementById('slider-atemfrequenz');
-  const wertSchlafqualitaet    = document.getElementById('wert-schlafqualitaet');
   const wertAtemfrequenz       = document.getElementById('wert-atemfrequenz');
 
   // ── Startzustand ──────────────────────────────────────────────
+  // schlafqualitaet: kein Test-Regler mehr (siehe Nacht-Auswertung weiter
+  // unten, nachtAuswertungPruefen/schlafStufeAnwenden) – Startwert 500
+  // entspricht dem bisherigen Slider-Default, bis eine echte/gespeicherte
+  // Nacht ausgewertet wurde.
   let aktuelleRohwerte = {
     intensitaet:     Number(sliderIntensitaet.value),
     tempo:           100,
     stabilitaet:     500,
     tonalitaet:      Number(sliderTonalitaet.value),
-    schlafqualitaet: Number(sliderSchlafqualitaet.value),
+    schlafqualitaet: 500,
     atemfrequenz:    Number(sliderAtemfrequenz.value)
   };
 
@@ -4236,11 +4491,9 @@
   function sliderAktualisieren() {
     aktuelleRohwerte.intensitaet     = Number(sliderIntensitaet.value);
     aktuelleRohwerte.tonalitaet      = Number(sliderTonalitaet.value);
-    aktuelleRohwerte.schlafqualitaet = Number(sliderSchlafqualitaet.value);
     aktuelleRohwerte.atemfrequenz    = Number(sliderAtemfrequenz.value);
     wertIntensitaet.textContent      = aktuelleRohwerte.intensitaet;
     wertTonalitaet.textContent       = aktuelleRohwerte.tonalitaet;
-    wertSchlafqualitaet.textContent  = aktuelleRohwerte.schlafqualitaet;
     wertAtemfrequenz.textContent     = aktuelleRohwerte.atemfrequenz;
     aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
     vorschauAktualisieren();
@@ -4248,7 +4501,6 @@
 
   sliderIntensitaet.addEventListener('input', sliderAktualisieren);
   sliderTonalitaet.addEventListener('input',  sliderAktualisieren);
-  sliderSchlafqualitaet.addEventListener('input', sliderAktualisieren);
   sliderAtemfrequenz.addEventListener('input',    sliderAktualisieren);
 
   antwortBtn.addEventListener('click', function () {
@@ -4271,14 +4523,20 @@
     }
   });
 
-  // Emotion-Toggle:
+  // Emotion-Toggle: zwei Schalter (Chat-Fußleiste + Übersichts-
+  // Kopfzeile) spiegeln denselben globalen Zustand.
   //   1. CSS-Klasse wechselt das komplette Farbschema (via Variablen)
   //   2. emotionAktiv steuert die typografische Logik (Vorschau, Einfrieren)
-  emotionToggle.addEventListener('change', function () {
-    emotionAktiv = this.checked;
+  function emotionModusSetzen(istAn) {
+    emotionAktiv = istAn;
+    emotionToggle.checked     = istAn;
+    emotionToggleOben.checked = istAn;
     phoneFrame.classList.toggle('emotion-an', emotionAktiv); // ← Moduswechsel
     vorschauAktualisieren();
-  });
+  }
+
+  emotionToggle.addEventListener('change', function () { emotionModusSetzen(this.checked); });
+  emotionToggleOben.addEventListener('change', function () { emotionModusSetzen(this.checked); });
 
 
   // ══════════════════════════════════════════════════════════════════
@@ -4707,9 +4965,7 @@
   function schlafStufeAnwenden(stufe) {
     const rohwert = NACHT_STUFE_ZU_ROHWERT[stufe];
     if (rohwert == null) return;
-    sliderSchlafqualitaet.value      = rohwert;
     aktuelleRohwerte.schlafqualitaet = rohwert;
-    wertSchlafqualitaet.textContent  = rohwert;
     aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
     vorschauAktualisieren();
   }
@@ -5036,55 +5292,82 @@
   //  Leiste von Anfang an unterschiedliche Strichstärken zeigt.
   // ═══════════════════════════════════════════════════════════════
 
+  // intensitaet-Werte: Median bewusst weiter bei Light/Regular (siehe
+  // intensitaetZuSchriftschnitt, 7 Stufen) – aber mit gezielten
+  // Ausreißern nach oben (Ben, Elena, Sophie, Jovan) und unten (Anna,
+  // Luca, Noah, Marie, Noelle), damit auch SemiBold/Bold/Black
+  // vorkommen und die Karten im Feed unterschiedliche Strichstärken
+  // zeigen statt alle im selben schmalen Band zu liegen.
+  //
+  // stabilitaet-Werte: die meisten stehen auf dem Maximum (900). Wegen
+  // rohwerteWortVariieren (± MOMENT_WORT_VARIANZ = 120 pro Wort) reicht
+  // ein Wert knapp über der Zitter-Schwelle (740, siehe
+  // WOBBLE_TOTZONE_PX/WOBBLE_AMPLITUDE_MAX in sensorZuSchriftAchse)
+  // NICHT – einzelne Wörter könnten trotzdem darunter fallen. Erst 900
+  // garantiert (900 − 120 = 780 > 740), dass wirklich kein Wort
+  // zittert. Nur eine kleine Auswahl (Mia, Marius, Paul, Jovan –
+  // passend zu Deadline/Stolpern/Hektik im Text) bleibt niedrig und
+  // zittert dadurch weiterhin; der Rest steht ruhig, damit nicht mehr
+  // fast jeder Beitrag zittert.
   const MOMENT_DEMO_KONTAKTE = [
-    { name: 'Anna',   text: 'Bin gerade im Zug.',
-      rohwerte: { intensitaet: 220, tempo: 300, stabilitaet: 700, tonalitaet: 300, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Ben',    text: 'Endlich Feierabend!',
-      rohwerte: { intensitaet: 780, tempo: 650, stabilitaet: 500, tonalitaet: 700, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Clara',  text: 'Kaffeepause.',
+    { name: 'Anna',   text: 'Bin gerade im Zug.', likes: 3,
+      rohwerte: { intensitaet: 120, tempo: 300, stabilitaet: 900, tonalitaet: 300, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Ben',    text: 'Endlich Feierabend!', likes: 7,
+      rohwerte: { intensitaet: 850, tempo: 650, stabilitaet: 900, tonalitaet: 700, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Clara',  text: 'Kaffeepause.', likes: 0,
       rohwerte: null }, // leblos-Demo: neutral/ohne eingefrorene Emotion, zeigt den Kontrastfall
-    { name: 'David',  text: 'Regen den ganzen Tag.',
-      rohwerte: { intensitaet: 300, tempo: 250, stabilitaet: 600, tonalitaet: 250, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Elena',  text: 'Neues Projekt gestartet!',
-      rohwerte: { intensitaet: 650, tempo: 500, stabilitaet: 550, tonalitaet: 650, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Felix',  text: 'Fast geschafft.',
-      rohwerte: { intensitaet: 500, tempo: 400, stabilitaet: 650, tonalitaet: 400, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Luca',   text: 'Sonntagsspaziergang.',
-      rohwerte: { intensitaet: 260, tempo: 200, stabilitaet: 800, tonalitaet: 350, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Mia',    text: 'Deadline heute Abend.',
-      rohwerte: { intensitaet: 850, tempo: 750, stabilitaet: 350, tonalitaet: 500, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Noah',   text: 'Ruhiger Tag bisher.',
-      rohwerte: { intensitaet: 350, tempo: 300, stabilitaet: 750, tonalitaet: 350, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Sophie', text: 'Vorfreude aufs Wochenende!',
-      rohwerte: { intensitaet: 600, tempo: 450, stabilitaet: 600, tonalitaet: 700, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'David',  text: 'Regen den ganzen Tag.', likes: 1,
+      rohwerte: { intensitaet: 220, tempo: 250, stabilitaet: 900, tonalitaet: 250, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Elena',  text: 'Neues Projekt gestartet!', likes: 5,
+      rohwerte: { intensitaet: 700, tempo: 500, stabilitaet: 900, tonalitaet: 650, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Felix',  text: 'Fast geschafft.', likes: 2,
+      rohwerte: { intensitaet: 260, tempo: 400, stabilitaet: 900, tonalitaet: 400, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Luca',   text: 'Sonntagsspaziergang.', likes: 4,
+      rohwerte: { intensitaet: 150, tempo: 200, stabilitaet: 900, tonalitaet: 350, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Mia',    text: 'Deadline heute Abend.', likes: 0,
+      rohwerte: { intensitaet: 480, tempo: 750, stabilitaet: 320, tonalitaet: 500, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Noah',   text: 'Ruhiger Tag bisher.', likes: 1,
+      rohwerte: { intensitaet: 200, tempo: 300, stabilitaet: 900, tonalitaet: 350, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Sophie', text: 'Vorfreude aufs Wochenende!', likes: 9,
+      rohwerte: { intensitaet: 620, tempo: 450, stabilitaet: 900, tonalitaet: 700, schlafqualitaet: 500, atemfrequenz: 500 } },
 
     // ── Aktuelle Kontakte (aus assets/avatars/) – eigene, lustige
     //    Momente statt der generischen MOMENT_PLATZHALTER_TEXTE ──
-    { name: 'Lina',    text: 'Habe versucht, erwachsen zu sein. Hat nicht geklappt.',
-      rohwerte: { intensitaet: 500, tempo: 400, stabilitaet: 450, tonalitaet: 600, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Marie',   text: 'Mein Kaffee ist kälter als meine Standarts.',
-      rohwerte: { intensitaet: 300, tempo: 250, stabilitaet: 550, tonalitaet: 350, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Marius',  text: 'Dreimal über nichts gestolpert. Persönlicher Rekord.',
-      rohwerte: { intensitaet: 700, tempo: 700, stabilitaet: 300, tonalitaet: 500, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Noelle',  text: 'Kühlschrank leer, Motivation auch.',
-      rohwerte: { intensitaet: 250, tempo: 200, stabilitaet: 600, tonalitaet: 300, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Paul',    text: 'Schlüssel gesucht. Waren die ganze Zeit in der Hand.',
-      rohwerte: { intensitaet: 550, tempo: 500, stabilitaet: 400, tonalitaet: 450, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Theresa', text: 'Netflix fragt, ob ich noch da bin. Gute Frage eigentlich.',
-      rohwerte: { intensitaet: 350, tempo: 300, stabilitaet: 700, tonalitaet: 400, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Tim',     text: 'Schon wieder den falschen Bus genommen. Klassiker.',
-      rohwerte: { intensitaet: 650, tempo: 600, stabilitaet: 350, tonalitaet: 400, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Elias',   text: 'Mit der Zimmerpflanze gestritten. Sie hat gewonnen.',
-      rohwerte: { intensitaet: 450, tempo: 350, stabilitaet: 500, tonalitaet: 550, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Jonas',   text: 'Fünf Tabs offen, keine Ahnung mehr wofür.',
-      rohwerte: { intensitaet: 600, tempo: 550, stabilitaet: 450, tonalitaet: 500, schlafqualitaet: 500, atemfrequenz: 500 } },
-    { name: 'Jovan',   text: 'Sport für heute erledigt. Bin zum Kühlschrank gesprintet.',
-      rohwerte: { intensitaet: 750, tempo: 650, stabilitaet: 400, tonalitaet: 650, schlafqualitaet: 500, atemfrequenz: 500 } }
+    { name: 'Lina',    text: 'Habe versucht, erwachsen zu sein. Hat nicht geklappt.', likes: 6,
+      rohwerte: { intensitaet: 260, tempo: 400, stabilitaet: 900, tonalitaet: 600, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Marie',   text: 'Mein Kaffee ist kälter als meine Standarts.', likes: 2,
+      rohwerte: { intensitaet: 180, tempo: 250, stabilitaet: 900, tonalitaet: 350, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Marius',  text: 'Dreimal über nichts gestolpert. Persönlicher Rekord.', likes: 8,
+      rohwerte: { intensitaet: 520, tempo: 700, stabilitaet: 300, tonalitaet: 500, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Noelle',  text: 'Kühlschrank leer, Motivation auch.', likes: 0,
+      rohwerte: { intensitaet: 140, tempo: 200, stabilitaet: 900, tonalitaet: 300, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Paul',    text: 'Schlüssel gesucht. Waren die ganze Zeit in der Hand.', likes: 3,
+      rohwerte: { intensitaet: 300, tempo: 500, stabilitaet: 350, tonalitaet: 450, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Theresa', text: 'Netflix fragt, ob ich noch da bin. Gute Frage eigentlich.', likes: 1,
+      rohwerte: { intensitaet: 220, tempo: 300, stabilitaet: 900, tonalitaet: 400, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Tim',     text: 'Schon wieder den falschen Bus genommen. Klassiker.', likes: 4,
+      rohwerte: { intensitaet: 380, tempo: 600, stabilitaet: 900, tonalitaet: 400, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Elias',   text: 'Mit der Zimmerpflanze gestritten. Sie hat gewonnen.', likes: 5,
+      rohwerte: { intensitaet: 260, tempo: 350, stabilitaet: 900, tonalitaet: 550, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Jonas',   text: 'Fünf Tabs offen, keine Ahnung mehr wofür.', likes: 0,
+      rohwerte: { intensitaet: 340, tempo: 550, stabilitaet: 900, tonalitaet: 500, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Jovan',   text: 'Sport für heute erledigt. Bin zum Kühlschrank gesprintet.', likes: 2,
+      rohwerte: { intensitaet: 780, tempo: 650, stabilitaet: 320, tonalitaet: 650, schlafqualitaet: 500, atemfrequenz: 500 } }
   ];
 
   // momente[name] = { text, wortSnapshots: [{achsen, leblos}, ...], datum? }
   // "datum" ist nur bei "Du" gesetzt (steuert das "einmal pro Tag").
   let momente = {};
+
+  // momentLikes[name] = { anzahl, geliked } – laufender Like-Zustand pro
+  // Moment, NUR im Arbeitsspeicher (wie momentGesehen unten): startet bei
+  // jedem Neuladen wieder bei den Demo-Werten aus MOMENT_DEMO_KONTAKTE,
+  // damit der Feed von Anfang an lebendig wirkt.
+  let momentLikes = {};
+
+  // momentKommentare[name] = ['Text', ...] – Kommentare zur Story-Ansicht
+  // eines Moments, NUR im Arbeitsspeicher (kein Backend vorhanden).
+  let momentKommentare = {};
 
   function heutigesDatum() {
     return new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
@@ -5118,15 +5401,36 @@
 
   // Baut das Ausgangs-Momente-Objekt: feste Demo-Inhalte für die
   // Kontakte + den eigenen, ggf. bereits heute geposteten Moment.
+  // Demo-Momente sollen wie im Chat wort-für-wort eingefroren wirken,
+  // nicht wie EIN Zustand über den ganzen Text – simuliert darum pro
+  // Wort eine kleine, zufällige Schwankung um die Basis-Rohwerte des
+  // Kontakts (wie beim echten Tippen, wo sich Tempo/Puls von Wort zu
+  // Wort leicht verändern), statt für jedes Wort dieselben Achsen zu
+  // berechnen.
+  const MOMENT_WORT_VARIANZ = 120; // ± Schwankung pro Achse und Wort
+
+  function rohwerteWortVariieren(rohwerte) {
+    const variiert = {};
+    Object.keys(rohwerte).forEach(function (achse) {
+      const schwankung = (Math.random() * 2 - 1) * MOMENT_WORT_VARIANZ;
+      variiert[achse] = Math.max(100, Math.min(900, rohwerte[achse] + schwankung));
+    });
+    return variiert;
+  }
+
   function momenteAufbauen() {
     MOMENT_DEMO_KONTAKTE.forEach(function (k) {
       const leblos  = !k.rohwerte;
-      const achsen  = leblos ? null : sensorZuSchriftAchse(k.rohwerte);
       const woerter = k.text.split(/\s+/).filter(function (w) { return w.length > 0; });
       momente[k.name] = {
         text: k.text,
-        wortSnapshots: woerter.map(function () { return { achsen: achsen || {}, leblos: leblos }; })
+        wortSnapshots: woerter.map(function () {
+          if (leblos) return { achsen: {}, leblos: true };
+          return { achsen: sensorZuSchriftAchse(rohwerteWortVariieren(k.rohwerte)), leblos: false };
+        })
       };
+      momentLikes[k.name] = { anzahl: k.likes || 0, geliked: false };
+      momentKommentare[k.name] = [];
     });
 
     const duGespeichert = duMomentLaden();
@@ -5170,6 +5474,7 @@
         text: text,
         wortSnapshots: woerter.map(function () { return { achsen: {}, leblos: true }; })
       };
+      momentLikes[name] = { anzahl: 0, geliked: false };
     });
   }
 
@@ -5206,9 +5511,12 @@
   const momentSendenBtn       = document.getElementById('moment-senden-btn');
   const momentFeed            = document.getElementById('moment-feed');
   const momentAnsichtOverlay  = document.getElementById('moment-ansicht-overlay');
+  const momentAnsichtKarte    = document.getElementById('moment-ansicht-karte');
+  const momentStoryBalken     = document.getElementById('moment-story-balken');
   const momentAnsichtAvatar   = document.getElementById('moment-ansicht-avatar');
   const momentAnsichtName     = document.getElementById('moment-ansicht-name');
   const momentAnsichtText     = document.getElementById('moment-ansicht-text');
+  const momentAnsichtFooter   = document.getElementById('moment-ansicht-footer');
   const momentAnsichtSchliessenBtn = document.getElementById('moment-ansicht-schliessen');
 
   // Wer in der Story-Leiste auftaucht: "Du" + dieselben Personen wie
@@ -5335,8 +5643,128 @@
 
       karte.appendChild(kopf);
       karte.appendChild(textEl);
+      karte.appendChild(momentLikeFooterErstellen(name));
       momentFeed.appendChild(karte);
     });
+  }
+
+  // ── Like-Leiste unter jeder Moment-Karte: klickbares Herz + Zähler.
+  // Zustand liegt in momentLikes[name] (siehe momenteAufbauen), Klick
+  // toggelt geliked und passt den Zähler direkt an – kein Rerender der
+  // ganzen Karte nötig.
+  function momentLikeFooterErstellen(name) {
+    const footer = document.createElement('div');
+    footer.className = 'moment-karte-footer';
+
+    const btn = document.createElement('button');
+    btn.className = 'moment-like-btn';
+    btn.type = 'button';
+
+    const zaehlerEl = document.createElement('span');
+    zaehlerEl.className = 'moment-like-zaehler';
+
+    // "<3" statt Herz-Unicode-Zeichen – Zustand (geliked/nicht) wird
+    // rein über die Farbe (.moment-like-btn--aktiv) unterschieden.
+    function darstellungAktualisieren() {
+      const stand = momentLikes[name] || { anzahl: 0, geliked: false };
+      btn.textContent = '<3';
+      btn.classList.toggle('moment-like-btn--aktiv', stand.geliked);
+      btn.setAttribute('aria-pressed', stand.geliked ? 'true' : 'false');
+      btn.setAttribute('aria-label', (stand.geliked ? 'Like entfernen' : 'Moment liken') + ' – ' + name);
+      zaehlerEl.textContent = stand.anzahl;
+    }
+
+    btn.addEventListener('click', function () {
+      const stand = momentLikes[name] || (momentLikes[name] = { anzahl: 0, geliked: false });
+      stand.geliked = !stand.geliked;
+      stand.anzahl += stand.geliked ? 1 : -1;
+      darstellungAktualisieren();
+    });
+
+    darstellungAktualisieren();
+
+    footer.appendChild(btn);
+    footer.appendChild(zaehlerEl);
+    return footer;
+  }
+
+  // Baut den Footer der Story-Ansicht (Like + Kommentare) für die
+  // aktuell angezeigte Person komplett neu auf – wird bei jedem
+  // Story-Wechsel aufgerufen (siehe momentStoryAnzeigen). Ein Klick
+  // irgendwo im Footer stoppt die Bubble (siehe momentAnsichtKarte-
+  // Handler), damit Liken/Kommentieren nicht versehentlich als
+  // "weiter zum nächsten Moment" gewertet wird.
+  function momentAnsichtFooterRendern(name) {
+    momentAnsichtFooter.innerHTML = '';
+    momentAnsichtFooter.appendChild(momentLikeFooterErstellen(name));
+
+    const kommentarBereich = document.createElement('div');
+    kommentarBereich.className = 'moment-kommentare';
+
+    const liste = document.createElement('div');
+    liste.className = 'moment-kommentar-liste';
+
+    function listeRendern() {
+      liste.innerHTML = '';
+      const kommentare = momentKommentare[name] || [];
+      if (kommentare.length === 0) {
+        const leer = document.createElement('p');
+        leer.className = 'moment-kommentar-leer';
+        leer.textContent = 'Noch keine Kommentare.';
+        liste.appendChild(leer);
+        return;
+      }
+      kommentare.forEach(function (text) {
+        const eintrag = document.createElement('p');
+        eintrag.className = 'moment-kommentar-eintrag';
+        const autor = document.createElement('strong');
+        autor.textContent = 'Du';
+        eintrag.appendChild(autor);
+        eintrag.appendChild(document.createTextNode(text));
+        liste.appendChild(eintrag);
+      });
+    }
+    listeRendern();
+
+    const eingabeZeile = document.createElement('div');
+    eingabeZeile.className = 'moment-kommentar-eingabe-zeile';
+
+    const eingabeFeld = document.createElement('input');
+    eingabeFeld.className = 'moment-kommentar-eingabe';
+    eingabeFeld.type = 'text';
+    eingabeFeld.placeholder = 'Kommentieren …';
+    eingabeFeld.autocomplete = 'off';
+
+    // Solange kommentiert wird, nicht automatisch zum nächsten Moment
+    // weiterspringen – sonst würde die Story mitten im Tippen wegspringen.
+    eingabeFeld.addEventListener('focus', momentStoryTimerStoppen);
+    eingabeFeld.addEventListener('blur', function () {
+      momentStoryTimer = setTimeout(momentStoryWeiter, MOMENT_STORY_DAUER);
+    });
+
+    const sendenBtn = document.createElement('button');
+    sendenBtn.className = 'moment-kommentar-senden-btn';
+    sendenBtn.type = 'button';
+    sendenBtn.textContent = 'Senden';
+
+    function kommentarAbsenden() {
+      const text = eingabeFeld.value.trim();
+      if (!text) return;
+      (momentKommentare[name] || (momentKommentare[name] = [])).push(text);
+      eingabeFeld.value = '';
+      listeRendern();
+    }
+
+    sendenBtn.addEventListener('click', kommentarAbsenden);
+    eingabeFeld.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); kommentarAbsenden(); }
+    });
+
+    eingabeZeile.appendChild(eingabeFeld);
+    eingabeZeile.appendChild(sendenBtn);
+    kommentarBereich.appendChild(liste);
+    kommentarBereich.appendChild(eingabeZeile);
+    momentAnsichtFooter.appendChild(kommentarBereich);
   }
 
   // Composer standardmäßig verborgen (siehe [hidden] im Markup) – öffnet
@@ -5352,18 +5780,53 @@
     momentComposer.hidden = !momentComposerOffen;
   }
 
-  // Öffnet die Story-Ansicht für eine Person – oder, falls "Du" noch
-  // keinen Moment gepostet hast, öffnet/schließt stattdessen den
-  // Composer (erneutes Tippen auf den eigenen Kreis schließt ihn
-  // wieder, siehe momentComposerOffen).
-  function momentOeffnen(name) {
-    if (name === 'Du' && !momente['Du']) {
-      momentComposerOffen = !momentComposerOffen;
-      momentComposerAktualisieren();
-      if (momentComposerOffen) momentEingabe.focus();
-      return;
-    }
+  // ── Story-Warteschlange: Instagram-artiges automatisches Weiterlaufen
+  // durch alle Personen mit Moment (dieselbe Reihenfolge wie die
+  // Momente-Leiste). momentStoryIndex zeigt auf die aktuell offene
+  // Person in momentStoryQueue. ──────────────────────────────────────
+  let momentStoryQueue = [];
+  let momentStoryIndex = -1;
+  let momentStoryTimer = null;
+  const MOMENT_STORY_DAUER = 5000; // ms, die ein Moment automatisch sichtbar bleibt
 
+  function momentStoryTimerStoppen() {
+    if (momentStoryTimer) { clearTimeout(momentStoryTimer); momentStoryTimer = null; }
+  }
+
+  // Baut die Segmente neu auf: bereits gesehene (frühere Index-Position)
+  // sofort voll gefüllt, aktuelles Segment läuft animiert von 0→100%,
+  // kommende Segmente leer. requestAnimationFrame sorgt dafür, dass der
+  // Browser den 0%-Startzustand erst rendert, bevor die Transition auf
+  // 100% den Füllvorgang sichtbar animiert (sonst würde die Transition
+  // übersprungen, siehe dasselbe Prinzip beim Logo-Einblenden).
+  function momentStoryBalkenAufbauen() {
+    momentStoryBalken.innerHTML = '';
+    momentStoryQueue.forEach(function (name, i) {
+      const segment = document.createElement('div');
+      segment.className = 'moment-story-segment';
+      const fill = document.createElement('div');
+      fill.className = 'moment-story-segment-fill';
+      if (i < momentStoryIndex) {
+        fill.style.width = '100%';
+      } else if (i === momentStoryIndex) {
+        fill.style.transition = 'none';
+        fill.style.width = '0%';
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            fill.style.transition = `width ${MOMENT_STORY_DAUER}ms linear`;
+            fill.style.width = '100%';
+          });
+        });
+      }
+      segment.appendChild(fill);
+      momentStoryBalken.appendChild(segment);
+    });
+  }
+
+  // Zeigt die Person an Position momentStoryIndex in momentStoryQueue an
+  // (Avatar/Name/Text/Balken/Footer) und startet den Auto-Weiter-Timer.
+  function momentStoryAnzeigen() {
+    const name = momentStoryQueue[momentStoryIndex];
     const moment = momente[name];
     if (!moment) return;
 
@@ -5385,18 +5848,66 @@
     momentAnsichtName.textContent = name;
 
     momentTextRendern(momentAnsichtText, moment.text, moment.wortSnapshots);
+    momentStoryBalkenAufbauen();
+    momentAnsichtFooterRendern(name);
+    momentLeisteRendern(); // Ring-Status (Ungesehen) sofort aktualisieren
+
+    momentStoryTimerStoppen();
+    momentStoryTimer = setTimeout(momentStoryWeiter, MOMENT_STORY_DAUER);
+  }
+
+  // Springt zum nächsten Moment in der Warteschlange – am Ende
+  // angekommen schließt sich die Ansicht (wie bei Instagram).
+  function momentStoryWeiter() {
+    momentStoryIndex += 1;
+    if (momentStoryIndex >= momentStoryQueue.length) {
+      momentAnsichtSchliessen();
+      return;
+    }
+    momentStoryAnzeigen();
+  }
+
+  // Öffnet die Story-Ansicht für eine Person – oder, falls "Du" noch
+  // keinen Moment gepostet hast, öffnet/schließt stattdessen den
+  // Composer (erneutes Tippen auf den eigenen Kreis schließt ihn
+  // wieder, siehe momentComposerOffen).
+  function momentOeffnen(name) {
+    if (name === 'Du' && !momente['Du']) {
+      momentComposerOffen = !momentComposerOffen;
+      momentComposerAktualisieren();
+      if (momentComposerOffen) momentEingabe.focus();
+      return;
+    }
+
+    if (!momente[name]) return;
+
+    momentStoryQueue = momentNamenErmitteln().filter(function (n) { return !!momente[n]; });
+    momentStoryIndex = momentStoryQueue.indexOf(name);
 
     momentAnsichtOverlay.classList.add('sichtbar');
-    momentLeisteRendern(); // Ring-Status (Ungesehen) sofort aktualisieren
+    momentStoryAnzeigen();
   }
 
   function momentAnsichtSchliessen() {
+    momentStoryTimerStoppen();
     momentAnsichtOverlay.classList.remove('sichtbar');
   }
 
-  momentAnsichtSchliessenBtn.addEventListener('click', momentAnsichtSchliessen);
+  momentAnsichtSchliessenBtn.addEventListener('click', function (e) {
+    e.stopPropagation(); // nicht als "Weiter tippen" werten
+    momentAnsichtSchliessen();
+  });
   momentAnsichtOverlay.addEventListener('click', function (e) {
     if (e.target === momentAnsichtOverlay) momentAnsichtSchliessen();
+  });
+
+  // Antippen der Karte (außerhalb von Like/Kommentar/Schließen-Button)
+  // springt zum nächsten Moment einer anderen Person – wie bei
+  // Instagram-Storys. Footer (Like + Kommentare) ist bewusst über
+  // closest('.moment-ansicht-footer') ausgenommen.
+  momentAnsichtKarte.addEventListener('click', function (e) {
+    if (e.target.closest('.moment-ansicht-footer') || e.target.closest('.overlay-schliessen')) return;
+    momentStoryWeiter();
   });
 
   // ── Composer: eigener, getrennter Wort-für-Wort-Einfrier-Zustand ──
@@ -5800,6 +6311,12 @@
     return wrapper;
   }
 
+  // Nicht alle Einträge auf einmal rendern – zeigt anfangs nur die
+  // TAGEBUCH_SEITE_GROESSE neuesten, ein Klick auf "Ältere Einträge
+  // laden" blendet jeweils weitere nach (siehe tagebuchSichtbareAnzahl).
+  const TAGEBUCH_SEITE_GROESSE = 10;
+  let tagebuchSichtbareAnzahl = TAGEBUCH_SEITE_GROESSE;
+
   function tagebuchListeRendern() {
     tagebuchListe.innerHTML = '';
     if (tagebuchEintraege.length === 0) {
@@ -5809,9 +6326,21 @@
       tagebuchListe.appendChild(hinweis);
       return;
     }
-    tagebuchEintraege.forEach(function (eintrag) {
+    tagebuchEintraege.slice(0, tagebuchSichtbareAnzahl).forEach(function (eintrag) {
       tagebuchListe.appendChild(tagebuchEintragRendern(eintrag));
     });
+
+    if (tagebuchEintraege.length > tagebuchSichtbareAnzahl) {
+      const mehrBtn = document.createElement('button');
+      mehrBtn.type = 'button';
+      mehrBtn.className = 'tagebuch-mehr-btn';
+      mehrBtn.textContent = 'Ältere Einträge laden';
+      mehrBtn.addEventListener('click', function () {
+        tagebuchSichtbareAnzahl += TAGEBUCH_SEITE_GROESSE;
+        tagebuchListeRendern();
+      });
+      tagebuchListe.appendChild(mehrBtn);
+    }
   }
 
   // ── Monatsübersicht: Kalender-Raster der Tagebucheinträge ─────────
@@ -6048,6 +6577,26 @@
     svg.setAttribute('preserveAspectRatio', 'none');
     svg.setAttribute('class', 'tagebuch-graph-svg');
 
+    // Fläche unter der Linie: weicher Verlauf von dezent getönt (oben,
+    // an der Linie) zu vollständig transparent (unten) – "faded" damit
+    // ins Weiß/Schwarz des Hintergrunds aus, je nach Modus (siehe
+    // .tagebuch-graph-flaeche-start/-ende CSS).
+    const defs = document.createElementNS(svgNS, 'defs');
+    const verlauf = document.createElementNS(svgNS, 'linearGradient');
+    verlauf.setAttribute('id', 'tagebuch-graph-flaeche-verlauf');
+    verlauf.setAttribute('x1', '0'); verlauf.setAttribute('y1', '0');
+    verlauf.setAttribute('x2', '0'); verlauf.setAttribute('y2', '1');
+    const stopStart = document.createElementNS(svgNS, 'stop');
+    stopStart.setAttribute('offset', '0%');
+    stopStart.setAttribute('class', 'tagebuch-graph-flaeche-start');
+    const stopEnde = document.createElementNS(svgNS, 'stop');
+    stopEnde.setAttribute('offset', '100%');
+    stopEnde.setAttribute('class', 'tagebuch-graph-flaeche-ende');
+    verlauf.appendChild(stopStart);
+    verlauf.appendChild(stopEnde);
+    defs.appendChild(verlauf);
+    svg.appendChild(defs);
+
     // Dezente horizontale Hilfslinien (25/50/75%) zur Orientierung –
     // keine Beschriftung pro Linie, das übernehmen die zwei Y-Achsen-
     // Labels "Gut"/"Schlecht" außerhalb des SVGs.
@@ -6061,6 +6610,14 @@
       gitterlinie.setAttribute('class', 'tagebuch-graph-gitter');
       svg.appendChild(gitterlinie);
     });
+
+    const flaeche = document.createElementNS(svgNS, 'path');
+    const flaechePfad = glatterSvgPfad(punkte)
+      + ' L' + punkte[punkte.length - 1][0].toFixed(1) + ',' + hoehe
+      + ' L' + punkte[0][0].toFixed(1) + ',' + hoehe + ' Z';
+    flaeche.setAttribute('d', flaechePfad);
+    flaeche.setAttribute('fill', 'url(#tagebuch-graph-flaeche-verlauf)');
+    svg.appendChild(flaeche);
 
     const linie = document.createElementNS(svgNS, 'path');
     linie.setAttribute('d', glatterSvgPfad(punkte));

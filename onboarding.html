@@ -77,28 +77,28 @@
     .phone-frame {
       --bg:          #ffffff;
       --karte-rand:  rgba(0, 0, 0, 0.10);
-      --text:        #111111;
+      --text:        #000000;
       --text-2:      #6b6b6b;
       --text-3:      #a8a8a8;
       --punkt:       #d8d8d5;
-      --punkt-aktiv: #111111;
-      --btn-bg:      #111111;
+      --punkt-aktiv: #000000;
+      --btn-bg:      #000000;
       --btn-text:    #ffffff;
-      --btn-rand:    #111111;
+      --btn-rand:    #000000;
     }
 
     @media (prefers-color-scheme: dark) {
       .phone-frame {
-        --bg:          #0d0d0d;
+        --bg:          #000000;
         --karte-rand:  rgba(255, 255, 255, 0.12);
-        --text:        #f5f5f3;
+        --text:        #ffffff;
         --text-2:      #9a9a9a;
         --text-3:      #5c5c5c;
         --punkt:       #333333;
-        --punkt-aktiv: #f5f5f3;
-        --btn-bg:      #f5f5f3;
-        --btn-text:    #111111;
-        --btn-rand:    #f5f5f3;
+        --punkt-aktiv: #ffffff;
+        --btn-bg:      #ffffff;
+        --btn-text:    #000000;
+        --btn-rand:    #ffffff;
       }
     }
 
@@ -200,20 +200,6 @@
       color: var(--text-3);
     }
 
-    /* Icon-Badge */
-    .schritt-icon {
-      width: 60px; height: 60px;
-      border-radius: 50%;
-      border: 1px solid var(--karte-rand);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 16px 0 26px;
-      color: var(--text);
-    }
-
-    .schritt-icon svg { width: 26px; height: 26px; }
-
     .schritt-titel {
       font-size: 26px;
       font-family: 'Situra-Medium', 'Inter', sans-serif;
@@ -303,25 +289,35 @@
       to   { font-variation-settings: 'wght' 800; }
     }
 
-    /* Tempo → Zeichenabstand (letter-spacing) */
-    .demo-spacing { letter-spacing: 0em; }
+    /* Tempo → Zeichenabstand (letter-spacing). RICHTUNG: schnelles
+       Tippen = ENGE (bei sehr schnellem Tippen sogar leicht NEGATIVE,
+       überlappende) Laufweite, langsames Tippen = WEITE Laufweite
+       (siehe sensorZuSchriftAchse in chat.html) – das Demo-Wort startet
+       darum WEIT (0.3em) und läuft beim Erscheinen auf leicht
+       überlappend (−0.02em) zusammen, passend zum demonstrierten Wort
+       "eng". */
+    .demo-spacing { letter-spacing: 0.3em; }
     .demo-spacing.demo-aktiv {
       animation: demoAbstand 1.3s cubic-bezier(.3,0,.2,1) 0.55s both;
     }
     @keyframes demoAbstand {
-      from { letter-spacing: 0em; }
-      to   { letter-spacing: 0.3em; }
+      from { letter-spacing: 0.3em; }
+      to   { letter-spacing: -0.02em; }
     }
 
-    /* Tonalität → Farbverlauf kühl → warm (dieselben Farben wie in
-       situra-slider.html, für Konsistenz über beide Seiten hinweg) */
-    .demo-farbe { color: #7ca7c9; }
+    /* Tonalität (Körpertemperatur) → Textfarbe – kühl = gedämpftes
+       Dunkelblau, warm = gedämpftes Dunkelrot. Rein illustrativ NUR hier
+       im Onboarding: in der eigentlichen App (chat.html) wirkt Tonalität
+       bewusst NICHT auf die Farbe (Testwert, nicht real gemessen – Text
+       bleibt dort schwarz/weiß je nach Modus, siehe Kommentar an
+       sensorZuSchriftAchse in chat.html). */
+    .demo-farbe { color: #4a6d8c; }
     .demo-farbe.demo-aktiv {
       animation: demoFarbe 1.3s cubic-bezier(.3,0,.2,1) 0.55s both;
     }
     @keyframes demoFarbe {
-      from { color: #7ca7c9; }
-      to   { color: #e08a4f; }
+      from { color: #4a6d8c; }
+      to   { color: #8c4a4a; }
     }
 
     /* Schlafqualität (Testwert) → Unschärfe (filter: blur) */
@@ -370,18 +366,18 @@
       animation: titelEinfliegenAbstand 1.6s cubic-bezier(.3,0,.2,1) both;
     }
     @keyframes titelEinfliegenAbstand {
-      0%   { opacity: 0; transform: translateY(14px); letter-spacing: 0em; }
-      25%  { opacity: 1; transform: translateY(0);    letter-spacing: 0em; }
-      100% { opacity: 1; transform: translateY(0);    letter-spacing: 0.3em; }
+      0%   { opacity: 0; transform: translateY(14px); letter-spacing: 0.3em; }
+      25%  { opacity: 1; transform: translateY(0);    letter-spacing: 0.3em; }
+      100% { opacity: 1; transform: translateY(0);    letter-spacing: -0.02em; }
     }
 
     .demo-wort--titel.demo-farbe.demo-aktiv {
       animation: titelEinfliegenFarbe 1.6s cubic-bezier(.3,0,.2,1) both;
     }
     @keyframes titelEinfliegenFarbe {
-      0%   { opacity: 0; transform: translateY(14px); color: #7ca7c9; }
-      25%  { opacity: 1; transform: translateY(0);    color: #7ca7c9; }
-      100% { opacity: 1; transform: translateY(0);    color: #e08a4f; }
+      0%   { opacity: 0; transform: translateY(14px); color: #4a6d8c; }
+      25%  { opacity: 1; transform: translateY(0);    color: #4a6d8c; }
+      100% { opacity: 1; transform: translateY(0);    color: #8c4a4a; }
     }
 
     .demo-wort--titel.demo-blur.demo-aktiv {
@@ -743,11 +739,14 @@
     }
 
     /* ── Zwischenschritt "Hallo!" ─────────────────────────────────
-       Kurzer, freundlicher Screen zwischen Logo-Animation und dem
-       ersten Onboarding-Schritt. ── */
+       Ganzseitiger Begrüßungstext zwischen Logo-Animation und dem
+       ersten Onboarding-Schritt, blendet sanft ein (0.4s opacity,
+       wie zuvor). Der Text füllt die Seite großzügig aus (großer
+       Block statt einer einzelnen Zeile) – siehe .hallo-text unten. ── */
     .hallo-view {
       align-items: center;
       justify-content: center;
+      padding: 0 28px;
       background: var(--bg);
       opacity: 0;
       transition: opacity 0.4s ease;
@@ -756,23 +755,39 @@
     .hallo-view.sichtbar { opacity: 1; }
     .hallo-view.ausblenden { opacity: 0; }
 
+    /* Jedes WORT bekommt per JS (halloTextAufbauen) einen eigenen,
+       durchgehenden Situra-Schnitt zwischen Thin und Black zugewiesen –
+       als sanfte, einmalige Welle dünn→dick→dünn über den ganzen Satz
+       (nicht zufällig, nicht pro Zeichen – ein Wort bleibt immer in
+       einem Schnitt), siehe schnittStack()/SITURA_SCHRIFTSCHNITTE
+       weiter unten im Skript. */
     .hallo-text {
-      font-family: 'Situra-Black', 'Inter', sans-serif;
-      font-size: 60px;
-      letter-spacing: -0.02em;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 46px;
+      line-height: 1.18;
+      letter-spacing: -0.01em;
       color: var(--text);
+      text-align: left;
+      max-width: 340px;
     }
 
-    .bluetooth-aktionen {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      width: 100%;
-      margin-top: 10px;
+    /* Schreibmaschinen-Effekt: jeder Buchstabe startet unsichtbar und
+       wird per JS (halloSchreibmaschineStarten) nacheinander sichtbar
+       geschaltet – kein Fade, reines Ein-/Ausblenden wie beim Tippen. */
+    .hallo-buchstabe { opacity: 0; }
+    .hallo-buchstabe.sichtbar { opacity: 1; }
+
+    /* Freigestelltes Polar-Band-Bild statt des vormaligen dritten
+       Textbausteins ("Verbinde dein Armband, um loszulegen."). */
+    .bt-armband-bild {
+      display: block;
+      width: 62%;
+      max-width: 220px;
+      height: auto;
+      margin: 32px auto 0;
     }
 
-    /* Outline-Variante des primären Buttons – zwei gleichwertige
-       Optionen (Armband/Uhr), keine davon ist "die" Hauptaktion. */
+    /* Outline-Variante des primären Buttons. */
     .bluetooth-btn {
       width: 100%;
       background: none;
@@ -799,12 +814,22 @@
     .bluetooth-hinweis {
       font-size: 12px;
       color: var(--text-2);
-      margin-top: 18px;
+      margin-top: 0;
       font-style: italic;
       min-height: 1.4em;
     }
 
-    .bluetooth-view .onboarding-fuss { text-align: center; }
+    /* Fußbereich trägt hier (anders als sonst) primären Button +
+       Status-Hinweis + sekundären Link übereinander – gleicher Abstand
+       wie zuvor zwischen Button/Hinweis (siehe .bluetooth-hinweis). */
+    .bluetooth-view .onboarding-fuss {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .bluetooth-view .onboarding-fuss .link-btn { align-self: center; }
 
     /* Eigene Klasse statt .schritt/.schritt--aktiv: verhindert, dass
        dieser Screen versehentlich in die Tutorial-Schritt-Logik
@@ -817,6 +842,18 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+    }
+
+    /* Großer, seitenfüllender Titel statt des vorherigen kleinen
+       Icon-Badges – füllt den Screen, statt viel Leerraum stehen zu
+       lassen (derselbe große Situra-Black-Stil wie der Willkommen-
+       Schritt, siehe .schritt--willkommen .schritt-titel oben). */
+    .bt-titel {
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: 48px;
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      margin: 18px 0 22px;
     }
 
     /* ── Barrierefreiheit: reduzierte Bewegung ───────────────────── */
@@ -876,7 +913,7 @@
        Animation, bevor der erste Onboarding-Schritt erscheint.
        ══════════════════════════════════════════════════════════════ -->
   <div class="hallo-view" id="hallo-view">
-    <span class="hallo-text">Hallo!</span>
+    <p class="hallo-text" id="hallo-text">Hallo, schön dass du dich für Momentum entschieden hast.</p>
   </div>
 
   <div class="onboarding-view" id="onboarding-view">
@@ -923,8 +960,8 @@
         <span class="schritt-eyebrow" data-einblenden style="--verz:0s">2 / 6 · Tempo</span>
         <h1 class="schritt-titel demo-wort demo-wort--titel demo-spacing" data-demo="spacing" data-einblenden style="--verz:.1s">Tempo</h1>
         <p class="schritt-text" data-einblenden style="--verz:.24s">
-          Dein Schreibtempo verändert den
-          <span class="demo-wort demo-spacing" data-demo="spacing">Zeichenabstand</span> – schnelles Tippen zieht die Buchstaben auseinander.
+          Schnelles Tippen rückt die Buchstaben
+          <span class="demo-wort demo-spacing" data-demo="spacing">eng</span> zusammen – langsames Tippen zieht sie auseinander.
         </p>
       </div>
     </section>
@@ -934,18 +971,19 @@
         <span class="schritt-eyebrow" data-einblenden style="--verz:0s">3 / 6 · Stabilität</span>
         <h1 class="schritt-titel demo-wort demo-wort--titel" data-demo="zittern" data-einblenden style="--verz:.1s">Stabilität</h1>
         <p class="schritt-text" data-einblenden style="--verz:.24s">
-          Unruhiges Tippen lässt die Schrift sichtbar
-          <span class="demo-wort" data-demo="zittern">zittern</span>.
+          Die App misst, wie angespannt oder ruhig dein Körper gerade ist –
+          bei Anspannung beginnt die Schrift zu
+          <span class="demo-wort" data-demo="zittern">zittern</span>, mit Band über deine approximierte Pulsvariabilität.
         </p>
       </div>
     </section>
 
     <section class="schritt" data-schritt="4">
       <div class="karte">
-        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">4 / 6 · Wachheit · Testwert</span>
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">4 / 6 · Wachheit</span>
         <h1 class="schritt-titel demo-wort demo-wort--titel demo-blur" data-demo="blur" data-einblenden style="--verz:.1s">Wachheit</h1>
         <p class="schritt-text" data-einblenden style="--verz:.24s">
-          Als Testwert zeigt deine Wachheit, ob der Text scharf oder
+          Über deinen Schlaf in der Nacht gemessen, zeigt deine Wachheit, ob der Text scharf oder
           <span class="demo-wort demo-blur" data-demo="blur">unscharf</span> wirkt.
         </p>
       </div>
@@ -964,10 +1002,10 @@
 
     <section class="schritt" data-schritt="6">
       <div class="karte">
-        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">6 / 6 · Tonalität</span>
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">6 / 6 · Tonalität · Testwert</span>
         <h1 class="schritt-titel demo-wort demo-wort--titel demo-farbe" data-demo="farbe" data-einblenden style="--verz:.1s">Tonalität</h1>
         <p class="schritt-text" data-einblenden style="--verz:.24s">
-          Eine wärmere Tonalität färbt die Schrift von kühl zu
+          Als Testwert färbt deine Körpertemperatur die Schrift von kühl zu
           <span class="demo-wort demo-farbe" data-demo="farbe">warm</span>.
         </p>
       </div>
@@ -986,7 +1024,7 @@
        Erscheint nach dem letzten Erklär-Schritt (bzw. nach
        "Überspringen"), bevor es in den Chat geht. Nutzt dieselbe
        Web-Bluetooth-Verbindungsmethode wie in chat.html (Heart Rate
-       Service) – Armband und Uhr unterscheiden sich nur im Label.
+       Service).
        ══════════════════════════════════════════════════════════════ -->
   <div class="bluetooth-view" id="bluetooth-view">
 
@@ -994,29 +1032,24 @@
       <section class="bt-schritt">
         <div class="karte">
           <span class="schritt-eyebrow">Fast geschafft</span>
-          <div class="schritt-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="7" y="7" width="10" height="10" rx="3"/>
-              <path d="M9.5 3.5h5M9.5 20.5h5"/>
-              <path d="M12 10v2.4l1.6 1.1"/>
-            </svg>
-          </div>
-          <h1 class="schritt-titel">Gerät verbinden</h1>
-          <p class="schritt-text">
-            Verbinde dein Armband oder deine Uhr, um loszulegen.
-          </p>
-
-          <div class="bluetooth-aktionen">
-            <button class="bluetooth-btn" id="bt-armband-btn">Armband verbinden</button>
-            <button class="bluetooth-btn" id="bt-uhr-btn">Uhr verbinden</button>
-          </div>
-
-          <p class="bluetooth-hinweis" id="bluetooth-hinweis"></p>
+          <h1 class="schritt-titel bt-titel">Armband<br>verbinden</h1>
+          <!-- Freigestelltes Bild des Polar-Bands statt eines dritten
+               Textbausteins mit derselben Botschaft wie Titel/Button
+               (siehe Titel oben, Button unten) – onerror blendet das
+               Bild aus, falls die Datei (noch) nicht vorliegt, statt
+               ein kaputtes Bild-Icon zu zeigen. -->
+          <img class="bt-armband-bild" src="assets/armband/polar-band.png"
+            alt="Polar Armband" onerror="this.style.display='none'">
         </div>
       </section>
     </div>
 
+    <!-- Primäre Aktion an derselben Stelle wie #weiter-btn in den
+         vorherigen Onboarding-Schritten (fester Fußbereich statt
+         mitten in der Karte). -->
     <div class="onboarding-fuss">
+      <button class="bluetooth-btn" id="bt-armband-btn">Armband verbinden</button>
+      <p class="bluetooth-hinweis" id="bluetooth-hinweis"></p>
       <button id="bt-spaeter-btn" class="link-btn">Später verbinden</button>
     </div>
 
@@ -1094,6 +1127,74 @@
 
   function schnittStack(schnitt) {
     return "'" + schnitt + "', 'Situra-Regular', 'Inter', sans-serif";
+  }
+
+  // Begrüßungs-Screen ("Hallo, schön dass du dich für Momentum
+  // entschieden hast."): zerlegt den Text einmalig in Wort-Spans (nicht
+  // Zeichen-Spans für die Schnitt-Zuweisung – ein Schnittwechsel MITTEN
+  // in einem Wort widerspricht typografischen Grundregeln) und weist
+  // jedem WORT durchgehend einen der 7 Situra-Schnitte zu – als EINE
+  // sanfte Welle dünn→dick→dünn über den gesamten Satz (Sinuskurve über
+  // die Wortposition), nicht zufällig, damit die Verteilung
+  // gestalterisch ruhig und stimmig wirkt statt chaotisch zu springen.
+  // Innerhalb jedes Wort-Spans steckt zusätzlich JE BUCHSTABE ein
+  // eigener Span (.hallo-buchstabe, siehe CSS) – Grundlage für den
+  // Schreibmaschinen-Effekt (halloSchreibmaschineStarten unten), der
+  // die Buchstaben nacheinander sichtbar schaltet. Der Schnitt gilt
+  // dabei weiterhin fürs GANZE Wort, nicht pro Buchstabe.
+  // Gibt die Buchstaben-Spans in Lesereihenfolge zurück (inkl. der
+  // Leerzeichen zwischen den Wörtern).
+  function halloTextAufbauen() {
+    const el = document.getElementById('hallo-text');
+    if (!el || el.dataset.aufgebaut) return [];
+    el.dataset.aufgebaut = 'true';
+
+    const text = el.textContent;
+    el.textContent = '';
+
+    const alleBuchstaben = [];
+    const woerter = text.split(' ');
+    woerter.forEach((wort, i) => {
+      const wortSpan = document.createElement('span');
+      // Eine volle Sinus-Welle über den ganzen Satz: 0 = Wellental
+      // (dünnster Schnitt), 1 = Wellenberg (dickster Schnitt).
+      const phase = (i / Math.max(1, woerter.length - 1)) * Math.PI * 2 - Math.PI / 2;
+      const t = (Math.sin(phase) + 1) / 2;
+      const index = Math.round(t * (SITURA_SCHRIFTSCHNITTE.length - 1));
+      wortSpan.style.fontFamily = schnittStack(SITURA_SCHRIFTSCHNITTE[index]);
+
+      wort.split('').forEach(zeichen => {
+        const buchstabe = document.createElement('span');
+        buchstabe.className = 'hallo-buchstabe';
+        buchstabe.textContent = zeichen;
+        wortSpan.appendChild(buchstabe);
+        alleBuchstaben.push(buchstabe);
+      });
+
+      el.appendChild(wortSpan);
+      if (i < woerter.length - 1) {
+        const leerzeichen = document.createElement('span');
+        leerzeichen.className = 'hallo-buchstabe';
+        leerzeichen.textContent = ' ';
+        el.appendChild(leerzeichen);
+        alleBuchstaben.push(leerzeichen);
+      }
+    });
+
+    return alleBuchstaben;
+  }
+
+  // Schreibt "buchstaben" nacheinander ein (reines Ein-/Ausblenden je
+  // Zeichen, kein Fade – siehe .hallo-buchstabe CSS), TEMPO_MS pro
+  // Zeichen. Ruft "fertig" auf, sobald der letzte Buchstabe sichtbar
+  // ist, damit die Zeitsteuerung (Lese-Pause, Ausblenden) exakt an die
+  // tatsächliche Tipp-Dauer anschließen kann statt sie zu raten.
+  function halloSchreibmaschineStarten(buchstaben, fertig) {
+    const TEMPO_MS = 32;
+    buchstaben.forEach((span, i) => {
+      setTimeout(() => span.classList.add('sichtbar'), i * TEMPO_MS);
+    });
+    if (fertig) setTimeout(fertig, buchstaben.length * TEMPO_MS);
   }
 
   // Einmaliger Hoch-Lauf dünn → fett über "dauerMs", beginnend nach
@@ -1210,8 +1311,7 @@
   //  das. BleClient läuft dagegen auf beiden (eigene Web-Implementierung
   //  im Browser, echte native Bridge in der App) – identisch zur
   //  Umsetzung im "Band verbinden"-Button in chat.html (Heart Rate
-  //  Service, UUID 0x180D). Armband und Uhr sind technisch dasselbe
-  //  Geräteprofil, nur das Label am Button unterscheidet sich. Die
+  //  Service, UUID 0x180D). Die
   //  eigentliche Live-Nutzung der Verbindung (BPM-Anzeige, Mapping auf
   //  Intensität) bleibt vollständig in chat.html – dort muss beim
   //  Ankommen erneut verbunden werden, weil weder Web Bluetooth noch
@@ -1222,7 +1322,6 @@
   const onboardingView   = document.getElementById('onboarding-view');
   const bluetoothView    = document.getElementById('bluetooth-view');
   const btArmbandBtn     = document.getElementById('bt-armband-btn');
-  const btUhrBtn         = document.getElementById('bt-uhr-btn');
   const btSpaeterBtn     = document.getElementById('bt-spaeter-btn');
   const bluetoothHinweis = document.getElementById('bluetooth-hinweis');
 
@@ -1239,9 +1338,8 @@
     bluetoothHinweis.textContent = text;
   }
 
-  async function geraetVerbinden(button, anderesBtn) {
+  async function geraetVerbinden(button) {
     button.disabled = true;
-    anderesBtn.disabled = true;
     bluetoothHinweisZeigen('Suche nach Gerät …');
 
     try {
@@ -1271,7 +1369,6 @@
 
     } catch (err) {
       button.disabled = false;
-      anderesBtn.disabled = false;
       if (/cancelled/i.test(err.message || '')) {
         bluetoothHinweisZeigen(''); // Nutzer hat den Geräte-Dialog abgebrochen
       } else {
@@ -1281,8 +1378,7 @@
     }
   }
 
-  btArmbandBtn.addEventListener('click', function () { geraetVerbinden(btArmbandBtn, btUhrBtn); });
-  btUhrBtn.addEventListener('click', function () { geraetVerbinden(btUhrBtn, btArmbandBtn); });
+  btArmbandBtn.addEventListener('click', function () { geraetVerbinden(btArmbandBtn); });
   btSpaeterBtn.addEventListener('click', zuChat);
 
 
@@ -1407,25 +1503,37 @@
   }, EINBLEND_DAUER + PULS_DAUER + 800);
 
   // Phase 5–7: DEUTLICH LÄNGERE Pause im fertigen Lockup (vorher zu
-  // kurz), dann Logo ausblenden, "Hallo!" kurz zeigen, dann erst ins
-  // eigentliche Onboarding.
+  // kurz), dann Logo ausblenden, Begrüßungstext zeigen (länger als
+  // vorher, da jetzt ein ganzer Satz statt nur "Hallo!" zu lesen ist),
+  // dann erst ins eigentliche Onboarding.
   setTimeout(function () {
     logoView.classList.add('ausblenden');
     setTimeout(function () {
       logoView.classList.remove('aktiv');
+      // Wort-Spans (Situra-Schnitt-Welle) + Buchstaben-Spans einmalig
+      // aufbauen, Container einblenden (0.4s opacity), dann den Text
+      // per Schreibmaschinen-Effekt einschreiben statt ihn komplett
+      // fertig anzuzeigen.
+      const halloBuchstaben = halloTextAufbauen();
       halloView.classList.add('aktiv');
       requestAnimationFrame(function () {
         halloView.classList.add('sichtbar');
       });
 
-      setTimeout(function () {
-        halloView.classList.add('ausblenden');
+      halloSchreibmaschineStarten(halloBuchstaben, function () {
+        // Erst NACH dem letzten getippten Buchstaben beginnt die
+        // Lese-Pause – so bleibt der fertige Satz mindestens so lange
+        // stehen wie zuvor (4600ms), unabhängig davon, wie lange das
+        // Einschreiben selbst gedauert hat.
         setTimeout(function () {
-          halloView.classList.remove('aktiv');
-          onboardingView.classList.add('aktiv');
-          schrittAnzeigen(0); // Willkommen-Schritt jetzt erst einblenden
-        }, 420);
-      }, 1100);
+          halloView.classList.add('ausblenden');
+          setTimeout(function () {
+            halloView.classList.remove('aktiv');
+            onboardingView.classList.add('aktiv');
+            schrittAnzeigen(0); // Willkommen-Schritt jetzt erst einblenden
+          }, 420);
+        }, 4600);
+      });
     }, 420);
   }, EINBLEND_DAUER + PULS_DAUER + 800 + 2000);
 </script>
