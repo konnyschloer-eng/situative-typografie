@@ -435,34 +435,6 @@
 
     .neue-gruppe-btn:hover { border-color: var(--text-2); }
 
-    /* ── Kontextmenü: Long-Press auf einen Chat-Eintrag ──────────── */
-    .kontext-menu {
-      position: fixed;
-      z-index: 20;
-      display: none;
-      min-width: 200px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
-    }
-
-    .kontext-menu.sichtbar { display: block; }
-
-    .kontext-menu-eintrag {
-      display: block;
-      width: 100%;
-      text-align: left;
-      background: none;
-      border: none;
-      font-family: 'Situra-Regular', 'Inter', sans-serif;
-      font-size: 13px;
-      color: var(--text-2);
-      padding: 12px 16px;
-      cursor: pointer;
-    }
-
-    .kontext-menu-eintrag:hover { background: var(--bg-hover); }
-
     /* ── Overlay: Neue Gruppe erstellen ──────────────────────────
        Schlichtes Bottom-Sheet innerhalb des Phone-Frames, passend
        zum reduzierten Look – keine Farbverläufe, nur Outline. ── */
@@ -565,6 +537,69 @@
       border-color: rgba(196, 60, 48, 0.85);
       background: rgba(196, 60, 48, 0.08);
     }
+
+    /* ── Menü (Hamburger) + Einstellungen + Infos ────────────────── */
+    .menu-eintrag {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border-light);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--text-2);
+      padding: 14px 2px;
+      cursor: pointer;
+    }
+
+    .menu-eintrag:last-child { border-bottom: none; }
+    .menu-eintrag:hover { color: #000000; }
+    .phone-frame.emotion-an .menu-eintrag:hover { color: #ffffff; }
+
+    .einstellung-zeile {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 2px;
+    }
+
+    .einstellung-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .einstellung-label {
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .einstellung-hinweis {
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
+    .infos-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-2);
+    }
+
+    .infos-liste {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      list-style: none;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-2);
+    }
+
+    .infos-liste strong { color: #000000; }
+    .phone-frame.emotion-an .infos-liste strong { color: #ffffff; }
 
     /* ── Gruppeninfo: Mitgliederzeile mit Entfernen-"×" ──────────── */
     .gruppenmitglied-zeile {
@@ -860,6 +895,18 @@
        aber als eigene Karte statt Sprechblase. ── */
     .moment-ansicht-overlay .overlay-schliessen { margin-left: auto; }
 
+    /* Bildschirmfüllend statt zentrierter Karte: überschreibt
+       .overlay--zentriert (align-items/justify-content) – die Karte
+       selbst (.moment-ansicht-karte oben) hat width/height:100% und
+       füllt den so entstehenden Platz komplett aus. Eigene Hintergrund-
+       farbe statt der abgedunkelten Overlay-Fläche, weil die Karte
+       jetzt ohnehin alles verdeckt. */
+    .moment-ansicht-overlay {
+      background: var(--bg);
+      align-items: stretch;
+      justify-content: stretch;
+    }
+
     /* ── Story-Fortschrittsbalken (Instagram-artig): ein Segment pro
        Person mit Moment, das aktuelle Segment füllt sich von links
        nach rechts über MOMENT_STORY_DAUER, danach automatisch der
@@ -888,13 +935,19 @@
 
     .phone-frame.emotion-an .moment-story-segment-fill { background: #ffffff; }
 
+    /* Bildschirmfüllend statt kleiner Karte (wie eine Instagram-Story):
+       .moment-ansicht-overlay bekommt dafür weiter unten ebenfalls
+       align-items/justify-content:stretch statt center, damit die
+       Karte den kompletten Phone-Frame ausfüllt statt darin zu
+       schweben. */
     .moment-ansicht-karte {
-      width: 300px;
-      max-width: 86%;
-      max-height: 78%;
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+      max-height: 100%;
       background: var(--bg);
-      border: 1px solid var(--border);
-      padding: 24px 22px;
+      border: none;
+      padding: 20px 22px 24px;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -905,6 +958,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-shrink: 0;
     }
 
     .moment-ansicht-name {
@@ -914,8 +968,23 @@
       letter-spacing: 0.02em;
     }
 
+    /* Vertikal mittig zwischen Kopf (oben) und Footer (unten) – wie bei
+       Instagram-Storys der Haupt-"Inhalt". WICHTIG: KEIN display:flex
+       hier (das war der Bug) – .moment-ansicht-text enthält Wort-Spans
+       UND Leerzeichen-Textknoten als direkte Kinder (siehe
+       momentTextRendern/JS), die in einem Flex-Container zu
+       Flex-Items würden: dadurch verschwand der Zeilenumbruch
+       (nowrap-Reihe statt normalem Textfluss) und die Wortabstände
+       schrumpften sichtbar zusammen (flex-shrink drückt Wörter/
+       Leerzeichen zusammen). margin:auto in einem Flex-COLUMN-Eltern
+       (.moment-ansicht-karte) zentriert den ganzen Absatz vertikal,
+       OHNE dass der Absatz selbst zum Flex-Container wird – Wort-Spans
+       bleiben normale inline-block-Elemente mit normalem Zeilenumbruch
+       und normalen Leerzeichen. */
     .moment-ansicht-text {
-      font-size: 26px;
+      margin-top: auto;
+      margin-bottom: auto;
+      font-size: 36px;
       line-height: 1.35;
       text-align: center;
       color: #000000;
@@ -928,6 +997,7 @@
        .moment-karte-footer/.moment-like-*, siehe MOMENT-Feed weiter
        unten) + Kommentare. ── */
     .moment-ansicht-footer {
+      flex-shrink: 0;
       display: flex;
       flex-direction: column;
       gap: 14px;
@@ -1671,7 +1741,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 10px;
+      margin-bottom: 4px; /* knapper, damit Sensor-Anzeige sichtbar UNTER "Band verbinden" gruppiert wirkt */
     }
 
     .kopfzeile-links {
@@ -1823,10 +1893,14 @@
        (grid-template-rows 0fr → 1fr), nur eigene Klassen, damit beide
        Schubladen unabhängig voneinander auf-/zuklappen. Standardmäßig
        eingeklappt, nur der Griff ist sichtbar. ── */
+    /* Rechtsbündig statt zentriert: steht dadurch klein und sichtbar
+       direkt UNTER dem "Band verbinden"-Button (der ebenfalls rechts
+       sitzt, siehe .band-steuerung), statt als eigene, mittige Zeile
+       über die ganze Kopfzeilenbreite zu wirken. */
     .info-drawer-griff {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-end;
       gap: 5px;
       width: 100%;
       background: none;
@@ -1867,12 +1941,15 @@
     }
 
     /* ── Test-/Demo-Panel: ein-/ausfahrbares Dropdown ──────────
-       Beide simulierten Eingaben (kein Live-Sensor) liegen
-       gemeinsam in EINEM Panel. Standardmäßig eingeklappt – nur
-       der Griff unterhalb der Sensor-Anzeigen ist sichtbar. Das
-       Panel fährt von oben (unterhalb des Griffs) sanft nach
-       unten aus (grid-template-rows 0fr → 1fr = flüssige
-       Höhen-Animation ohne feste Pixel-Höhe). ── */
+       Liegt bewusst INNERHALB der Sensor-Anzeige (siehe HTML –
+       .test-drawer ist Kind von .info-drawer-inneres), nicht mehr
+       als eigenständiger, immer sichtbarer Griff daneben: der
+       Test-Eingaben-Griff selbst wird erst sichtbar, wenn die
+       Sensor-Anzeige aufgeklappt ist. Standardmäßig trotzdem
+       zusätzlich eingeklappt (eigener .offen-Zustand). Das Panel
+       fährt von oben (unterhalb des Griffs) sanft nach unten aus
+       (grid-template-rows 0fr → 1fr = flüssige Höhen-Animation ohne
+       feste Pixel-Höhe). ── */
     .test-drawer {
       margin-top: 8px;
       padding-top: 6px;
@@ -1955,6 +2032,13 @@
       align-items: center;
       gap: 24px;
     }
+
+    /* Gleiche Spezifität wie die UA-Regel "[hidden] { display:none }"
+       (siehe Kommentar bei .tagebuch-neu-btn[hidden] weiter unten) –
+       erst durch den räumlichen Gruppenraum wird #chat überhaupt per
+       hidden-Attribut umgeschaltet (siehe zeigeChat/zeigeGruppenChat,
+       JS), vorher bestand diese Lücke nie sichtbar. */
+    .chat-bereich[hidden] { display: none; }
 
     .nachricht {
       display: flex;
@@ -2099,6 +2183,143 @@
     /* Zitter-Keyframes werden dynamisch per JS erzeugt (ein Keyframe pro
        Buchstabe, zufällige Werte). Kein statischer @keyframes-Block nötig. */
 
+    /* ══════════════════════════════════════════════════════════════
+       GRUPPEN-RAUM – räumliche Darstellung des Gruppenchats (siehe
+       JS-Abschnitt "GRUPPEN-RAUM" weiter unten). Komplett eigener
+       Selektor-Namensraum (.raum-*) – überschneidet sich mit keiner
+       bestehenden .nachricht- bzw. .chat-bereich-Regel oben, der
+       1:1-Chat bleibt davon unberührt. .wort/.zitter-buchstabe (siehe
+       oben) werden von der reagierenden Typografie unverändert
+       wiederverwendet. ══════════════════════════════════════════ */
+    .raum-bereich {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      gap: 1px;
+      background: var(--border-light);
+      overflow: hidden;
+      position: relative; /* Bezugsrahmen für .raum-verbindung (position:absolute) */
+    }
+
+    /* Gleiche Spezifität wie die UA-Regel "[hidden] { display:none }"
+       (siehe Kommentar bei .tagebuch-neu-btn[hidden] weiter unten) –
+       muss hier explizit gewinnen, sonst bliebe der Raum trotz
+       hidden-Attribut als Grid sichtbar. */
+    .raum-bereich[hidden] { display: none; }
+
+    .raum-zone {
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      padding: 10px 12px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* "Du" landet unabhängig von Personenzahl/Grid-Größe immer in der
+       letzten Zeile/Spalte (unten rechts). WICHTIG: "-2 / -1" (nicht
+       nur "-1"!) – eine einzelne negative Linie ("-1") wäre nur der
+       Start der Platzierung mit Default-Spannweite 1 AB der letzten
+       Linie, würde also eine zusätzliche implizite Spalte/Zeile NACH
+       dem Grid erzeugen statt die letzte VORHANDENE Zelle zu treffen.
+       "-2 / -1" spannt dagegen exakt von der vorletzten zur letzten
+       Linie – das ist die letzte reguläre Zelle. Die übrigen
+       Mitglieder füllen die restlichen Zellen automatisch in
+       Quelltext-Reihenfolge (siehe raumZonenAufbauen, JS). */
+    .raum-zone--du {
+      grid-column: -2 / -1;
+      grid-row: -2 / -1;
+      align-items: flex-end;
+      text-align: right;
+    }
+
+    .raum-zone-name {
+      flex-shrink: 0;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+
+    .raum-zone-nachrichten {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .raum-zone--du .raum-zone-nachrichten { align-items: flex-end; }
+
+    /* Einzelne Nachricht IST das Text-Element (kein extra Absender-
+       Label pro Nachricht nötig – das steht schon einmal oben in
+       .raum-zone-name). Kleiner als der 1:1-Chat (26–30px), damit
+       mehrere Zonen nebeneinander Platz haben. */
+    /* transition für opacity/transform steht bewusst NICHT hier, siehe
+       Regel nach MODUSWECHSEL-TRANSITION weiter unten. */
+    .raum-nachricht {
+      font-size: 14px;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+      color: #000000;
+    }
+
+    .phone-frame.emotion-an .raum-nachricht { color: #ffffff; }
+
+    /* Verblassen: max. 2 Nachrichten gleichzeitig sichtbar pro Zone
+       (wie im 1:1-Chat) – die ältere bekommt diese Klasse, blendet
+       sich weich aus und wird danach per Timer entfernt (siehe JS),
+       statt abrupt zu verschwinden. */
+    .raum-nachricht--verblasst {
+      opacity: 0;
+    }
+
+    /* ── @-Mentions: gerichtete Nachrichten "docken" optisch an ───
+       --lehn-x/--lehn-y (je -1/0/1, von JS aus der relativen
+       Grid-Position von Sender- und Ziel-Zone gesetzt) lehnen die
+       Nachricht ein paar Pixel Richtung Zielzone. ── */
+    .raum-nachricht--gerichtet {
+      transform: translate(calc(var(--lehn-x, 0) * 7px), calc(var(--lehn-y, 0) * 7px));
+    }
+
+    /* Kurzlebige Verbindungslinie zwischen Sender- und Ziel-Zone,
+       Position/Rotation/Länge werden per JS via getBoundingClientRect
+       einmalig gesetzt (style.left/top/width/transform). */
+    /* transition für opacity steht bewusst NICHT hier, siehe Regel nach
+       MODUSWECHSEL-TRANSITION weiter unten. */
+    .raum-verbindung {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 2px;
+      width: 0;
+      background: var(--accent);
+      transform-origin: left center;
+      opacity: 0.75;
+      border-radius: 999px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .raum-verbindung--ausblendend { opacity: 0; }
+
+    /* Kurzer Puls auf der letzten Nachricht der angesprochenen Person
+       – bewusst kein Farbwechsel (monochromes Prinzip der App, siehe
+       Kommentar bei sensorZuSchriftAchse/Tonalität), sondern ein
+       kurzes Glühen in der jeweils aktuellen Textfarbe. */
+    @keyframes raum-echo-puls {
+      0%, 100% { text-shadow: none; }
+      30%      { text-shadow: 0 0 10px currentColor; }
+    }
+
+    .raum-nachricht--echo {
+      animation: raum-echo-puls 1.2s ease;
+    }
+
     /* ── Eingabebereich ───────────────────────────────── */
     .eingabe-bereich {
       flex-shrink: 0;
@@ -2131,23 +2352,26 @@
 
     #antwort-btn:disabled { opacity: 0.3; cursor: default; }
 
+    /* Freigestellter Kasten statt nur einer Unterstreichung – Absenden
+       geschieht per ENTER (siehe #eingabe keydown-Handler, JS), es
+       gibt bewusst keinen sichtbaren Sende-Button mehr daneben. */
     #eingabe {
       flex: 1;
       min-width: 0;
-      background: none;
-      border: none;
-      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
       outline: none;
       font-family: 'Situra-Regular', 'Inter', sans-serif;
       font-size: 15px;
       line-height: 1.5;       /* explizit – Basis für die Höhenberechnung */
       color: #000000;            /* bleibt konstant */
-      padding: 5px 0;
+      padding: 9px 14px;
       resize: none;           /* kein manuelles Ziehen */
       overflow-y: hidden;     /* wird per JS auf auto gesetzt, wenn Max-Höhe erreicht */
     }
 
-    #eingabe:focus { border-bottom-color: var(--text-2); }
+    #eingabe:focus { border-color: var(--text-2); }
 
     #eingabe::placeholder { color: var(--placeholder); }
 
@@ -2253,6 +2477,16 @@
     /* Toggle-Schieber bewegt sich immer mit 0.4 s (konsistent mit Moduswechsel) */
     .schalter-visuell::after { transition: transform 0.4s ease; }
 
+    /* Gruppenraum – Verblassen/Andocken (siehe .raum-nachricht/
+       .raum-verbindung oben): eigene transition-property, muss ebenso
+       NACH der MODUSWECHSEL-TRANSITION-Regel stehen, sonst gewinnt
+       deren transition-property (nur background-color/border-color/
+       color) und opacity ändert sich abrupt statt weich zu verblassen
+       – zusätzlich bliebe dann transitionend aus, wodurch die JS-Auf-
+       räumlogik (Entfernen der verblassten Nachricht/Linie) nie greift. */
+    .raum-nachricht    { transition: opacity 0.6s ease, transform 0.6s ease; }
+    .raum-verbindung   { transition: opacity 1s ease; }
+
     /* ── Invertierter Modus (Emotion AN): helle Schrift auf dunklem Grund ── */
     /* Überschreibt hartcodierte Farben, die nicht über CSS-Variablen laufen.  */
     .phone-frame.emotion-an .app-logo              { filter: invert(1); }
@@ -2276,12 +2510,13 @@
     .band-btn {
       background: none;
       border: 1px solid var(--border);
+      border-radius: 999px; /* wie .filter-chip – abgerundeter Button */
       color: var(--text-3);
       font-family: 'Situra-Regular', 'Inter', sans-serif;
       font-size: 9px;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      padding: 4px 8px;
+      padding: 4px 10px;
       cursor: pointer;
     }
 
@@ -2307,7 +2542,7 @@
 
     <header class="app-kopfzeile">
       <img class="app-logo" src="assets/Logo/Logo_Momentum_Komplett.svg" alt="Situative Typografie">
-      <button class="menu-btn" aria-label="Menü" title="Menü">
+      <button class="menu-btn" id="menu-btn" aria-label="Menü" title="Menü">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 7h16M4 12h16M4 17h16"/>
         </svg>
@@ -2329,12 +2564,14 @@
     <div class="filter-leiste" id="filter-leiste">
       <button class="filter-chip filter-chip--aktiv" data-filter="alle">Alle</button>
       <button class="filter-chip" data-filter="ungelesen">Ungelesen</button>
-      <button class="filter-chip" data-filter="favoriten">Favoriten</button>
     </div>
 
+    <!-- Reihenfolge nach Aktualität (neueste Nachricht oben) – siehe
+         KONTAKT_ZEIT_RANG (JS) für dieselbe Sortierlogik bei der aus
+         avatars-manifest.json abgeleiteten Kontaktliste. -->
     <main class="gespraechs-liste" id="gespraechs-liste">
 
-      <div class="gespraechs-eintrag" data-name="Anna" data-ungelesen data-favorit>
+      <div class="gespraechs-eintrag" data-name="Anna" data-ungelesen>
         <div class="avatar" data-name="Anna">A</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="Anna">Anna</span>
@@ -2354,7 +2591,27 @@
         </div>
       </div>
 
-      <div class="gespraechs-eintrag" data-name="Clara" data-favorit>
+      <div class="gespraechs-eintrag" data-name="Mia" data-ungelesen>
+        <div class="avatar" data-name="Mia">M</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name" data-name="Mia">Mia</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">08:03</span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Elena" data-ungelesen>
+        <div class="avatar" data-name="Elena">E</div>
+        <div class="gespraechs-info">
+          <span class="gespraechs-name" data-name="Elena">Elena</span>
+        </div>
+        <div class="gespraechs-meta">
+          <span class="gespraechs-zeit">07:58</span>
+        </div>
+      </div>
+
+      <div class="gespraechs-eintrag" data-name="Clara">
         <div class="avatar" data-name="Clara">C</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="Clara">Clara</span>
@@ -2374,16 +2631,6 @@
         </div>
       </div>
 
-      <div class="gespraechs-eintrag" data-name="Elena" data-ungelesen data-favorit>
-        <div class="avatar" data-name="Elena">E</div>
-        <div class="gespraechs-info">
-          <span class="gespraechs-name" data-name="Elena">Elena</span>
-        </div>
-        <div class="gespraechs-meta">
-          <span class="gespraechs-zeit">07:58</span>
-        </div>
-      </div>
-
       <div class="gespraechs-eintrag" data-name="Felix">
         <div class="avatar" data-name="Felix">F</div>
         <div class="gespraechs-info">
@@ -2394,23 +2641,13 @@
         </div>
       </div>
 
-      <div class="gespraechs-eintrag" data-name="Luca" data-favorit>
+      <div class="gespraechs-eintrag" data-name="Luca">
         <div class="avatar" data-name="Luca">L</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="Luca">Luca</span>
         </div>
         <div class="gespraechs-meta">
           <span class="gespraechs-zeit">So</span>
-        </div>
-      </div>
-
-      <div class="gespraechs-eintrag" data-name="Mia" data-ungelesen>
-        <div class="avatar" data-name="Mia">M</div>
-        <div class="gespraechs-info">
-          <span class="gespraechs-name" data-name="Mia">Mia</span>
-        </div>
-        <div class="gespraechs-meta">
-          <span class="gespraechs-zeit">08:03</span>
         </div>
       </div>
 
@@ -2424,7 +2661,7 @@
         </div>
       </div>
 
-      <div class="gespraechs-eintrag" data-name="Sophie" data-favorit>
+      <div class="gespraechs-eintrag" data-name="Sophie">
         <div class="avatar" data-name="Sophie">S</div>
         <div class="gespraechs-info">
           <span class="gespraechs-name" data-name="Sophie">Sophie</span>
@@ -2556,9 +2793,70 @@
       <button class="tab-btn" data-tab="profil">Profil</button>
     </nav>
 
-    <!-- ── Kontextmenü: Long-Press auf einen Chat-Eintrag ── -->
-    <div class="kontext-menu" id="kontext-menu">
-      <button class="kontext-menu-eintrag" id="kontext-favorit-btn">Zu Favoriten hinzufügen</button>
+    <!-- ── Overlay: Menü (Hamburger oben rechts) ── -->
+    <div class="overlay" id="menu-overlay">
+      <div class="overlay-karte">
+        <div class="overlay-kopf">
+          <span class="overlay-titel">Menü</span>
+          <button class="overlay-schliessen" id="menu-schliessen" aria-label="Schließen">&times;</button>
+        </div>
+        <button class="menu-eintrag" id="menu-einstellungen-btn">Einstellungen</button>
+        <button class="menu-eintrag" id="menu-infos-btn">Infos</button>
+      </div>
+    </div>
+
+    <!-- ── Overlay: Einstellungen ── -->
+    <div class="overlay" id="einstellungen-overlay">
+      <div class="overlay-karte">
+        <div class="overlay-kopf">
+          <span class="overlay-titel">Einstellungen</span>
+          <button class="overlay-schliessen" id="einstellungen-schliessen" aria-label="Schließen">&times;</button>
+        </div>
+
+        <div class="einstellung-zeile">
+          <div class="einstellung-info">
+            <span class="einstellung-label">Sensor-Verbindung</span>
+            <span class="einstellung-hinweis" id="einstellungen-band-status">Nicht verbunden</span>
+          </div>
+          <button class="overlay-btn" id="einstellungen-band-btn">Verbinden</button>
+        </div>
+
+        <div class="einstellung-zeile">
+          <span class="einstellung-label">Emotions-Modus</span>
+          <label class="emotion-schalter" title="Emotionale Typografie an/aus">
+            <input type="checkbox" id="emotion-toggle-einstellungen" checked>
+            <span class="schalter-visuell"></span>
+          </label>
+        </div>
+
+        <button class="overlay-btn" id="einstellungen-profil-btn">Profil bearbeiten</button>
+      </div>
+    </div>
+
+    <!-- ── Overlay: Infos ── -->
+    <div class="overlay" id="infos-overlay">
+      <div class="overlay-karte">
+        <div class="overlay-kopf">
+          <span class="overlay-titel">Infos</span>
+          <button class="overlay-schliessen" id="infos-schliessen" aria-label="Schließen">&times;</button>
+        </div>
+        <p class="infos-text">
+          Diese App übersetzt, wie du dich beim Schreiben fühlst, in die
+          Form deiner Schrift – reagierende Typografie statt Emojis.
+        </p>
+        <ul class="infos-liste">
+          <li><strong>Intensität</strong> – wie fett die Schrift erscheint.</li>
+          <li><strong>Tempo</strong> – schnelles Tippen rückt Buchstaben eng zusammen, langsames zieht sie auseinander.</li>
+          <li><strong>Stabilität</strong> – bei Anspannung beginnt die Schrift zu zittern (approximierte Pulsvariabilität).</li>
+          <li><strong>Wachheit</strong> – über deinen Schlaf gemessen: scharf oder unscharf.</li>
+          <li><strong>Gefasstheit</strong><em class="test-badge">Testwert</em> – lässt den Text kräftig oder blass wirken.</li>
+          <li><strong>Tonalität</strong><em class="test-badge">Testwert</em> – rein illustrativ, färbt nur im Onboarding kühl bis warm.</li>
+        </ul>
+        <p class="infos-text">
+          Bei Demo-Kontakten (Chats, Momente) wird derselbe Mechanismus mit
+          plausibel simulierten Werten angewendet, nicht mit echten Sensordaten.
+        </p>
+      </div>
     </div>
 
     <!-- ── Overlay: Neue Gruppe erstellen ── -->
@@ -2681,40 +2979,41 @@
               </div>
 
             </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Ein-/ausfahrbares Test-/Demo-Panel: standardmäßig eingeklappt,
-           nur der Griff unterhalb der Sensor-Anzeigen ist sichtbar.
-           Beide Testregler liegen gemeinsam in diesem einen Panel und
-           fahren beim Öffnen sanft von oben nach unten aus. ── -->
-      <div class="test-drawer" id="test-drawer">
-        <button class="test-drawer-griff" id="test-drawer-griff"
-          aria-expanded="false" aria-controls="test-drawer-inhalt"
-          title="Test-Eingaben ein-/ausblenden">
-          <span>Test-Eingaben</span>
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
-            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 9l6 6 6-6"/>
-          </svg>
-        </button>
+            <!-- Ein-/ausfahrbares Test-/Demo-Panel: liegt bewusst INNERHALB
+                 der Sensor-Anzeige (nicht mehr als eigener, immer
+                 sichtbarer Griff daneben) – der Test-Eingaben-Griff
+                 selbst wird also erst sichtbar, wenn die Sensor-Anzeige
+                 aufgeklappt ist. Fährt beim Öffnen sanft aus. ── -->
+            <div class="test-drawer" id="test-drawer">
+              <button class="test-drawer-griff" id="test-drawer-griff"
+                aria-expanded="false" aria-controls="test-drawer-inhalt"
+                title="Test-Eingaben ein-/ausblenden">
+                <span>Test-Eingaben</span>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+                  stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+              </button>
 
-        <div class="test-drawer-inhalt" id="test-drawer-inhalt">
-          <div class="test-drawer-inneres">
-            <span class="test-panel-label">Test-Eingaben · simuliert, kein Live-Sensor</span>
-            <div class="sensor-grid">
+              <div class="test-drawer-inhalt" id="test-drawer-inhalt">
+                <div class="test-drawer-inneres">
+                  <span class="test-panel-label">Test-Eingaben · simuliert, kein Live-Sensor</span>
+                  <div class="sensor-grid">
 
-              <div class="sensor-dimension">
-                <div class="dimension-header">
-                  <span class="dimension-label">Atemfrequenz<em class="test-badge">Testwert</em></span>
-                  <span class="dimension-wert" id="wert-atemfrequenz">500</span>
+                    <div class="sensor-dimension">
+                      <div class="dimension-header">
+                        <span class="dimension-label">Atemfrequenz<em class="test-badge">Testwert</em></span>
+                        <span class="dimension-wert" id="wert-atemfrequenz">500</span>
+                      </div>
+                      <input class="dimension-slider" type="range"
+                        id="slider-atemfrequenz" min="100" max="900" value="500" step="1">
+                      <div class="dimension-endpunkte"><span>aufgewühlt</span><span>gefasst</span></div>
+                    </div>
+
+                  </div>
                 </div>
-                <input class="dimension-slider" type="range"
-                  id="slider-atemfrequenz" min="100" max="900" value="500" step="1">
-                <div class="dimension-endpunkte"><span>aufgewühlt</span><span>gefasst</span></div>
               </div>
-
             </div>
           </div>
         </div>
@@ -2723,9 +3022,21 @@
 
     <main class="chat-bereich" id="chat"></main>
 
+    <!-- ── Räumlicher Gruppenchat: komplett eigener Container, NICHT
+         #chat – siehe JS-Abschnitt "GRUPPEN-RAUM". Wird nur bei
+         geöffnetem Gruppenchat sichtbar (zeigeGruppenChat), bei 1:1
+         bleibt er hidden und #chat unverändert wie bisher. ── -->
+    <main class="raum-bereich" id="gruppen-raum" hidden></main>
+
     <footer class="eingabe-bereich">
       <div class="eingabe-innen">
-        <button id="antwort-btn">&#8592; Antwort</button>
+        <!-- Kein sichtbarer Sende-/Antwort-Button mehr im Interface –
+             Absenden geschieht per ENTER (siehe #eingabe keydown-
+             Handler, JS). Der Button bleibt im DOM (nur hidden), damit
+             die Demo-Antworten-Simulation (1:1 + Gruppenraum) über
+             die Konsole weiter auslösbar ist, ohne dass sie im
+             normalen Interface sichtbar ist. -->
+        <button id="antwort-btn" hidden>&#8592; Antwort</button>
         <!-- textarea statt input: wächst automatisch nach oben -->
         <textarea id="eingabe" rows="1"
           placeholder="Nachricht schreiben …"
@@ -2811,6 +3122,10 @@
     avatarDarstellungAktualisieren(name);
     avatarFotoAktualisieren(name, KONTAKT_DATEIEN[name]);
     alsGelesenMarkieren(name);
+    // 1:1-Chat: klassischer Verlauf sichtbar, räumlicher Gruppenraum
+    // ausgeblendet (siehe zeigeGruppenChat für den umgekehrten Fall).
+    chat.hidden        = false;
+    gruppenRaum.hidden = true;
     ansichtUebersicht.classList.add('ansicht--versteckt');
     ansichtChat.classList.remove('ansicht--versteckt');
     // Höhe anpassen, sobald die Ansicht sichtbar ist (scrollHeight = 0 wenn unsichtbar)
@@ -2836,84 +3151,13 @@
   document.getElementById('zurueck-btn').addEventListener('click', zeigeUebersicht);
 
 
-  // ── Chat-Einträge: öffnen per Klick, Kontextmenü per Long-Press ──
-  // Long-Press (Pointer gedrückt halten, ohne zu bewegen) öffnet ein
-  // kleines Menü mit "Zu Favoriten hinzufügen/entfernen" – verknüpft
-  // mit dem data-favorit-Attribut und damit dem Favoriten-Filter oben.
-  // Ein normaler (kurzer) Klick öffnet wie gehabt den Chat.
-  const LANG_DRUCK_MS = 550;
-  let langDruckTimer     = null;
-  let langDruckAusgeloest = false;
-
-  const kontextMenu       = document.getElementById('kontext-menu');
-  const kontextFavoritBtn = document.getElementById('kontext-favorit-btn');
-  let kontextZiel         = null;
-
-  function kontextMenuOeffnen(el, x, y) {
-    kontextZiel = el;
-    kontextFavoritBtn.textContent = el.hasAttribute('data-favorit')
-      ? 'Von Favoriten entfernen'
-      : 'Zu Favoriten hinzufügen';
-    // Innerhalb des Phone-Frames positionieren, nicht über den Rand hinaus
-    const rahmen = phoneFrame.getBoundingClientRect();
-    const menuBreite = 200;
-    kontextMenu.style.left = Math.min(x, rahmen.right - menuBreite - 8) + 'px';
-    kontextMenu.style.top  = Math.min(y, rahmen.bottom - 60) + 'px';
-    kontextMenu.classList.add('sichtbar');
-  }
-
-  function kontextMenuSchliessen() {
-    kontextMenu.classList.remove('sichtbar');
-    kontextZiel = null;
-  }
-
-  kontextFavoritBtn.addEventListener('click', function () {
-    if (!kontextZiel) return;
-    if (kontextZiel.hasAttribute('data-favorit')) {
-      kontextZiel.removeAttribute('data-favorit');
-    } else {
-      kontextZiel.setAttribute('data-favorit', '');
-    }
-    kontextMenuSchliessen();
-    kontaktlisteFiltern(); // Favoriten-Filter sofort aktualisieren, falls aktiv
-  });
-
-  document.addEventListener('click', function (e) {
-    if (kontextMenu.classList.contains('sichtbar') && !kontextMenu.contains(e.target)) {
-      kontextMenuSchliessen();
-    }
-  });
-
-  // Bindet Long-Press-Kontextmenü + Klick-zum-Öffnen an einen
-  // Kontakt-Eintrag. Als Funktion, damit sie sowohl einmalig über die
-  // fest im HTML stehenden Einträge laufen kann (unten) als auch für
-  // jeden Eintrag gilt, der später ggf. aus avatars-manifest.json
-  // dynamisch nachgebaut wird (siehe kontaktEintragErstellen weiter
-  // unten).
+  // Bindet Klick-zum-Öffnen an einen Kontakt-Eintrag. Als Funktion,
+  // damit sie sowohl einmalig über die fest im HTML stehenden Einträge
+  // laufen kann (unten) als auch für jeden Eintrag gilt, der später
+  // ggf. aus avatars-manifest.json dynamisch nachgebaut wird (siehe
+  // kontaktEintragErstellen weiter unten).
   function kontaktEintragEreignisseBinden(el) {
-    el.addEventListener('pointerdown', function (e) {
-      if (e.button !== 0 && e.pointerType === 'mouse') return; // nur linke Maustaste
-      langDruckAusgeloest = false;
-      clearTimeout(langDruckTimer);
-      langDruckTimer = setTimeout(function () {
-        langDruckAusgeloest = true;
-        kontextMenuOeffnen(el, e.clientX, e.clientY);
-      }, LANG_DRUCK_MS);
-    });
-
-    el.addEventListener('pointerup', function () { clearTimeout(langDruckTimer); });
-    el.addEventListener('pointerleave', function () { clearTimeout(langDruckTimer); });
-    el.addEventListener('pointercancel', function () { clearTimeout(langDruckTimer); });
-    el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-
-    el.addEventListener('click', function (e) {
-      if (langDruckAusgeloest) {
-        // Verhindert Öffnen des Chats + Schließen des gerade geöffneten
-        // Kontextmenüs durch den document-weiten Außenklick-Listener.
-        e.stopPropagation();
-        langDruckAusgeloest = false;
-        return;
-      }
+    el.addEventListener('click', function () {
       zeigeChat(this.dataset.name);
     });
   }
@@ -2926,7 +3170,7 @@
   // noch Zustand der Einträge, keine Auswirkung auf Profilbild- oder
   // Typografie-Logik. Suchtext UND aktiver Chip müssen beide passen.
   const kontaktSuche = document.getElementById('kontakt-suche');
-  let aktiverListenFilter = 'alle'; // 'alle' | 'ungelesen' | 'favoriten'
+  let aktiverListenFilter = 'alle'; // 'alle' | 'ungelesen'
 
   function kontaktlisteFiltern() {
     const suchtext = kontaktSuche.value.trim().toLowerCase();
@@ -2934,7 +3178,6 @@
       const passtSuche = el.dataset.name.toLowerCase().includes(suchtext);
       const passtFilter =
         aktiverListenFilter === 'ungelesen' ? el.hasAttribute('data-ungelesen') :
-        aktiverListenFilter === 'favoriten' ? el.hasAttribute('data-favorit') :
         true; // 'alle'
       el.style.display = (passtSuche && passtFilter) ? '' : 'none';
     });
@@ -3005,7 +3248,7 @@
   const gruppenListe = document.getElementById('gruppen-liste');
 
   let gruppen = [
-    { name: 'Projektteam', mitglieder: ['Anna', 'Luca', 'Mia'] },
+    { name: 'Zwischen uns', mitglieder: ['Anna', 'Luca', 'Mia'] },
     { name: 'Wochenende',  mitglieder: ['Ben', 'Clara', 'Sophie'] }
   ];
 
@@ -3072,8 +3315,11 @@
   }
 
   // Öffnet die bestehende Chat-Ansicht im Gruppen-Modus: Titel und
-  // Avatar zeigen die Gruppe, die reagierende Nachrichten-Typografie
-  // beim Schreiben bleibt exakt dieselbe wie im 1:1-Chat.
+  // Avatar zeigen die Gruppe. ABER: statt des klassischen Verlaufs
+  // (#chat) wird der räumliche Gruppenraum (#gruppen-raum, siehe
+  // JS-Abschnitt "GRUPPEN-RAUM" weiter unten) sichtbar – #chat bleibt
+  // dabei unangetastet im DOM, nur ausgeblendet, damit der 1:1-Chat in
+  // keiner Weise betroffen ist.
   function zeigeGruppenChat(gruppe) {
     aktuellerChatIstGruppe = true;
     aktuelleGruppe         = gruppe;
@@ -3085,6 +3331,10 @@
     chatPartnerAvatar.style.fontWeight            = 500;
     delete chatPartnerAvatar.dataset.name; // keine Zuordnung zu einer Einzelperson
     chatPartnerBtn.classList.add('chat-partner-btn--gruppe');
+
+    chat.hidden        = true;
+    gruppenRaum.hidden = false;
+    raumZonenAufbauen(gruppe);
 
     ansichtUebersicht.classList.add('ansicht--versteckt');
     ansichtChat.classList.remove('ansicht--versteckt');
@@ -3161,6 +3411,91 @@
 
     neueGruppeSchliessen();
     zeigeGruppenChat(gruppe);
+  });
+
+
+  // ── Menü (Hamburger, oben rechts in der Übersicht) + Einstellungen
+  //    + Infos ── Alle drei nach demselben Overlay-Muster wie "Neue
+  //    Gruppe" oben (kein neues Konzept). Keine eigene Bluetooth-Logik
+  //    hier – die Sensor-Verbindung delegiert an den bestehenden,
+  //    unveränderten #band-btn in der Chat-Kopfzeile (siehe unten,
+  //    Abschnitt Bluetooth), um die funktionierende Verbindungslogik
+  //    nicht zu duplizieren.
+  const menuBtn              = document.getElementById('menu-btn');
+  const menuOverlay          = document.getElementById('menu-overlay');
+  const menuSchliessenBtn    = document.getElementById('menu-schliessen');
+  const menuEinstellungenBtn = document.getElementById('menu-einstellungen-btn');
+  const menuInfosBtn         = document.getElementById('menu-infos-btn');
+
+  const einstellungenOverlay       = document.getElementById('einstellungen-overlay');
+  const einstellungenSchliessenBtn = document.getElementById('einstellungen-schliessen');
+  const einstellungenBandStatus    = document.getElementById('einstellungen-band-status');
+  const einstellungenBandBtn       = document.getElementById('einstellungen-band-btn');
+  const einstellungenProfilBtn     = document.getElementById('einstellungen-profil-btn');
+
+  const infosOverlay       = document.getElementById('infos-overlay');
+  const infosSchliessenBtn = document.getElementById('infos-schliessen');
+
+  function menuOeffnen()    { menuOverlay.classList.add('sichtbar'); }
+  function menuSchliessen() { menuOverlay.classList.remove('sichtbar'); }
+
+  menuBtn.addEventListener('click', menuOeffnen);
+  menuSchliessenBtn.addEventListener('click', menuSchliessen);
+  menuOverlay.addEventListener('click', function (e) {
+    if (e.target === menuOverlay) menuSchliessen();
+  });
+
+  // Frisch bei jedem Öffnen aus bandVerbunden gelesen (siehe Abschnitt
+  // Bluetooth weiter unten) – kein eigener Live-Sync nötig, die
+  // verbindliche Anzeige bleibt der reale Button in der Chat-Kopfzeile.
+  function einstellungenBandStatusAktualisieren() {
+    einstellungenBandStatus.textContent = bandVerbunden ? 'Verbunden' : 'Nicht verbunden';
+    einstellungenBandBtn.textContent    = bandVerbunden ? 'Trennen' : 'Verbinden';
+  }
+
+  function einstellungenOeffnen() {
+    einstellungenBandStatusAktualisieren();
+    einstellungenOverlay.classList.add('sichtbar');
+  }
+  function einstellungenSchliessen() { einstellungenOverlay.classList.remove('sichtbar'); }
+
+  function infosOeffnen()    { infosOverlay.classList.add('sichtbar'); }
+  function infosSchliessen() { infosOverlay.classList.remove('sichtbar'); }
+
+  menuEinstellungenBtn.addEventListener('click', function () {
+    menuSchliessen();
+    einstellungenOeffnen();
+  });
+  menuInfosBtn.addEventListener('click', function () {
+    menuSchliessen();
+    infosOeffnen();
+  });
+
+  einstellungenSchliessenBtn.addEventListener('click', einstellungenSchliessen);
+  einstellungenOverlay.addEventListener('click', function (e) {
+    if (e.target === einstellungenOverlay) einstellungenSchliessen();
+  });
+
+  infosSchliessenBtn.addEventListener('click', infosSchliessen);
+  infosOverlay.addEventListener('click', function (e) {
+    if (e.target === infosOverlay) infosSchliessen();
+  });
+
+  // Klickt den echten Band-Button programmatisch (funktioniert auch,
+  // während die Chat-Ansicht per .ansicht--versteckt unsichtbar ist –
+  // pointer-events:none betrifft nur echte Nutzereingaben, nicht
+  // .click()). Kurze Verzögerung vor dem erneuten Statusabgleich für
+  // den synchronen Trennen-Fall; ein neues Verbinden hängt an der
+  // nativen Geräteauswahl und zeigt sich verlässlich erst beim
+  // nächsten Öffnen der Einstellungen bzw. in der Chat-Kopfzeile.
+  einstellungenBandBtn.addEventListener('click', function () {
+    bandBtn.click();
+    setTimeout(einstellungenBandStatusAktualisieren, 300);
+  });
+
+  einstellungenProfilBtn.addEventListener('click', function () {
+    einstellungenSchliessen();
+    tabAnzeigen('profil');
   });
 
 
@@ -3607,8 +3942,23 @@
   // unten) – die Kontaktliste zeigt keine Nachrichtenvorschau mehr.
   const KONTAKT_ZEIT_PLATZHALTER = ['09:41', 'Gestern', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'So', '08:15', 'Jetzt'];
 
+  // Rang pro Zeit-Label, NUR für die Sortierung der Liste (höher =
+  // aktueller = weiter oben) – unabhängig davon, welches Label ein
+  // Kontakt zufällig aus dem Pool oben bekommen hat. "Heute"-Uhrzeiten
+  // vor "Gestern" vor Wochentagen (angenommen: je näher am aktuellen
+  // Wochentag, desto weiter oben – exakte Chronologie ist bei frei
+  // erfundenen Demo-Zeiten ohnehin nicht sinnvoll definierbar).
+  const KONTAKT_ZEIT_RANG = {
+    'Jetzt': 100, '09:41': 90, '08:15': 85, 'Gestern': 70,
+    'Mo': 60, 'So': 59, 'Sa': 58, 'Fr': 57, 'Do': 56, 'Mi': 55, 'Di': 54
+  };
+
   // Baut einen 1:1-Kontakt-Eintrag (gleiches Markup wie die feste
-  // HTML-Liste oben) und hängt ihn an die Kontaktliste an.
+  // HTML-Liste oben) und hängt ihn an die Kontaktliste an. "index" ist
+  // die Position NACH der Aktualitäts-Sortierung (siehe
+  // kontaktlisteAusManifestErsetzen) – steuert hier nur noch die
+  // Ungelesen-Dichte, nicht mehr das Zeit-Label (das hängt jetzt am
+  // Kontakt selbst, siehe kontakt.zeit).
   function kontaktEintragErstellen(kontakt, index) {
     const eintrag = document.createElement('div');
     eintrag.className = 'gespraechs-eintrag';
@@ -3638,7 +3988,7 @@
 
     const zeitEl = document.createElement('span');
     zeitEl.className = 'gespraechs-zeit';
-    zeitEl.textContent = KONTAKT_ZEIT_PLATZHALTER[index % KONTAKT_ZEIT_PLATZHALTER.length];
+    zeitEl.textContent = kontakt.zeit;
     meta.appendChild(zeitEl);
 
     eintrag.appendChild(meta);
@@ -3657,8 +4007,17 @@
       return;
     }
 
-    const kontakte = dateinamen.map(function (datei) {
-      return { name: kontaktNameAusDateiname(datei), datei: datei };
+    const kontakte = dateinamen.map(function (datei, index) {
+      return {
+        name: kontaktNameAusDateiname(datei),
+        datei: datei,
+        zeit: KONTAKT_ZEIT_PLATZHALTER[index % KONTAKT_ZEIT_PLATZHALTER.length]
+      };
+    });
+
+    // Sortierung nach Aktualität: neueste Nachrichten oben.
+    kontakte.sort(function (a, b) {
+      return (KONTAKT_ZEIT_RANG[b.zeit] || 0) - (KONTAKT_ZEIT_RANG[a.zeit] || 0);
     });
 
     gespraechsListe.innerHTML = '';
@@ -4258,10 +4617,12 @@
 
   // ── DOM-Referenzen ────────────────────────────────────────────
   const chat          = document.getElementById('chat');
+  const gruppenRaum   = document.getElementById('gruppen-raum');
   const eingabe       = document.getElementById('eingabe');
   const antwortBtn    = document.getElementById('antwort-btn');
-  const emotionToggle     = document.getElementById('emotion-toggle');
-  const emotionToggleOben = document.getElementById('emotion-toggle-oben');
+  const emotionToggle             = document.getElementById('emotion-toggle');
+  const emotionToggleOben         = document.getElementById('emotion-toggle-oben');
+  const emotionToggleEinstellungen = document.getElementById('emotion-toggle-einstellungen');
 
   const sliderIntensitaet      = document.getElementById('slider-intensitaet');
   const sliderTonalitaet       = document.getElementById('slider-tonalitaet');
@@ -4299,15 +4660,19 @@
   eingabeFeldAnpassen(); // Starthöhe setzen
 
   // ── Nachricht einfügen ────────────────────────────────────────
-  // wortSnapshots: bei eigenen Nachrichten ein Array [{achsen, leblos}, ...],
-  // ein Eintrag pro Wort (siehe wortZustaendeSynchronisieren weiter oben).
+  // wortSnapshots: Array [{achsen, leblos}, ...], ein Eintrag pro Wort
+  // (siehe wortZustaendeSynchronisieren weiter oben) – bei eigenen
+  // Nachrichten aus der Live-Tipp-Pipeline, bei automatischen Demo-
+  // Antworten (siehe autoAntwortPlanen weiter unten) aus simulierten
+  // Rohwerten des jeweiligen Kontakts (dieselbe Quelle wie im Moment-
+  // Feed/Gruppenraum: raumMitgliedRohwerte + raumWortSnapshotsErzeugen).
+  // Ob eine Nachricht wort-für-wort gestylt wird, hängt NICHT mehr an
+  // vonMir, sondern schlicht daran, ob wortSnapshots übergeben wurde –
+  // ruft man ohne (wie der alte "Antwort"-Button-Pfad für 1:1), bleibt
+  // der Text schlicht/neutral wie bisher.
   // absenderName: nur bei Gruppen-Chats gesetzt (siehe antwortBtn-Handler
   // weiter unten) – überschreibt für EMPFANGENE Nachrichten den Namen des
-  // jeweils schreibenden Gruppenmitglieds. Jede Nachricht zeigt dabei
-  // weiterhin nur den (neutralen) Anzeigezustand der Person, die sie
-  // gerade "geschrieben" hat – die reagierende Typografie-Logik selbst
-  // bleibt unverändert und bezieht sich ausschließlich auf VON MIR
-  // gesendete Nachrichten.
+  // jeweils schreibenden Gruppenmitglieds.
   function nachrichtHinzufuegen(text, vonMir, wortSnapshots, absenderName) {
     const wrapper = document.createElement('div');
     wrapper.classList.add('nachricht', vonMir ? 'nachricht-ich' : 'nachricht-andere');
@@ -4325,7 +4690,7 @@
     const textEl = document.createElement('p');
     textEl.classList.add('text');
 
-    if (vonMir) {
+    if (wortSnapshots) {
       // ═══════════════════════════════════════════════════════════
       // WORT-EBENE: Jedes Wort wird als eigenes <span class="wort">
       // dargestellt und bekommt SEINEN eigenen eingefrorenen Zustand
@@ -4385,6 +4750,276 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
+
+  // ═══════════════════════════════════════════════════════════════
+  //  GRUPPEN-RAUM – räumliche Darstellung des Gruppenchats.
+  //
+  //  Komplett eigener, additiver Rendering-Pfad neben #chat/
+  //  nachrichtHinzufuegen (siehe oben) – die 1:1-Funktionen werden
+  //  hier weder verändert noch aufgerufen. Aktiviert wird dieser Pfad
+  //  ausschließlich über die if(aktuellerChatIstGruppe)-Weichen im
+  //  Enter- und Antwort-Button-Handler weiter unten; der jeweils
+  //  andere (1:1-)Zweig bleibt dort unangetastet.
+  //
+  //  Wiederverwendet aus anderen Abschnitten (keine Duplikation):
+  //    - stilAnwenden/stilNeutralAnwenden (Wort-Styling, oben)
+  //    - sensorZuSchriftAchse/rohwerteWortVariieren (Abschnitt MOMENT,
+  //      exakt derselbe Mechanismus wie bei den Moment-Demo-Posts)
+  //    - MOMENT_DEMO_KONTAKTE (Abschnitt MOMENT) als Quelle der
+  //      simulierten Rohwerte pro Gruppenmitglied – dieselbe Person
+  //      wirkt so im Moment-Feed und im Gruppenraum typografisch
+  //      konsistent.
+  // ═══════════════════════════════════════════════════════════════
+
+  // Baut die Zonen einer Gruppe neu auf (bei jedem Öffnen, siehe
+  // zeigeGruppenChat oben). Spalten/Zeilen ergeben sich generisch aus
+  // der Personenzahl (Mitglieder + "Du") – kein Sonderfall pro Zahl
+  // nötig, "Du" wird unabhängig davon per CSS auf die letzte Zelle
+  // gepinnt (.raum-zone--du, siehe CSS).
+  function raumZonenAufbauen(gruppe) {
+    gruppenRaum.innerHTML = '';
+
+    const namen   = gruppe.mitglieder.concat(['Du']);
+    const anzahl  = namen.length;
+    const spalten = Math.ceil(Math.sqrt(anzahl));
+    const zeilen  = Math.ceil(anzahl / spalten);
+    gruppenRaum.style.gridTemplateColumns = 'repeat(' + spalten + ', 1fr)';
+    gruppenRaum.style.gridTemplateRows    = 'repeat(' + zeilen + ', 1fr)';
+
+    namen.forEach(function (name) {
+      const istDu = name === 'Du';
+
+      const zone = document.createElement('div');
+      zone.className = 'raum-zone' + (istDu ? ' raum-zone--du' : '');
+      zone.dataset.name = name;
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'raum-zone-name';
+      nameEl.textContent = name;
+      zone.appendChild(nameEl);
+
+      const nachrichtenEl = document.createElement('div');
+      nachrichtenEl.className = 'raum-zone-nachrichten';
+      zone.appendChild(nachrichtenEl);
+
+      gruppenRaum.appendChild(zone);
+    });
+  }
+
+  // Simulierte Rohwerte eines Gruppenmitglieds für die reagierende
+  // Typografie – dieselbe Quelle wie der Moment-Feed. Kein Eintrag
+  // (z. B. reine Foto-Kontakte ohne Demo-Rohwerte) → null, wird unten
+  // wie "leblos" behandelt (gleiches Muster wie Clara im Moment-Feed).
+  function raumMitgliedRohwerte(name) {
+    const eintrag = MOMENT_DEMO_KONTAKTE.find(function (k) { return k.name === name; });
+    return eintrag ? eintrag.rohwerte : null;
+  }
+
+  // Baut wortSnapshots für eine simulierte Gruppen-Nachricht – exakt
+  // derselbe Wort-für-Wort-Variianz-Mechanismus wie momenteAufbauen
+  // (Abschnitt MOMENT), hier live pro gesendeter Demo-Nachricht statt
+  // einmalig beim Start.
+  function raumWortSnapshotsErzeugen(text, rohwerte) {
+    const woerter = text.split(/\s+/).filter(function (w) { return w.length > 0; });
+    return woerter.map(function () {
+      if (!rohwerte) return { achsen: {}, leblos: true };
+      return { achsen: sensorZuSchriftAchse(rohwerteWortVariieren(rohwerte)), leblos: false };
+    });
+  }
+
+  // Fügt eine Nachricht in die Zone von "name" ein. Die Nachricht IST
+  // das Text-Element (kein zusätzliches Absender-Label pro Nachricht –
+  // das steht bereits einmal oben in .raum-zone-name). Gibt das neue
+  // Element zurück (für das @-Andocken, siehe raumGerichteteNachricht-
+  // Verarbeiten weiter unten).
+  function raumNachrichtHinzufuegen(name, text, wortSnapshots) {
+    const zone = gruppenRaum.querySelector('.raum-zone[data-name="' + CSS.escape(name) + '"]');
+    if (!zone) return null;
+    const stack = zone.querySelector('.raum-zone-nachrichten');
+
+    const el = document.createElement('p');
+    el.className = 'raum-nachricht';
+
+    const woerter = text.split(/\s+/).filter(function (w) { return w.length > 0; });
+    woerter.forEach(function (wort, i) {
+      const snapshot = wortSnapshots[i];
+      const wortSpan = document.createElement('span');
+      wortSpan.className = 'wort';
+      wortSpan.textContent = wort;
+      if (snapshot && !snapshot.leblos) {
+        stilAnwenden(wortSpan, snapshot.achsen);
+      } else {
+        stilNeutralAnwenden(wortSpan);
+      }
+      el.appendChild(wortSpan);
+      if (i < woerter.length - 1) el.appendChild(document.createTextNode(' '));
+    });
+
+    stack.appendChild(el);
+
+    // Verblassen: höchstens 2 Nachrichten gleichzeitig sichtbar PRO
+    // ZONE (dasselbe Prinzip wie "max. 2" im 1:1-Chat oben, aber pro
+    // Zone statt global) – die älteste blendet sich weich aus statt
+    // abrupt zu verschwinden (kein Scrollen in den Zonen). Entfernen
+    // per Timer statt transitionend-Event: bewusst robuster, u. a.
+    // falls die Zone zwischenzeitlich neu aufgebaut wird (Gruppen-
+    // wechsel) und das Element gar nicht mehr sichtbar transitioniert.
+    const bestehende = Array.from(stack.children).filter(function (k) { return k !== el; });
+    if (bestehende.length >= 2) {
+      const aelteste = bestehende[0];
+      aelteste.classList.add('raum-nachricht--verblasst');
+      setTimeout(function () { aelteste.remove(); }, 650); // > 0.6s CSS-Transition
+    }
+
+    return el;
+  }
+
+  // Erkennt "@Name" im Text (case-insensitiv gegen Mitglieder + "Du").
+  function raumZielAusText(text) {
+    if (!aktuelleGruppe) return null;
+    const treffer = text.match(/@(\w+)/);
+    if (!treffer) return null;
+    const gesucht = treffer[1].toLowerCase();
+    const namen = ['Du'].concat(aktuelleGruppe.mitglieder);
+    return namen.find(function (n) { return n.toLowerCase() === gesucht; }) || null;
+  }
+
+  // Zufälliges anderes Zonen-Mitglied (für die Demo-@-Beispiele über
+  // den Antwort-Button, siehe dort) – schließt den Absender aus.
+  function raumZufaelligesZiel(ausschliesslich) {
+    if (!aktuelleGruppe) return null;
+    const kandidaten = ['Du'].concat(aktuelleGruppe.mitglieder)
+      .filter(function (n) { return n !== ausschliesslich; });
+    if (!kandidaten.length) return null;
+    return kandidaten[Math.floor(Math.random() * kandidaten.length)];
+  }
+
+  // Grobe Richtung (-1/0/1 je Achse) von einer Zone zu einer anderen,
+  // aus den tatsächlichen Bildschirm-Positionen bestimmt – funktioniert
+  // dadurch unabhängig von Personenzahl/Grid-Größe, ohne die
+  // Grid-Platzierung in JS nachbauen zu müssen.
+  function raumRichtungBestimmen(vonZone, zuZone) {
+    const a = vonZone.getBoundingClientRect();
+    const b = zuZone.getBoundingClientRect();
+    const dx = (b.left + b.width / 2) - (a.left + a.width / 2);
+    const dy = (b.top + b.height / 2) - (a.top + a.height / 2);
+    return {
+      x: dx > 4 ? 1 : dx < -4 ? -1 : 0,
+      y: dy > 4 ? 1 : dy < -4 ? -1 : 0
+    };
+  }
+
+  // Kurzlebige Verbindungslinie zwischen Sender- und Ziel-Zone – Länge/
+  // Winkel/Position einmalig über getBoundingClientRect bestimmt, dann
+  // per CSS-Transition ausgeblendet und entfernt.
+  function raumVerbindungZeichnen(vonZone, zuZone) {
+    const raumRect = gruppenRaum.getBoundingClientRect();
+    const a = vonZone.getBoundingClientRect();
+    const b = zuZone.getBoundingClientRect();
+    const ax = a.left + a.width / 2 - raumRect.left;
+    const ay = a.top + a.height / 2 - raumRect.top;
+    const bx = b.left + b.width / 2 - raumRect.left;
+    const by = b.top + b.height / 2 - raumRect.top;
+    const laenge = Math.hypot(bx - ax, by - ay);
+    const winkel = Math.atan2(by - ay, bx - ax) * (180 / Math.PI);
+
+    const linie = document.createElement('div');
+    linie.className = 'raum-verbindung';
+    linie.style.left      = ax + 'px';
+    linie.style.top       = ay + 'px';
+    linie.style.width     = laenge + 'px';
+    linie.style.transform = 'rotate(' + winkel + 'deg)';
+    gruppenRaum.appendChild(linie);
+
+    setTimeout(function () {
+      linie.classList.add('raum-verbindung--ausblendend');
+      setTimeout(function () { linie.remove(); }, 1050); // > 1s CSS-Transition
+    }, 600);
+  }
+
+  // Kurzer Glüh-Puls auf der aktuell letzten Nachricht einer Zone
+  // (bewusst kein Farbwechsel, siehe CSS-Kommentar bei @keyframes
+  // raum-echo-puls – monochromes Prinzip der App bleibt gewahrt).
+  function raumEchoPuls(zone) {
+    const stack = zone.querySelector('.raum-zone-nachrichten');
+    const letzte = stack ? stack.lastElementChild : null;
+    if (!letzte) return;
+    letzte.classList.remove('raum-nachricht--echo');
+    void letzte.offsetWidth; // Reflow erzwingen, damit @keyframes bei erneutem Treffer neu startet
+    letzte.classList.add('raum-nachricht--echo');
+    // Timer statt animationend (siehe Kommentar bei raum-nachricht--
+    // verblasst weiter oben zum selben Robustheits-Grund).
+    setTimeout(function () { letzte.classList.remove('raum-nachricht--echo'); }, 1250);
+  }
+
+  // Orchestriert das optische "Andocken" (Punkte 5–7 der Anforderung):
+  // wird direkt NACH raumNachrichtHinzufuegen für die sendende Person
+  // aufgerufen, mit dem gerade gesendeten Text + dem neuen Element.
+  function raumGerichteteNachrichtVerarbeiten(senderName, text, nachrichtEl) {
+    if (!nachrichtEl) return;
+    const zielName = raumZielAusText(text);
+    if (!zielName || zielName === senderName) return;
+
+    const senderZone = gruppenRaum.querySelector('.raum-zone[data-name="' + CSS.escape(senderName) + '"]');
+    const zielZone   = gruppenRaum.querySelector('.raum-zone[data-name="' + CSS.escape(zielName) + '"]');
+    if (!senderZone || !zielZone) return;
+
+    // Puls auf der Zielperson-Nachricht VOR dem eigenen Rendern
+    // ausgelöst, damit die zuletzt BESTEHENDE Nachricht der Zielperson
+    // trifft (die eigene, gerichtete Nachricht selbst wurde ja bereits
+    // in der Sender-Zone eingefügt, nicht in der Zielzone).
+    raumEchoPuls(zielZone);
+
+    const richtung = raumRichtungBestimmen(senderZone, zielZone);
+    nachrichtEl.style.setProperty('--lehn-x', richtung.x);
+    nachrichtEl.style.setProperty('--lehn-y', richtung.y);
+    nachrichtEl.classList.add('raum-nachricht--gerichtet');
+
+    raumVerbindungZeichnen(senderZone, zielZone);
+  }
+
+
+  // ── Automatische Antworten der Demo-Kontakte (nur 1:1, nicht
+  //    Gruppenraum – dort bleibt der "Antwort"-Button/rotierende
+  //    Absender-Logik unverändert) ──────────────────────────────
+  // Kurze, alltägliche Sätze statt der Meta-Sätze über die App selbst
+  // (siehe vorgegebeneNachrichten weiter unten – die sind fürs manuelle
+  // Durchklicken der "Antwort"-Demo gedacht, nicht für automatische
+  // Reaktionen auf beliebige eigene Nachrichten).
+  const AUTO_ANTWORT_TEXTE = [
+    'Ok, klingt gut!',
+    'Bin gleich bei dir.',
+    'Verstehe, alles klar.',
+    'Ja, passt mir.',
+    'Muss kurz überlegen.',
+    'Bin gerade unterwegs.',
+    'Stimmt, guter Punkt.',
+    'Melde mich gleich genauer.',
+    'Bin dabei!',
+    'Mal schauen, ob das klappt.'
+  ];
+
+  // Plant eine automatische Antwort des angeschriebenen Kontakts.
+  // empfaengerName wird bei Absenden eingefroren und beim Feuern erneut
+  // geprüft (chatPartnerName könnte sich zwischenzeitlich geändert
+  // haben, z. B. weil ein anderer Chat geöffnet wurde) – nur bei
+  // Übereinstimmung UND weiterhin 1:1-Ansicht wird tatsächlich
+  // geantwortet, sonst verfällt die geplante Antwort stillschweigend.
+  function autoAntwortPlanen(empfaengerName) {
+    const verzoegerung = 2000 + Math.random() * 3000; // 2–5 s
+    setTimeout(function () {
+      if (aktuellerChatIstGruppe || chatPartnerName.textContent !== empfaengerName) return;
+
+      const text = AUTO_ANTWORT_TEXTE[Math.floor(Math.random() * AUTO_ANTWORT_TEXTE.length)];
+      // Dieselbe Quelle simulierter Rohwerte wie Moment-Feed/Gruppenraum
+      // (siehe raumMitgliedRohwerte) – fällt bei Kontakten ohne Eintrag
+      // dort (z. B. reine Foto-Kontakte) auf neutral/leblos zurück.
+      const rohwerte      = raumMitgliedRohwerte(empfaengerName);
+      const wortSnapshots = raumWortSnapshotsErzeugen(text, rohwerte);
+      nachrichtHinzufuegen(text, false, wortSnapshots, empfaengerName);
+    }, verzoegerung);
+  }
+
   // ── Ereignis-Handler ──────────────────────────────────────────
 
   eingabe.addEventListener('keydown', tippAnalysieren);
@@ -4435,7 +5070,15 @@
       wortSnapshots.push({ achsen: { ...aktuelleAchsen, pausenZuschlag: pausenZuschlagVerbrauchen(leblos) }, leblos });
     }
 
-    nachrichtHinzufuegen(text, true, wortSnapshots);
+    // Räumlicher Gruppenraum (siehe JS-Abschnitt "GRUPPEN-RAUM" oben)
+    // statt des klassischen Verlaufs – 1:1-Zweig (else) unverändert.
+    if (aktuellerChatIstGruppe) {
+      const eigeneNachricht = raumNachrichtHinzufuegen('Du', text, wortSnapshots);
+      raumGerichteteNachrichtVerarbeiten('Du', text, eigeneNachricht);
+    } else {
+      nachrichtHinzufuegen(text, true, wortSnapshots);
+      autoAntwortPlanen(chatPartnerName.textContent);
+    }
 
     // ── Profilbild: Puls-/Zustandswert dieser Nachricht in den
     // gesonderten, gleitenden Mittelwert der Person einfließen lassen
@@ -4513,9 +5156,27 @@
     if (aktuellerChatIstGruppe && aktuelleGruppe && aktuelleGruppe.mitglieder.length) {
       absender = aktuelleGruppe.mitglieder[gruppenAntwortIndex % aktuelleGruppe.mitglieder.length];
       gruppenAntwortIndex++;
+
+      // Räumlicher Gruppenraum: reagierende Typografie pro Person
+      // (MOMENT_DEMO_KONTAKTE) statt unstyled Text. Jede zweite
+      // simulierte Nachricht bekommt zusätzlich eine @-Erwähnung eines
+      // zufälligen anderen Zonen-Mitglieds, damit sich das Andocken
+      // auch über den Antwort-Button zeigen lässt, nicht nur durch
+      // eigenes Tippen.
+      let text = vorgegebeneNachrichten[naechsteAntwortIndex];
+      if (naechsteAntwortIndex % 2 === 1) {
+        const ziel = raumZufaelligesZiel(absender);
+        if (ziel) text = '@' + ziel + ' ' + text;
+      }
+
+      const rohwerte      = raumMitgliedRohwerte(absender);
+      const wortSnapshots = raumWortSnapshotsErzeugen(text, rohwerte);
+      const nachrichtEl   = raumNachrichtHinzufuegen(absender, text, wortSnapshots);
+      raumGerichteteNachrichtVerarbeiten(absender, text, nachrichtEl);
+    } else {
+      nachrichtHinzufuegen(vorgegebeneNachrichten[naechsteAntwortIndex], false, null, absender);
     }
 
-    nachrichtHinzufuegen(vorgegebeneNachrichten[naechsteAntwortIndex], false, null, absender);
     naechsteAntwortIndex++;
     if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) {
       antwortBtn.disabled    = true;
@@ -4523,20 +5184,23 @@
     }
   });
 
-  // Emotion-Toggle: zwei Schalter (Chat-Fußleiste + Übersichts-
-  // Kopfzeile) spiegeln denselben globalen Zustand.
+  // Emotion-Toggle: drei Schalter (Chat-Fußleiste + Übersichts-
+  // Kopfzeile + Einstellungen-Overlay) spiegeln denselben globalen
+  // Zustand.
   //   1. CSS-Klasse wechselt das komplette Farbschema (via Variablen)
   //   2. emotionAktiv steuert die typografische Logik (Vorschau, Einfrieren)
   function emotionModusSetzen(istAn) {
     emotionAktiv = istAn;
-    emotionToggle.checked     = istAn;
-    emotionToggleOben.checked = istAn;
+    emotionToggle.checked             = istAn;
+    emotionToggleOben.checked         = istAn;
+    emotionToggleEinstellungen.checked = istAn;
     phoneFrame.classList.toggle('emotion-an', emotionAktiv); // ← Moduswechsel
     vorschauAktualisieren();
   }
 
   emotionToggle.addEventListener('change', function () { emotionModusSetzen(this.checked); });
   emotionToggleOben.addEventListener('change', function () { emotionModusSetzen(this.checked); });
+  emotionToggleEinstellungen.addEventListener('change', function () { emotionModusSetzen(this.checked); });
 
 
   // ══════════════════════════════════════════════════════════════════
