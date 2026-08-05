@@ -90,12 +90,18 @@
       --text-3:       #aaaaaa;   /* Labels, schwacher Text */
       --text-4:       #bbbbbb;   /* Sehr schwacher Text, Wertanzeigen */
       --accent:       #555555;   /* Slider-Thumb, Fortschrittsbalken */
-      --toggle-off:   #c4c2bb;   /* Toggle-Schiene, Emotion AUS */
-      --toggle-on:    #444444;   /* Toggle-Schiene, Emotion AN */
       --placeholder:  #c0bdb8;   /* Eingabefeld-Platzhalter */
       --bubble-outline: rgba(0, 0, 0, 0.75);   /* Sprechblasen-Outline, heller Modus */
       --scrollbar-farbe: rgba(0, 0, 0, 0.22);  /* Scroll-Indikator, heller Modus */
       --emotion-karte-bg: rgba(0, 0, 0, 0.85); /* Karte hinter dem Emotion-Schalter, heller Modus */
+      /* Emotion-Schalter AN: volle Füllung statt nur Farbwechsel der
+         Schiene (siehe .schalter-visuell) – Kontrastfarbe zur Schrift
+         des Modus, --schalter-fuellung-kontrast ist die Thumb-Farbe
+         AUF der Füllung. In der Karte hinter dem Schalter (schwebend/
+         Chat-Fußleiste, siehe --emotion-karte-bg) unten überschrieben,
+         weil die Karte dort in BEIDEN Modi dunkel ist. */
+      --schalter-fuellung:           #000000;
+      --schalter-fuellung-kontrast:  #ffffff;
     }
 
     .phone-frame.emotion-an {
@@ -109,12 +115,12 @@
       --text-3:       #666666;   /* Labels, schwacher Text */
       --text-4:       #505050;   /* Sehr schwacher Text, Wertanzeigen */
       --accent:       #888888;   /* Slider-Thumb, Fortschrittsbalken */
-      --toggle-off:   #383838;   /* Toggle-Schiene, Emotion AUS */
-      --toggle-on:    #aaaaaa;   /* Toggle-Schiene, Emotion AN */
       --placeholder:  #484848;   /* Eingabefeld-Platzhalter */
       --bubble-outline: var(--bubble-outline);  /* Sprechblasen-Outline, dunkler Modus */
       --scrollbar-farbe: rgba(255, 255, 255, 0.22); /* Scroll-Indikator, dunkler Modus */
       --emotion-karte-bg: rgba(255, 255, 255, 0.10); /* Karte hinter dem Emotion-Schalter, dunkler Modus */
+      --schalter-fuellung:           #ffffff;
+      --schalter-fuellung-kontrast:  #000000;
     }
 
 
@@ -2393,9 +2399,19 @@
 
     .emotion-schalter input[type="checkbox"] { display: none; }
 
+    /* Klar unterscheidbarer AN/AUS-Zustand statt nur eines dezenten
+       Farbwechsels der Schiene: AUS = nur Umriss, keine Füllung; AN =
+       voll gefüllt (--schalter-fuellung, siehe Modus-Variablen oben –
+       in der Karte hinter dem Schalter unten per Klassen-Selektor
+       überschrieben, weil diese Karte in BEIDEN Modi dunkel ist). Die
+       eigentliche Übergangs-Animation kommt von der globalen
+       MODUSWECHSEL-TRANSITION-Regel weiter unten (gilt für background-
+       color/border-color auf allen Elementen im Frame), hier daher
+       bewusst keine eigene, u. U. kollidierende transition-Angabe. */
     .schalter-visuell {
       width: 34px; height: 19px;
-      background: var(--toggle-off);
+      background: transparent;
+      border: 1.5px solid var(--text-3);
       border-radius: 10px;
       position: relative;
     }
@@ -2405,20 +2421,27 @@
       position: absolute;
       width: 13px; height: 13px;
       border-radius: 50%;
-      background: #fff;
-      top: 3px; left: 3px;
-      transition: transform 0.4s ease;
+      background: var(--text-3);
+      top: 1.5px; left: 1.5px;
+      /* transition steht bewusst NICHT hier, siehe Regel nach
+         MODUSWECHSEL-TRANSITION weiter unten (::after wird von der
+         globalen Transition-Regel nicht erfasst, braucht also ohnehin
+         eine eigene – die aber an der richtigen Stelle im Stylesheet
+         stehen muss). */
     }
 
-    /* Klassenbasiert statt #emotion-toggle: es gibt zwei Schalter (Fuß-
-       leiste im Chat + Kopfzeile der Übersicht), die denselben globalen
-       Zustand spiegeln – siehe emotion-toggle-oben unten. */
+    /* Klassenbasiert statt #emotion-toggle: es gibt drei Schalter (Fuß-
+       leiste im Chat + schwebender Schalter der Übersicht +
+       Einstellungen-Overlay), die denselben globalen Zustand spiegeln –
+       siehe emotionModusSetzen (JS). */
     .emotion-schalter input:checked + .schalter-visuell {
-      background: var(--toggle-on);
+      background: var(--schalter-fuellung);
+      border-color: var(--schalter-fuellung);
     }
 
     .emotion-schalter input:checked + .schalter-visuell::after {
       transform: translateX(15px);
+      background: var(--schalter-fuellung-kontrast);
     }
 
     .schalter-label {
@@ -2437,6 +2460,14 @@
       background: var(--emotion-karte-bg);
       padding: 6px 10px;
       border-radius: 12px;
+      /* Diese Karte ist in BEIDEN App-Modi dunkel (siehe --emotion-
+         karte-bg oben – im hellen Modus fast schwarz, im dunklen Modus
+         nur ein dezent hellerer Grauton auf Schwarz). Die AN-Füllung
+         des Schalters muss deshalb IMMER hell sein, unabhängig vom
+         App-Modus – sonst wäre sie im hellen Modus (schwarze Füllung
+         auf fast schwarzer Karte) praktisch unsichtbar. */
+      --schalter-fuellung:          #ffffff;
+      --schalter-fuellung-kontrast: #000000;
     }
 
     /* Übersicht (Chats/Gruppen/Moment/Profil): der Schalter schwebt
@@ -2474,8 +2505,13 @@
     /* Balken-Breite bleibt schnell (0.15 s) – nur Farbe folgt dem Modus */
     .dimension-balken { transition: width 0.15s ease, background-color 0.4s ease; }
 
-    /* Toggle-Schieber bewegt sich immer mit 0.4 s (konsistent mit Moduswechsel) */
-    .schalter-visuell::after { transition: transform 0.4s ease; }
+    /* Toggle-Schieber bewegt sich immer mit 0.4 s (konsistent mit
+       Moduswechsel) UND wechselt seine Füllfarbe (AUS/AN-Kontrast)
+       ebenso weich – ::after ist ein Pseudo-Element und wird von der
+       globalen ".phone-frame *"-Regel oben NICHT erfasst (die matcht
+       nur echte Elemente), daher hier explizit background-color mit
+       aufgenommen statt sich auf die globale Regel zu verlassen. */
+    .schalter-visuell::after { transition: transform 0.4s ease, background-color 0.4s ease; }
 
     /* Gruppenraum – Verblassen/Andocken (siehe .raum-nachricht/
        .raum-verbindung oben): eigene transition-property, muss ebenso
