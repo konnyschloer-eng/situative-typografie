@@ -240,6 +240,75 @@
       font-weight: normal;
     }
 
+    /* ── Kombinierter Regler-Block: alle Achsen auf EIN Wort ───────
+       Jede Achse bekommt zusätzlich zum Regler einen Ein/Aus-Schalter
+       (Pillen-Stil, an die Schwarz/Weiß-Palette dieser Seite angepasst
+       statt der Original-Farben aus chat.html) – ausgeschaltete Achsen
+       wirken neutral auf das gemeinsame Wort, unabhängig von der
+       Regler-Position (siehe JS: anwenden()/neutral() pro Achse). ── */
+    .kombi-achsen {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(22px, 3.4vh, 34px);
+    }
+
+    .kombi-achse {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .kombi-achse-kopf {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .kombi-achse-label {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      color: var(--fg);
+      transition: color 0.25s ease;
+    }
+
+    .kombi-achse--aus .kombi-achse-label { color: var(--grau-2); }
+    .kombi-achse--aus .dimension-regler  { opacity: 0.35; }
+
+    .kombi-schalter {
+      flex-shrink: 0;
+      display: inline-flex;
+      cursor: pointer;
+    }
+
+    .kombi-schalter input { display: none; }
+
+    .kombi-schalter-visuell {
+      width: 34px; height: 19px;
+      background: var(--linie);
+      border-radius: 10px;
+      position: relative;
+      transition: background-color 0.25s ease;
+    }
+
+    .kombi-schalter-visuell::after {
+      content: '';
+      position: absolute;
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      background: var(--fg);
+      top: 3px; left: 3px;
+      transition: transform 0.25s ease;
+    }
+
+    .kombi-schalter input:checked + .kombi-schalter-visuell {
+      background: var(--grau-2);
+    }
+
+    .kombi-schalter input:checked + .kombi-schalter-visuell::after {
+      transform: translateX(15px);
+    }
+
     /* ── Fuß ───────────────────────────────────────────────────── */
     footer {
       max-width: 780px;
@@ -394,6 +463,122 @@
       </div>
     </section>
 
+    <!-- 7 — KOMBINIERT: alle sechs Achsen gleichzeitig auf EIN Wort,
+         jede einzeln ein-/ausschaltbar und frei verschiebbar. Eigener,
+         zusätzlicher Bereich am Ende der Seite – die sechs Einzel-
+         Abschnitte oben bleiben unverändert. -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">07</span>
+        <h2>Kombiniert</h2>
+      </div>
+      <p class="dimension-text">
+        Alle sechs Dimensionen zugleich auf ein Wort. Schalte einzelne
+        Achsen ein oder aus und verschiebe sie unabhängig voneinander –
+        so lässt sich ausprobieren, wie mehrere Zustände gleichzeitig
+        auf dieselbe Schrift wirken. Ausgeschaltete Achsen bleiben ohne
+        Einfluss, das Wort verhält sich in dieser Hinsicht neutral.
+      </p>
+
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-kombiniert">Hallo</div>
+      </div>
+
+      <div class="kombi-achsen">
+
+        <div class="kombi-achse" id="kombi-achse-intensitaet">
+          <div class="kombi-achse-kopf">
+            <label class="kombi-schalter" title="Intensität ein-/ausschalten">
+              <input type="checkbox" id="schalter-k-intensitaet" checked>
+              <span class="kombi-schalter-visuell"></span>
+            </label>
+            <span class="kombi-achse-label">Intensität</span>
+          </div>
+          <div class="dimension-regler">
+            <input type="range" id="regler-k-intensitaet" min="100" max="900" step="1" value="400"
+              aria-label="Intensität">
+            <span class="dimension-wert" id="wert-k-intensitaet"></span>
+          </div>
+        </div>
+
+        <div class="kombi-achse" id="kombi-achse-tempo">
+          <div class="kombi-achse-kopf">
+            <label class="kombi-schalter" title="Tempo ein-/ausschalten">
+              <input type="checkbox" id="schalter-k-tempo" checked>
+              <span class="kombi-schalter-visuell"></span>
+            </label>
+            <span class="kombi-achse-label">Tempo</span>
+          </div>
+          <div class="dimension-regler">
+            <input type="range" id="regler-k-tempo" min="100" max="900" step="1" value="400"
+              aria-label="Tempo">
+            <span class="dimension-wert" id="wert-k-tempo"></span>
+          </div>
+        </div>
+
+        <div class="kombi-achse" id="kombi-achse-stabilitaet">
+          <div class="kombi-achse-kopf">
+            <label class="kombi-schalter" title="Stabilität ein-/ausschalten">
+              <input type="checkbox" id="schalter-k-stabilitaet" checked>
+              <span class="kombi-schalter-visuell"></span>
+            </label>
+            <span class="kombi-achse-label">Stabilität</span>
+          </div>
+          <div class="dimension-regler">
+            <input type="range" id="regler-k-stabilitaet" min="0" max="10" step="0.5" value="0"
+              aria-label="Stabilität">
+            <span class="dimension-wert" id="wert-k-stabilitaet"></span>
+          </div>
+        </div>
+
+        <div class="kombi-achse" id="kombi-achse-wachheit">
+          <div class="kombi-achse-kopf">
+            <label class="kombi-schalter" title="Wachheit ein-/ausschalten">
+              <input type="checkbox" id="schalter-k-wachheit" checked>
+              <span class="kombi-schalter-visuell"></span>
+            </label>
+            <span class="kombi-achse-label">Wachheit</span>
+          </div>
+          <div class="dimension-regler">
+            <input type="range" id="regler-k-wachheit" min="0" max="100" step="1" value="50"
+              aria-label="Wachheit">
+            <span class="dimension-wert" id="wert-k-wachheit"></span>
+          </div>
+        </div>
+
+        <div class="kombi-achse" id="kombi-achse-gefasstheit">
+          <div class="kombi-achse-kopf">
+            <label class="kombi-schalter" title="Gefasstheit ein-/ausschalten">
+              <input type="checkbox" id="schalter-k-gefasstheit" checked>
+              <span class="kombi-schalter-visuell"></span>
+            </label>
+            <span class="kombi-achse-label">Gefasstheit</span>
+          </div>
+          <div class="dimension-regler">
+            <input type="range" id="regler-k-gefasstheit" min="0" max="100" step="1" value="50"
+              aria-label="Gefasstheit">
+            <span class="dimension-wert" id="wert-k-gefasstheit"></span>
+          </div>
+        </div>
+
+        <div class="kombi-achse" id="kombi-achse-tonalitaet">
+          <div class="kombi-achse-kopf">
+            <label class="kombi-schalter" title="Tonalität ein-/ausschalten">
+              <input type="checkbox" id="schalter-k-tonalitaet" checked>
+              <span class="kombi-schalter-visuell"></span>
+            </label>
+            <span class="kombi-achse-label">Tonalität</span>
+          </div>
+          <div class="dimension-regler">
+            <input type="range" id="regler-k-tonalitaet" min="0" max="100" step="1" value="50"
+              aria-label="Tonalität">
+            <span class="dimension-wert" id="wert-k-tonalitaet"></span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
   <footer>Situra — Situative Typografie · Prototyp</footer>
@@ -502,13 +687,18 @@
     stabilitaetAktualisieren();
 
     // ═══════════════════════════════════════════════════════════
-    // 4 — WACHHEIT: Unschärfe (blur), stufenlos, bewusst dezent
-    // (max. 2px) – 0 = müde/unscharf, 100 = wach/scharf.
+    // 4 — WACHHEIT: Unschärfe (blur), stufenlos – 0 = müde/unscharf,
+    // 100 = wach/scharf. Deutlich stärker als früher (war 2px, kaum
+    // wahrnehmbar bei der großen Wort-Schriftgröße dieser Seite) –
+    // bei voller Unschärfe (0) noch klar als "Hallo" lesbar, aber der
+    // Unterschied zu "wach" (scharf) ist jetzt unübersehbar. Dieselbe
+    // Konstante wird auch vom kombinierten Regler-Block (Abschnitt 7)
+    // für die dortige Wachheit-Achse verwendet.
     // ═══════════════════════════════════════════════════════════
     const reglerWachheit = document.getElementById('regler-wachheit');
     const wortWachheit    = document.getElementById('wort-wachheit');
     const wertWachheit    = document.getElementById('wert-wachheit');
-    const BLUR_MAX = 2.0;
+    const BLUR_MAX = 5.0;
 
     function wachheitAktualisieren() {
       const wert = Number(reglerWachheit.value);
@@ -561,6 +751,152 @@
     }
     reglerTonalitaet.addEventListener('input', tonalitaetAktualisieren);
     tonalitaetAktualisieren();
+
+    // ═══════════════════════════════════════════════════════════
+    // 7 — KOMBINIERT: alle sechs Achsen auf EIN gemeinsames Wort.
+    // Jede Achse bleibt technisch unabhängig – Intensität/Tempo/
+    // Wachheit/Gefasstheit/Tonalität setzen je eine eigene CSS-
+    // Eigenschaft auf dem Wort-Container (fontFamily/letterSpacing/
+    // filter/opacity/color), Stabilität wirkt wie in Abschnitt 3 auf
+    // die einzeln zerlegten Buchstaben-Spans darin – sie überschreiben
+    // sich also nie gegenseitig. kombiAchseEinrichten() bindet Regler +
+    // Schalter pro Achse: ist der Schalter aus, wird IMMER neutral()
+    // angewendet statt anwenden(reglerWert), unabhängig von der
+    // Reglerposition (siehe Anforderung "deaktivierte Achsen ohne
+    // Einfluss").
+    // ═══════════════════════════════════════════════════════════
+    const wortKombiniert = document.getElementById('wort-kombiniert');
+
+    // Buchstaben einmalig in Spans zerlegen (exakt wie Abschnitt 3) –
+    // nötig, damit Stabilität/Zittern pro Buchstabe wirken kann. Die
+    // übrigen Achsen setzen ihre Eigenschaften weiterhin auf dem
+    // umschließenden wortKombiniert-Element selbst (wird an die
+    // Buchstaben-Spans vererbt, z. B. font-family/opacity/color).
+    (function buchstabenVorbereitenKombiniert() {
+      const text = wortKombiniert.textContent;
+      wortKombiniert.textContent = '';
+      for (const zeichen of text) {
+        const span = document.createElement('span');
+        span.textContent = zeichen;
+        span.classList.add('zitter-buchstabe');
+        const dauer     = (0.3 + Math.random() * 0.4).toFixed(2);
+        const verzoeger = (-Math.random() * 1.2).toFixed(2);
+        span.style.animationName           = 'situraZittern';
+        span.style.animationDuration       = `${dauer}s`;
+        span.style.animationTimingFunction = 'ease-in-out';
+        span.style.animationIterationCount = 'infinite';
+        span.style.animationDelay          = `${verzoeger}s`;
+        wortKombiniert.appendChild(span);
+      }
+    })();
+
+    // Bindet Schalter + Regler EINER Achse ans gemeinsame Wort.
+    // konfig.anwenden(wert, wertEl) setzt die Eigenschaft passend zum
+    // aktuellen Reglerwert; konfig.neutral() setzt exakt diese eine
+    // Eigenschaft zurück, ohne die der anderen Achsen zu berühren.
+    function kombiAchseEinrichten(name, konfig) {
+      const wrapper  = document.getElementById(`kombi-achse-${name}`);
+      const schalter = document.getElementById(`schalter-k-${name}`);
+      const regler   = document.getElementById(`regler-k-${name}`);
+      const wertEl   = document.getElementById(`wert-k-${name}`);
+
+      function aktualisieren() {
+        const aktiv = schalter.checked;
+        wrapper.classList.toggle('kombi-achse--aus', !aktiv);
+        regler.disabled = !aktiv;
+        if (aktiv) {
+          konfig.anwenden(Number(regler.value), wertEl);
+        } else {
+          konfig.neutral();
+          wertEl.textContent = 'Aus';
+        }
+      }
+
+      schalter.addEventListener('change', aktualisieren);
+      regler.addEventListener('input', aktualisieren);
+      aktualisieren();
+    }
+
+    kombiAchseEinrichten('intensitaet', {
+      anwenden(wert, wertEl) {
+        const schnitt = intensitaetZuSchriftschnitt(wert);
+        wortKombiniert.style.fontFamily = `'${schnitt}', 'Inter', sans-serif`;
+        wertEl.innerHTML = `<strong>${schnitt}</strong> · ${wert}`;
+      },
+      neutral() {
+        wortKombiniert.style.fontFamily = `'Situra-Regular', 'Inter', sans-serif`;
+      }
+    });
+
+    kombiAchseEinrichten('tempo', {
+      anwenden(wert, wertEl) {
+        const spacing = umrechnen(wert, 100, 900, -0.04, 0.12);
+        wortKombiniert.style.letterSpacing = `${spacing.toFixed(3)}em`;
+        wertEl.innerHTML = `<strong>${spacing.toFixed(3)}em</strong> · ${wert}`;
+      },
+      neutral() {
+        wortKombiniert.style.letterSpacing = 'normal';
+      }
+    });
+
+    kombiAchseEinrichten('stabilitaet', {
+      anwenden(wert, wertEl) {
+        const amp = wert;         // px – direkt die Reglerstärke
+        const rot = wert * 1.2;   // Grad – proportional zur Stärke
+        wortKombiniert.querySelectorAll('.zitter-buchstabe').forEach(function (span) {
+          span.style.setProperty('--amp', `${amp}px`);
+          span.style.setProperty('--rot', `${rot}deg`);
+          span.style.animationPlayState = wert > 0 ? 'running' : 'paused';
+        });
+        wertEl.innerHTML = wert <= 0
+          ? `<strong>ruhig</strong> · 0`
+          : `<strong>${amp.toFixed(1)}px</strong> · ${wert}`;
+      },
+      neutral() {
+        wortKombiniert.querySelectorAll('.zitter-buchstabe').forEach(function (span) {
+          span.style.setProperty('--amp', '0px');
+          span.style.setProperty('--rot', '0deg');
+          span.style.animationPlayState = 'paused';
+        });
+      }
+    });
+
+    kombiAchseEinrichten('wachheit', {
+      anwenden(wert, wertEl) {
+        const blur = umrechnen(wert, 0, 100, BLUR_MAX, 0);
+        wortKombiniert.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
+        wertEl.innerHTML = `<strong>${blur.toFixed(2)}px</strong> · ${wert}`;
+      },
+      neutral() {
+        wortKombiniert.style.filter = 'none';
+      }
+    });
+
+    kombiAchseEinrichten('gefasstheit', {
+      anwenden(wert, wertEl) {
+        const deckkraft = umrechnen(wert, 0, 100, TRANSPARENZ_MIN, 1);
+        wortKombiniert.style.opacity = deckkraft.toFixed(2);
+        wertEl.innerHTML = `<strong>${deckkraft.toFixed(2)}</strong> · ${wert}`;
+      },
+      neutral() {
+        wortKombiniert.style.opacity = '1';
+      }
+    });
+
+    kombiAchseEinrichten('tonalitaet', {
+      anwenden(wert, wertEl) {
+        const t = wert / 100;
+        const r = Math.round(umrechnen(t, 0, 1, TON_KUEHL[0], TON_WARM[0]));
+        const g = Math.round(umrechnen(t, 0, 1, TON_KUEHL[1], TON_WARM[1]));
+        const b = Math.round(umrechnen(t, 0, 1, TON_KUEHL[2], TON_WARM[2]));
+        wortKombiniert.style.color = `rgb(${r}, ${g}, ${b})`;
+        const label = wert < 35 ? 'kühl' : wert > 65 ? 'warm' : 'neutral';
+        wertEl.innerHTML = `<strong>${label}</strong> · ${wert}`;
+      },
+      neutral() {
+        wortKombiniert.style.color = '';
+      }
+    });
   </script>
 
 </body>

@@ -90,12 +90,18 @@
       --text-3:       #aaaaaa;   /* Labels, schwacher Text */
       --text-4:       #bbbbbb;   /* Sehr schwacher Text, Wertanzeigen */
       --accent:       #555555;   /* Slider-Thumb, Fortschrittsbalken */
-      --toggle-off:   #c4c2bb;   /* Toggle-Schiene, Emotion AUS */
-      --toggle-on:    #444444;   /* Toggle-Schiene, Emotion AN */
       --placeholder:  #c0bdb8;   /* Eingabefeld-Platzhalter */
       --bubble-outline: rgba(0, 0, 0, 0.75);   /* Sprechblasen-Outline, heller Modus */
       --scrollbar-farbe: rgba(0, 0, 0, 0.22);  /* Scroll-Indikator, heller Modus */
       --emotion-karte-bg: rgba(0, 0, 0, 0.85); /* Karte hinter dem Emotion-Schalter, heller Modus */
+      /* Emotion-Schalter AN: volle Füllung statt nur Farbwechsel der
+         Schiene (siehe .schalter-visuell) – Kontrastfarbe zur Schrift
+         des Modus, --schalter-fuellung-kontrast ist die Thumb-Farbe
+         AUF der Füllung. In der Karte hinter dem Schalter (schwebend/
+         Chat-Fußleiste, siehe --emotion-karte-bg) unten überschrieben,
+         weil die Karte dort in BEIDEN Modi dunkel ist. */
+      --schalter-fuellung:           #000000;
+      --schalter-fuellung-kontrast:  #ffffff;
     }
 
     .phone-frame.emotion-an {
@@ -109,12 +115,12 @@
       --text-3:       #666666;   /* Labels, schwacher Text */
       --text-4:       #505050;   /* Sehr schwacher Text, Wertanzeigen */
       --accent:       #888888;   /* Slider-Thumb, Fortschrittsbalken */
-      --toggle-off:   #383838;   /* Toggle-Schiene, Emotion AUS */
-      --toggle-on:    #aaaaaa;   /* Toggle-Schiene, Emotion AN */
       --placeholder:  #484848;   /* Eingabefeld-Platzhalter */
       --bubble-outline: var(--bubble-outline);  /* Sprechblasen-Outline, dunkler Modus */
       --scrollbar-farbe: rgba(255, 255, 255, 0.22); /* Scroll-Indikator, dunkler Modus */
       --emotion-karte-bg: rgba(255, 255, 255, 0.10); /* Karte hinter dem Emotion-Schalter, dunkler Modus */
+      --schalter-fuellung:           #ffffff;
+      --schalter-fuellung-kontrast:  #000000;
     }
 
 
@@ -1099,6 +1105,15 @@
     .profil-foto-wrapper {
       position: relative;
       flex-shrink: 0;
+    }
+
+    /* Zentriert den (generischen, s. o.) Foto-Wrapper in Kontexten ohne
+       eigenes align-items:center – Neue-Gruppe- und Gruppeninfo-
+       Overlay (.overlay-karte ist display:flex ohne align-items,
+       Kinder würden sonst über die volle Breite gestreckt). */
+    .gruppe-foto-zeile {
+      display: flex;
+      justify-content: center;
     }
 
     /* Kleiner Stift-Button, unten rechts über dem Foto-Kreis –
@@ -2393,9 +2408,19 @@
 
     .emotion-schalter input[type="checkbox"] { display: none; }
 
+    /* Klar unterscheidbarer AN/AUS-Zustand statt nur eines dezenten
+       Farbwechsels der Schiene: AUS = nur Umriss, keine Füllung; AN =
+       voll gefüllt (--schalter-fuellung, siehe Modus-Variablen oben –
+       in der Karte hinter dem Schalter unten per Klassen-Selektor
+       überschrieben, weil diese Karte in BEIDEN Modi dunkel ist). Die
+       eigentliche Übergangs-Animation kommt von der globalen
+       MODUSWECHSEL-TRANSITION-Regel weiter unten (gilt für background-
+       color/border-color auf allen Elementen im Frame), hier daher
+       bewusst keine eigene, u. U. kollidierende transition-Angabe. */
     .schalter-visuell {
       width: 34px; height: 19px;
-      background: var(--toggle-off);
+      background: transparent;
+      border: 1.5px solid var(--text-3);
       border-radius: 10px;
       position: relative;
     }
@@ -2405,20 +2430,27 @@
       position: absolute;
       width: 13px; height: 13px;
       border-radius: 50%;
-      background: #fff;
-      top: 3px; left: 3px;
-      transition: transform 0.4s ease;
+      background: var(--text-3);
+      top: 1.5px; left: 1.5px;
+      /* transition steht bewusst NICHT hier, siehe Regel nach
+         MODUSWECHSEL-TRANSITION weiter unten (::after wird von der
+         globalen Transition-Regel nicht erfasst, braucht also ohnehin
+         eine eigene – die aber an der richtigen Stelle im Stylesheet
+         stehen muss). */
     }
 
-    /* Klassenbasiert statt #emotion-toggle: es gibt zwei Schalter (Fuß-
-       leiste im Chat + Kopfzeile der Übersicht), die denselben globalen
-       Zustand spiegeln – siehe emotion-toggle-oben unten. */
+    /* Klassenbasiert statt #emotion-toggle: es gibt drei Schalter (Fuß-
+       leiste im Chat + schwebender Schalter der Übersicht +
+       Einstellungen-Overlay), die denselben globalen Zustand spiegeln –
+       siehe emotionModusSetzen (JS). */
     .emotion-schalter input:checked + .schalter-visuell {
-      background: var(--toggle-on);
+      background: var(--schalter-fuellung);
+      border-color: var(--schalter-fuellung);
     }
 
     .emotion-schalter input:checked + .schalter-visuell::after {
       transform: translateX(15px);
+      background: var(--schalter-fuellung-kontrast);
     }
 
     .schalter-label {
@@ -2437,6 +2469,14 @@
       background: var(--emotion-karte-bg);
       padding: 6px 10px;
       border-radius: 12px;
+      /* Diese Karte ist in BEIDEN App-Modi dunkel (siehe --emotion-
+         karte-bg oben – im hellen Modus fast schwarz, im dunklen Modus
+         nur ein dezent hellerer Grauton auf Schwarz). Die AN-Füllung
+         des Schalters muss deshalb IMMER hell sein, unabhängig vom
+         App-Modus – sonst wäre sie im hellen Modus (schwarze Füllung
+         auf fast schwarzer Karte) praktisch unsichtbar. */
+      --schalter-fuellung:          #ffffff;
+      --schalter-fuellung-kontrast: #000000;
     }
 
     /* Übersicht (Chats/Gruppen/Moment/Profil): der Schalter schwebt
@@ -2474,8 +2514,13 @@
     /* Balken-Breite bleibt schnell (0.15 s) – nur Farbe folgt dem Modus */
     .dimension-balken { transition: width 0.15s ease, background-color 0.4s ease; }
 
-    /* Toggle-Schieber bewegt sich immer mit 0.4 s (konsistent mit Moduswechsel) */
-    .schalter-visuell::after { transition: transform 0.4s ease; }
+    /* Toggle-Schieber bewegt sich immer mit 0.4 s (konsistent mit
+       Moduswechsel) UND wechselt seine Füllfarbe (AUS/AN-Kontrast)
+       ebenso weich – ::after ist ein Pseudo-Element und wird von der
+       globalen ".phone-frame *"-Regel oben NICHT erfasst (die matcht
+       nur echte Elemente), daher hier explizit background-color mit
+       aufgenommen statt sich auf die globale Regel zu verlassen. */
+    .schalter-visuell::after { transition: transform 0.4s ease, background-color 0.4s ease; }
 
     /* Gruppenraum – Verblassen/Andocken (siehe .raum-nachricht/
        .raum-verbindung oben): eigene transition-property, muss ebenso
@@ -2866,6 +2911,15 @@
           <span class="overlay-titel">Neue Gruppe</span>
           <button class="overlay-schliessen" id="neue-gruppe-schliessen" aria-label="Schließen">&times;</button>
         </div>
+        <!-- Gruppenbild (optional): fällt ohne Auswahl auf die
+             Mitglieder-Initialen zurück, siehe gruppenAvatarAnwenden (JS). -->
+        <div class="gruppe-foto-zeile">
+          <div class="profil-foto-wrapper">
+            <div class="avatar avatar--profil" id="neue-gruppe-avatar"></div>
+            <button class="profil-foto-upload-btn" id="neue-gruppe-foto-upload-btn" type="button" title="Gruppenbild wählen" aria-label="Gruppenbild wählen">✎</button>
+            <input type="file" accept="image/*" id="neue-gruppe-foto-input" hidden>
+          </div>
+        </div>
         <input class="suche-eingabe" type="text" id="neue-gruppe-name"
           placeholder="Gruppenname (optional)" autocomplete="off">
         <div class="kontakt-auswahl-liste" id="kontakt-auswahl-liste"></div>
@@ -3056,6 +3110,15 @@
           <span class="overlay-titel">Gruppeninfo</span>
           <button class="overlay-schliessen" id="gruppeninfo-schliessen" aria-label="Schließen">&times;</button>
         </div>
+        <!-- Gruppenbild (optional): fällt ohne Auswahl auf die
+             Mitglieder-Initialen zurück, siehe gruppenAvatarAnwenden (JS). -->
+        <div class="gruppe-foto-zeile">
+          <div class="profil-foto-wrapper">
+            <div class="avatar avatar--profil" id="gruppeninfo-avatar">–</div>
+            <button class="profil-foto-upload-btn" id="gruppeninfo-foto-upload-btn" type="button" title="Gruppenbild ändern" aria-label="Gruppenbild ändern">✎</button>
+            <input type="file" accept="image/*" id="gruppeninfo-foto-input" hidden>
+          </div>
+        </div>
         <div class="kontakt-auswahl-liste" id="gruppeninfo-mitglieder-liste"></div>
         <button class="overlay-btn overlay-btn--gefahr" id="gruppe-loeschen-btn">Gruppe löschen</button>
       </div>
@@ -3126,6 +3189,7 @@
     // ausgeblendet (siehe zeigeGruppenChat für den umgekehrten Fall).
     chat.hidden        = false;
     gruppenRaum.hidden = true;
+    chatVerlaufAnzeigen(name); // NUR der eigene, gespeicherte Verlauf dieses Kontakts (siehe Bugfix oben)
     ansichtUebersicht.classList.add('ansicht--versteckt');
     ansichtChat.classList.remove('ansicht--versteckt');
     // Höhe anpassen, sobald die Ansicht sichtbar ist (scrollHeight = 0 wenn unsichtbar)
@@ -3248,12 +3312,32 @@
   const gruppenListe = document.getElementById('gruppen-liste');
 
   let gruppen = [
-    { name: 'Zwischen uns', mitglieder: ['Anna', 'Luca', 'Mia'] },
-    { name: 'Wochenende',  mitglieder: ['Ben', 'Clara', 'Sophie'] }
+    { name: 'Zwischen uns', mitglieder: ['Anna', 'Luca', 'Mia'], bild: null },
+    { name: 'Wochenende',  mitglieder: ['Ben', 'Clara', 'Sophie'], bild: null }
   ];
 
   function gruppenInitialen(mitglieder) {
     return mitglieder.slice(0, 2).map(function (n) { return n.charAt(0).toUpperCase(); }).join('');
+  }
+
+  // Zeigt auf einem Avatar-Element entweder das gesetzte Gruppenbild
+  // (gruppe.bild, eine Data-URL – siehe Upload-Logik weiter unten) oder
+  // fällt auf die Mitglieder-Initialen zurück, wenn keins gesetzt ist.
+  // Wiederverwendet dasselbe .avatar--foto-Prinzip wie die 1:1-Profil-
+  // /Kontaktfotos (siehe avatarFotoAnwenden/eigenesProfilbildAnwenden),
+  // an ALLEN Stellen aufgerufen, an denen ein Gruppen-Avatar angezeigt
+  // wird, damit Listen-Eintrag, Chat-Kopfzeile und Gruppeninfo immer
+  // konsistent bleiben.
+  function gruppenAvatarAnwenden(avatarEl, gruppe) {
+    if (gruppe.bild) {
+      avatarEl.style.backgroundImage = "url('" + gruppe.bild + "')";
+      avatarEl.classList.add('avatar--foto');
+      avatarEl.textContent = '';
+    } else {
+      avatarEl.style.backgroundImage = '';
+      avatarEl.classList.remove('avatar--foto');
+      avatarEl.textContent = gruppenInitialen(gruppe.mitglieder);
+    }
   }
 
   // Baut einen Gruppen-Eintrag (gleiches Markup/Styling wie ein
@@ -3268,7 +3352,7 @@
     avatar.className = 'avatar';
     avatar.style.fontSize = '13px';
     avatar.style.fontVariationSettings = "'wght' 500"; // neutral – keine Personen-Mittelung
-    avatar.textContent = gruppenInitialen(gruppe.mitglieder);
+    gruppenAvatarAnwenden(avatar, gruppe);
     eintrag.appendChild(avatar);
 
     const info = document.createElement('div');
@@ -3310,7 +3394,7 @@
   function gruppeneintragAktualisieren(gruppe) {
     const eintrag = gruppenListe.querySelector('.gespraechs-eintrag[data-name="' + CSS.escape(gruppe.name) + '"]');
     if (!eintrag) return;
-    eintrag.querySelector('.avatar').textContent = gruppenInitialen(gruppe.mitglieder);
+    gruppenAvatarAnwenden(eintrag.querySelector('.avatar'), gruppe);
     eintrag.querySelector('.gespraechs-vorschau').textContent = gruppe.mitglieder.join(', ');
   }
 
@@ -3326,7 +3410,7 @@
     gruppenAntwortIndex    = 0;
 
     chatPartnerName.textContent   = gruppe.name;
-    chatPartnerAvatar.textContent = gruppenInitialen(gruppe.mitglieder);
+    gruppenAvatarAnwenden(chatPartnerAvatar, gruppe);
     chatPartnerAvatar.style.fontVariationSettings = "'wght' 500";
     chatPartnerAvatar.style.fontWeight            = 500;
     delete chatPartnerAvatar.dataset.name; // keine Zuordnung zu einer Einzelperson
@@ -3353,6 +3437,14 @@
   const neueGruppeName         = document.getElementById('neue-gruppe-name');
   const neueGruppeErstellenBtn = document.getElementById('neue-gruppe-erstellen-btn');
   const kontaktAuswahlListe    = document.getElementById('kontakt-auswahl-liste');
+  const neueGruppeAvatar         = document.getElementById('neue-gruppe-avatar');
+  const neueGruppeFotoUploadBtn  = document.getElementById('neue-gruppe-foto-upload-btn');
+  const neueGruppeFotoInput      = document.getElementById('neue-gruppe-foto-input');
+
+  // Hält das per Upload gewählte Gruppenbild zwischen, solange noch kein
+  // Gruppen-Objekt existiert (das entsteht erst beim Klick auf "Gruppe
+  // erstellen") – wird bei jedem Öffnen des Overlays zurückgesetzt.
+  let neueGruppeBildDataUrl = null;
 
   // Baut die Kontaktauswahl-Checkboxen jedes Mal frisch aus der
   // aktuellen 1:1-Kontaktliste auf (bleibt so automatisch konsistent,
@@ -3381,8 +3473,26 @@
   function neueGruppeOeffnen() {
     kontaktAuswahlAufbauen();
     neueGruppeName.value = '';
+    neueGruppeBildDataUrl = null;
+    neueGruppeAvatar.style.backgroundImage = '';
+    neueGruppeAvatar.classList.remove('avatar--foto');
+    neueGruppeAvatar.textContent = '';
     neueGruppeOverlay.classList.add('sichtbar');
   }
+
+  neueGruppeFotoUploadBtn.addEventListener('click', function () { neueGruppeFotoInput.click(); });
+  neueGruppeFotoInput.addEventListener('change', function () {
+    const datei = neueGruppeFotoInput.files[0];
+    if (!datei) return;
+    const leser = new FileReader();
+    leser.onload = function () {
+      neueGruppeBildDataUrl = leser.result;
+      neueGruppeAvatar.style.backgroundImage = "url('" + leser.result + "')";
+      neueGruppeAvatar.classList.add('avatar--foto');
+      neueGruppeAvatar.textContent = '';
+    };
+    leser.readAsDataURL(datei);
+  });
 
   function neueGruppeSchliessen() {
     neueGruppeOverlay.classList.remove('sichtbar');
@@ -3405,7 +3515,7 @@
     if (ausgewaehlt.length < 2) return; // eine Gruppe braucht mind. 2 Mitglieder
 
     const name = neueGruppeName.value.trim() || ausgewaehlt.join(', ');
-    const gruppe = { name: name, mitglieder: ausgewaehlt };
+    const gruppe = { name: name, mitglieder: ausgewaehlt, bild: neueGruppeBildDataUrl };
     gruppen.push(gruppe);
     gruppenEintragErstellen(gruppe);
 
@@ -3538,12 +3648,30 @@
   const gruppeninfoSchliessenBtn   = document.getElementById('gruppeninfo-schliessen');
   const gruppeninfoMitgliederListe = document.getElementById('gruppeninfo-mitglieder-liste');
   const gruppeLoeschenBtn          = document.getElementById('gruppe-loeschen-btn');
+  const gruppeninfoAvatar          = document.getElementById('gruppeninfo-avatar');
+  const gruppeninfoFotoUploadBtn   = document.getElementById('gruppeninfo-foto-upload-btn');
+  const gruppeninfoFotoInput       = document.getElementById('gruppeninfo-foto-input');
 
   // Öffnen: Tippen auf Avatar/Name im Chat-Header – nur bei Gruppen aktiv.
   chatPartnerBtn.addEventListener('click', function () {
     if (!aktuellerChatIstGruppe) return;
     gruppeninfoRendern();
+    gruppenAvatarAnwenden(gruppeninfoAvatar, aktuelleGruppe);
     gruppeninfoOverlay.classList.add('sichtbar');
+  });
+
+  gruppeninfoFotoUploadBtn.addEventListener('click', function () { gruppeninfoFotoInput.click(); });
+  gruppeninfoFotoInput.addEventListener('change', function () {
+    const datei = gruppeninfoFotoInput.files[0];
+    if (!datei) return;
+    const leser = new FileReader();
+    leser.onload = function () {
+      aktuelleGruppe.bild = leser.result;
+      gruppenAvatarAnwenden(gruppeninfoAvatar, aktuelleGruppe);
+      gruppeneintragAktualisieren(aktuelleGruppe);
+      gruppenAvatarAnwenden(chatPartnerAvatar, aktuelleGruppe);
+    };
+    leser.readAsDataURL(datei);
   });
 
   function gruppeninfoSchliessen() {
@@ -3589,7 +3717,9 @@
   function gruppenmitgliedEntfernen(name) {
     aktuelleGruppe.mitglieder = aktuelleGruppe.mitglieder.filter(function (m) { return m !== name; });
     gruppeneintragAktualisieren(aktuelleGruppe);
-    chatPartnerAvatar.textContent = gruppenInitialen(aktuelleGruppe.mitglieder);
+    // Initialen-Fallback ändert sich ggf. (andere Mitglieder), das
+    // gesetzte Gruppenbild (falls vorhanden) bleibt unangetastet.
+    gruppenAvatarAnwenden(chatPartnerAvatar, aktuelleGruppe);
     gruppeninfoRendern();
   }
 
@@ -4659,38 +4789,55 @@
   vorschauAktualisieren();
   eingabeFeldAnpassen(); // Starthöhe setzen
 
-  // ── Nachricht einfügen ────────────────────────────────────────
+  // ── Nachrichtenverlauf: GETRENNT pro Kontakt ────────────────────
+  // BUGFIX: #chat ist ein einziges, global geteiltes DOM-Element –
+  // zeigeChat() hat es beim Kontaktwechsel nie geleert/neu befüllt,
+  // wodurch alle 1:1-Kontakte denselben angezeigten Verlauf "teilten"
+  // (Tims Nachrichten blieben sichtbar, wenn man zu Paul wechselte).
+  // Jetzt lebt der eigentliche Verlauf hier, pro Kontakt getrennt –
+  // #chat ist nur noch die Anzeige des GERADE GEÖFFNETEN Kontakts,
+  // wird beim Öffnen (siehe zeigeChat) aus chatVerlaeufe[name] neu
+  // aufgebaut.
+  // chatVerlaeufe[name] = [{ text, vonMir, wortSnapshots, absenderName,
+  //   einblendDauer }, ...] – höchstens 2 Einträge (aktuelle +
+  // vorherige), exakt dasselbe "nur die letzten zwei sichtbar"-Prinzip
+  // wie zuvor, nur jetzt je Kontakt statt global gedeckelt.
+  let chatVerlaeufe = {};
+
+  // Baut EIN Nachrichten-Element aus einem gespeicherten Verlaufs-
+  // Eintrag – reine DOM-Erzeugung (unverändert gegenüber der früheren
+  // nachrichtHinzufuegen-Logik), keine Speicher-Logik. Wird sowohl für
+  // neu ankommende Nachrichten als auch beim Neuaufbau der Ansicht
+  // beim Kontaktwechsel verwendet (siehe chatVerlaufAnzeigen).
+  //
   // wortSnapshots: Array [{achsen, leblos}, ...], ein Eintrag pro Wort
   // (siehe wortZustaendeSynchronisieren weiter oben) – bei eigenen
   // Nachrichten aus der Live-Tipp-Pipeline, bei automatischen Demo-
   // Antworten (siehe autoAntwortPlanen weiter unten) aus simulierten
   // Rohwerten des jeweiligen Kontakts (dieselbe Quelle wie im Moment-
   // Feed/Gruppenraum: raumMitgliedRohwerte + raumWortSnapshotsErzeugen).
-  // Ob eine Nachricht wort-für-wort gestylt wird, hängt NICHT mehr an
-  // vonMir, sondern schlicht daran, ob wortSnapshots übergeben wurde –
-  // ruft man ohne (wie der alte "Antwort"-Button-Pfad für 1:1), bleibt
-  // der Text schlicht/neutral wie bisher.
-  // absenderName: nur bei Gruppen-Chats gesetzt (siehe antwortBtn-Handler
-  // weiter unten) – überschreibt für EMPFANGENE Nachrichten den Namen des
-  // jeweils schreibenden Gruppenmitglieds.
-  function nachrichtHinzufuegen(text, vonMir, wortSnapshots, absenderName) {
+  // Ob eine Nachricht wort-für-wort gestylt wird, hängt NICHT an
+  // vonMir, sondern schlicht daran, ob wortSnapshots vorhanden ist –
+  // ohne (wie der alte "Antwort"-Button-Pfad für 1:1) bleibt der Text
+  // schlicht/neutral wie bisher.
+  function nachrichtElementErstellen(eintrag) {
     const wrapper = document.createElement('div');
-    wrapper.classList.add('nachricht', vonMir ? 'nachricht-ich' : 'nachricht-andere');
+    wrapper.classList.add('nachricht', eintrag.vonMir ? 'nachricht-ich' : 'nachricht-andere');
 
     // Tempo steuert die Dauer der Einblend-Animation eigener Nachrichten
-    if (vonMir && emotionAktiv) {
-      wrapper.style.setProperty('--einblenden-dauer', `${aktuelleAchsen.einblendDauer.toFixed(2)}s`);
+    if (eintrag.einblendDauer != null) {
+      wrapper.style.setProperty('--einblenden-dauer', `${eintrag.einblendDauer.toFixed(2)}s`);
     }
 
     const absenderEl = document.createElement('span');
     absenderEl.classList.add('nachricht-absender');
-    absenderEl.textContent = vonMir ? 'Du' : (absenderName || chatPartnerName.textContent);
+    absenderEl.textContent = eintrag.vonMir ? 'Du' : (eintrag.absenderName || chatPartnerName.textContent);
     wrapper.appendChild(absenderEl);
 
     const textEl = document.createElement('p');
     textEl.classList.add('text');
 
-    if (wortSnapshots) {
+    if (eintrag.wortSnapshots) {
       // ═══════════════════════════════════════════════════════════
       // WORT-EBENE: Jedes Wort wird als eigenes <span class="wort">
       // dargestellt und bekommt SEINEN eigenen eingefrorenen Zustand
@@ -4699,10 +4846,10 @@
       // Leerzeichen (Textknoten), damit der Zeilenumbruch dort
       // weiterhin normal funktioniert.
       // ═══════════════════════════════════════════════════════════
-      const woerter = text.split(/\s+/).filter(w => w.length > 0);
+      const woerter = eintrag.text.split(/\s+/).filter(w => w.length > 0);
 
       woerter.forEach((wort, i) => {
-        const snapshot = wortSnapshots[i];
+        const snapshot = eintrag.wortSnapshots[i];
 
         const wortSpan = document.createElement('span');
         wortSpan.classList.add('wort');
@@ -4722,32 +4869,66 @@
         }
       });
     } else {
-      textEl.textContent = text;
+      textEl.textContent = eintrag.text;
     }
 
     wrapper.appendChild(textEl);
 
     // Status-Indikator: Emotion-Zustand beim Absenden einfrieren
     // Nur bei eigenen Nachrichten relevant; wird nie nachträglich geändert.
-    if (vonMir) {
+    if (eintrag.vonMir) {
       const statusEl = document.createElement('span');
       statusEl.classList.add('nachricht-status');
       // "e" sichtbar, wenn mindestens EIN Wort emotional eingefroren wurde;
       // leer = alle Wörter leblos/neutral (Abwesenheit ist das Signal)
-      const hatEmotionalesWort = wortSnapshots.some(s => !s.leblos);
+      const hatEmotionalesWort = eintrag.wortSnapshots.some(s => !s.leblos);
       statusEl.textContent = hatEmotionalesWort ? 'e' : '';
       wrapper.appendChild(statusEl);
     }
 
-    chat.appendChild(wrapper);
+    return wrapper;
+  }
 
-    // Höchstens zwei Nachrichten gleichzeitig sichtbar (aktuelle + vorherige):
-    // erst wenn eine dritte hinzukommt, verschwindet die älteste.
-    while (chat.children.length > 2) {
-      chat.removeChild(chat.firstElementChild);
+  // Baut #chat komplett aus dem gespeicherten Verlauf EINES Kontakts
+  // neu auf – aufgerufen beim Öffnen eines Kontakts (siehe zeigeChat),
+  // damit garantiert nur dessen eigene Nachrichten sichtbar sind.
+  function chatVerlaufAnzeigen(name) {
+    chat.innerHTML = '';
+    (chatVerlaeufe[name] || []).forEach(function (eintrag) {
+      chat.appendChild(nachrichtElementErstellen(eintrag));
+    });
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  // Fügt eine neue Nachricht in den Verlauf EINES Kontakts ein
+  // (absenderName bei Empfang, sonst der gerade geöffnete Kontakt –
+  // siehe kontaktName unten) und zeigt sie nur dann sofort in #chat
+  // an, wenn genau dieser Kontakt (1:1, keine Gruppe) gerade geöffnet
+  // ist – sonst landet sie nur im gespeicherten Verlauf und erscheint
+  // automatisch, sobald der Kontakt als Nächstes geöffnet wird.
+  function nachrichtHinzufuegen(text, vonMir, wortSnapshots, absenderName) {
+    const kontaktName = absenderName || chatPartnerName.textContent;
+
+    const eintrag = {
+      text: text,
+      vonMir: vonMir,
+      wortSnapshots: wortSnapshots,
+      absenderName: absenderName,
+      einblendDauer: (vonMir && emotionAktiv) ? aktuelleAchsen.einblendDauer : null
+    };
+
+    if (!chatVerlaeufe[kontaktName]) chatVerlaeufe[kontaktName] = [];
+    chatVerlaeufe[kontaktName].push(eintrag);
+
+    // Höchstens zwei Nachrichten gespeichert (aktuelle + vorherige) –
+    // exakt dasselbe Prinzip wie zuvor, jetzt pro Kontakt statt global.
+    while (chatVerlaeufe[kontaktName].length > 2) {
+      chatVerlaeufe[kontaktName].shift();
     }
 
-    chat.scrollTop = chat.scrollHeight;
+    if (!aktuellerChatIstGruppe && chatPartnerName.textContent === kontaktName) {
+      chatVerlaufAnzeigen(kontaktName);
+    }
   }
 
 
