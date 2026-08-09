@@ -2478,11 +2478,35 @@
 
     .phone-frame.emotion-an .raum-nachricht { color: #ffffff; }
 
+    /* ── Dynamische Gewichtung: wer zuletzt schrieb bzw. per @name
+       angesprochen wurde, wird groß dargestellt, alle übrigen klein
+       (aber weiterhin lesbar, inkl. ihrer Typografie – man soll sehen,
+       wie jemand "zuhört"). Klassen werden pro Zone gesetzt/entfernt
+       von raumGroesseAktualisieren (JS) – siehe dort. Bewusst KEIN
+       transform:scale() auf die ganze Zone: das würde deren
+       getBoundingClientRect() verändern, auf die raumRichtungBestimmen/
+       raumVerbindungZeichnen für stabile Positionen angewiesen sind –
+       daher nur Schriftgröße innerhalb der ansonsten unveränderten
+       Zelle. Kein drittes "neutral" nötig: ohne beide Klassen gilt der
+       Standard direkt oben (14px/10px). ── */
+    .raum-zone--gross .raum-nachricht { font-size: 20px; }
+    .raum-zone--gross .raum-zone-name { font-size: 12px; }
+
+    .raum-zone--klein .raum-nachricht { font-size: 11px; opacity: 0.6; }
+    .raum-zone--klein .raum-zone-name { opacity: 0.6; }
+
     /* Verblassen: max. 2 Nachrichten gleichzeitig sichtbar pro Zone
        (wie im 1:1-Chat) – die ältere bekommt diese Klasse, blendet
        sich weich aus und wird danach per Timer entfernt (siehe JS),
-       statt abrupt zu verschwinden. */
-    .raum-nachricht--verblasst {
+       statt abrupt zu verschwinden. WICHTIG: als .raum-nachricht.raum-
+       nachricht--verblasst (statt nur .raum-nachricht--verblasst)
+       notiert und bewusst NACH den .raum-zone--klein-Regeln oben
+       platziert – gleiche Spezifität (zwei Klassen) wie
+       ".raum-zone--klein .raum-nachricht", gewinnt bei einem Gleich-
+       stand also durch die spätere Position im Stylesheet. Ohne das
+       würde eine alte Nachricht in einer klein geschalteten Zone beim
+       Verblassen bei opacity 0.6 hängen bleiben statt auf 0 zu gehen. */
+    .raum-nachricht.raum-nachricht--verblasst {
       opacity: 0;
     }
 
@@ -2722,8 +2746,14 @@
        color) und opacity ändert sich abrupt statt weich zu verblassen
        – zusätzlich bliebe dann transitionend aus, wodurch die JS-Auf-
        räumlogik (Entfernen der verblassten Nachricht/Linie) nie greift. */
-    .raum-nachricht    { transition: opacity 0.6s ease, transform 0.6s ease; }
+    .raum-nachricht    { transition: opacity 0.6s ease, transform 0.6s ease, font-size 0.6s ease; }
     .raum-verbindung   { transition: opacity 1s ease; }
+
+    /* Dynamische Gewichtung (siehe .raum-zone--gross/--klein weiter
+       oben): eigene Transition aus demselben Grund NACH der globalen
+       MODUSWECHSEL-TRANSITION-Regel nötig, sonst würde nur die
+       Zonen-Namens-Schriftgröße abrupt springen statt weich zu wechseln. */
+    .raum-zone-name { transition: font-size 0.6s ease, opacity 0.6s ease; }
 
     /* ── Invertierter Modus (Emotion AN): helle Schrift auf dunklem Grund ── */
     /* Überschreibt hartcodierte Farben, die nicht über CSS-Variablen laufen.  */
@@ -3718,6 +3748,7 @@
     chat.hidden        = true;
     gruppenRaum.hidden = false;
     raumZonenAufbauen(gruppe);
+    raumGewichtungZuruecksetzen(); // frischer, neutraler Zustand bei jedem Öffnen (siehe GRUPPEN-RAUM weiter unten)
 
     ansichtUebersicht.classList.add('ansicht--versteckt');
     ansichtChat.classList.remove('ansicht--versteckt');
@@ -5251,6 +5282,54 @@
   //      konsistent.
   // ═══════════════════════════════════════════════════════════════
 
+  // ── Dynamische Gewichtung: wer zuletzt schrieb bzw. per @name
+  // angesprochen wurde, wird groß dargestellt (siehe .raum-zone--gross/
+  // --klein, CSS). raumAktivesPaar hält das laufende Gespräch fest,
+  // damit @name nur beim ERSTEN Mal einer Konversation nötig ist
+  // (siehe raumGerichteteNachrichtVerarbeiten weiter unten) – löst sich
+  // auf, sobald jemand außerhalb des Paars ohne @ schreibt, oder nach
+  // RAUM_PAUSE_MS ohne neue Nachricht (raumGewichtungZuruecksetzen).
+  let raumAktivesPaar     = null; // { a: name, b: name } | null
+  let raumLetzterSprecher = null;
+  let raumNeutralTimer    = null;
+  const RAUM_PAUSE_MS = 6000;
+
+  // Entfernt alle Größen-Klassen (Rückkehr zur neutralen Standardgröße,
+  // siehe CSS) und setzt Paar/Sprecher zurück – "neutraler Ausgangs-
+  // zustand" nach längerer Pause bzw. beim frischen Öffnen einer Gruppe.
+  function raumGewichtungZuruecksetzen() {
+    clearTimeout(raumNeutralTimer);
+    raumNeutralTimer = null;
+    raumAktivesPaar     = null;
+    raumLetzterSprecher = null;
+    gruppenRaum.querySelectorAll('.raum-zone').forEach(function (zone) {
+      zone.classList.remove('raum-zone--gross', 'raum-zone--klein');
+    });
+  }
+
+  // Setzt .raum-zone--gross auf den/die aktuell hervorgehobene(n)
+  // Person(en) (letzte(r) Sprecher(in) + ggf. Gesprächspartner(in) aus
+  // raumAktivesPaar), .raum-zone--klein auf alle übrigen. Startet
+  // zugleich den Pause-Rückfall-Timer neu.
+  function raumGroesseAktualisieren() {
+    if (!raumLetzterSprecher) return;
+
+    const gross = new Set([raumLetzterSprecher]);
+    if (raumAktivesPaar) {
+      gross.add(raumAktivesPaar.a);
+      gross.add(raumAktivesPaar.b);
+    }
+
+    gruppenRaum.querySelectorAll('.raum-zone').forEach(function (zone) {
+      const istGross = gross.has(zone.dataset.name);
+      zone.classList.toggle('raum-zone--gross', istGross);
+      zone.classList.toggle('raum-zone--klein', !istGross);
+    });
+
+    clearTimeout(raumNeutralTimer);
+    raumNeutralTimer = setTimeout(raumGewichtungZuruecksetzen, RAUM_PAUSE_MS);
+  }
+
   // Baut die Zonen einer Gruppe neu auf (bei jedem Öffnen, siehe
   // zeigeGruppenChat oben). Spalten/Zeilen ergeben sich generisch aus
   // der Personenzahl (Mitglieder + "Du") – kein Sonderfall pro Zahl
@@ -5432,30 +5511,61 @@
     setTimeout(function () { letzte.classList.remove('raum-nachricht--echo'); }, 1250);
   }
 
-  // Orchestriert das optische "Andocken" (Punkte 5–7 der Anforderung):
+  // Löst das tatsächliche Gesprächs-Ziel dieser Nachricht auf UND
+  // pflegt raumAktivesPaar entsprechend fort (Punkte 10/7 der
+  // Anforderung):
+  //  1) @name im Text (≠ Absender) → eröffnet/verschiebt das Gespräch,
+  //     neues Paar {senderName, ziel}.
+  //  2) kein @, aber Absender ist Teil des laufenden Paars → Gespräch
+  //     läuft implizit weiter, Ziel = die jeweils andere Person, Paar
+  //     bleibt bestehen (kein erneutes @ nötig).
+  //  3) kein @, Absender außerhalb jedes laufenden Paars (dritte/neue
+  //     Person meldet sich) → Konstellation löst sich auf, kein Ziel.
+  // Gibt den Namen des Ziels zurück, oder null.
+  function raumZielAufloesen(senderName, text) {
+    const explizitesZiel = raumZielAusText(text);
+    if (explizitesZiel && explizitesZiel !== senderName) {
+      raumAktivesPaar = { a: senderName, b: explizitesZiel };
+      return explizitesZiel;
+    }
+    if (raumAktivesPaar && (raumAktivesPaar.a === senderName || raumAktivesPaar.b === senderName)) {
+      return raumAktivesPaar.a === senderName ? raumAktivesPaar.b : raumAktivesPaar.a;
+    }
+    raumAktivesPaar = null;
+    return null;
+  }
+
+  // Orchestriert sowohl das optische "Andocken" (Punkte 10–11) als auch
+  // die dynamische Größen-Hervorhebung (Punkte 4–9 der Anforderung):
   // wird direkt NACH raumNachrichtHinzufuegen für die sendende Person
   // aufgerufen, mit dem gerade gesendeten Text + dem neuen Element.
   function raumGerichteteNachrichtVerarbeiten(senderName, text, nachrichtEl) {
-    if (!nachrichtEl) return;
-    const zielName = raumZielAusText(text);
-    if (!zielName || zielName === senderName) return;
+    raumLetzterSprecher = senderName;
 
-    const senderZone = gruppenRaum.querySelector('.raum-zone[data-name="' + CSS.escape(senderName) + '"]');
-    const zielZone   = gruppenRaum.querySelector('.raum-zone[data-name="' + CSS.escape(zielName) + '"]');
-    if (!senderZone || !zielZone) return;
+    const zielName = raumZielAufloesen(senderName, text);
 
-    // Puls auf der Zielperson-Nachricht VOR dem eigenen Rendern
-    // ausgelöst, damit die zuletzt BESTEHENDE Nachricht der Zielperson
-    // trifft (die eigene, gerichtete Nachricht selbst wurde ja bereits
-    // in der Sender-Zone eingefügt, nicht in der Zielzone).
-    raumEchoPuls(zielZone);
+    if (zielName && nachrichtEl) {
+      const senderZone = gruppenRaum.querySelector('.raum-zone[data-name="' + CSS.escape(senderName) + '"]');
+      const zielZone   = gruppenRaum.querySelector('.raum-zone[data-name="' + CSS.escape(zielName) + '"]');
 
-    const richtung = raumRichtungBestimmen(senderZone, zielZone);
-    nachrichtEl.style.setProperty('--lehn-x', richtung.x);
-    nachrichtEl.style.setProperty('--lehn-y', richtung.y);
-    nachrichtEl.classList.add('raum-nachricht--gerichtet');
+      if (senderZone && zielZone) {
+        // Puls auf der Zielperson-Nachricht VOR dem eigenen Rendern
+        // ausgelöst, damit die zuletzt BESTEHENDE Nachricht der
+        // Zielperson trifft (die eigene, gerichtete Nachricht selbst
+        // wurde ja bereits in der Sender-Zone eingefügt, nicht in der
+        // Zielzone).
+        raumEchoPuls(zielZone);
 
-    raumVerbindungZeichnen(senderZone, zielZone);
+        const richtung = raumRichtungBestimmen(senderZone, zielZone);
+        nachrichtEl.style.setProperty('--lehn-x', richtung.x);
+        nachrichtEl.style.setProperty('--lehn-y', richtung.y);
+        nachrichtEl.classList.add('raum-nachricht--gerichtet');
+
+        raumVerbindungZeichnen(senderZone, zielZone);
+      }
+    }
+
+    raumGroesseAktualisieren();
   }
 
 
