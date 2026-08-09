@@ -226,6 +226,144 @@
       margin-bottom: 20px;
     }
 
+    /* ── Schritt "Probier's selbst": einziger Schritt, der scrollen
+       muss (6 Regler + Wortbühne passen nicht auf eine Bildschirmhöhe)
+       und linksbündig statt zentriert ist – eigene Modifikator-Klassen
+       statt Änderungen an .schritt/.karte selbst. ── */
+    .schritt--test.schritt--aktiv {
+      align-items: stretch;
+      justify-content: flex-start;
+      overflow-y: auto;
+      padding-bottom: 8px;
+    }
+
+    .karte--test { text-align: left; }
+    .karte--test .schritt-eyebrow,
+    .karte--test .schritt-titel,
+    .karte--test .schritt-text--test { text-align: center; }
+
+    .schritt-text--test { max-width: none; margin-bottom: 6px; }
+
+    .test-buehne {
+      min-height: clamp(80px, 18vw, 120px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 0 10px;
+    }
+
+    .test-wort {
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: clamp(2.1rem, 11vw, 3rem);
+      line-height: 1;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .zitter-buchstabe { display: inline-block; }
+
+    @keyframes situraZittern {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25%      { transform: translate(var(--amp, 0px), calc(var(--amp, 0px) * -1)) rotate(calc(var(--rot, 0deg) * -1)); }
+      50%      { transform: translate(calc(var(--amp, 0px) * -1), var(--amp, 0px)) rotate(var(--rot, 0deg)); }
+      75%      { transform: translate(var(--amp, 0px), var(--amp, 0px)) rotate(calc(var(--rot, 0deg) * -1)); }
+    }
+
+    .test-achsen {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      width: 100%;
+      padding-bottom: 6px;
+    }
+
+    .test-achse { display: flex; flex-direction: column; gap: 8px; }
+
+    .test-achse-kopf { display: flex; align-items: center; gap: 10px; }
+
+    .test-achse-label {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      transition: color 0.25s ease;
+    }
+
+    .test-achse--aus .test-achse-label { color: var(--text-3); }
+    .test-achse--aus .test-regler-zeile { opacity: 0.35; }
+
+    .test-schalter { flex-shrink: 0; display: inline-flex; cursor: pointer; }
+    .test-schalter input { display: none; }
+
+    .test-schalter-visuell {
+      width: 32px; height: 18px;
+      background: var(--punkt);
+      border-radius: 9px;
+      position: relative;
+      transition: background-color 0.25s ease;
+    }
+
+    .test-schalter-visuell::after {
+      content: '';
+      position: absolute;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--bg);
+      top: 3px; left: 3px;
+      transition: transform 0.25s ease;
+    }
+
+    .test-schalter input:checked + .test-schalter-visuell { background: var(--punkt-aktiv); }
+    .test-schalter input:checked + .test-schalter-visuell::after { transform: translateX(14px); }
+
+    .test-regler-zeile { display: flex; align-items: center; gap: 12px; }
+
+    .test-regler-zeile input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      min-width: 0;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--punkt);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .test-regler-zeile input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--text);
+      cursor: pointer;
+    }
+
+    .test-regler-zeile input[type="range"]::-moz-range-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--text);
+      border: none;
+      cursor: pointer;
+    }
+
+    .test-wert {
+      flex-shrink: 0;
+      min-width: 13ch;
+      text-align: right;
+      font-size: 11px;
+      color: var(--text-2);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+
+    .test-wert strong {
+      color: var(--text);
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-weight: normal;
+    }
+
     /* Elemente, die gestaffelt einfliegen (siehe JS: animationenStarten) */
     [data-einblenden] {
       opacity: 0;
@@ -927,6 +1065,7 @@
       <span class="punkt" data-index="4"></span>
       <span class="punkt" data-index="5"></span>
       <span class="punkt" data-index="6"></span>
+      <span class="punkt" data-index="7"></span>
     </div>
     <button id="ueberspringen-btn" class="link-btn">Überspringen</button>
   </div>
@@ -1008,6 +1147,125 @@
           Als Testwert färbt deine Körpertemperatur die Schrift von kühl zu
           <span class="demo-wort demo-farbe" data-demo="farbe">warm</span>.
         </p>
+      </div>
+    </section>
+
+    <!-- 7 — ZUSÄTZLICHER SCHRITT: "Probier's selbst" – derselbe
+         kombinierte Regler-Block wie situra-slider.html (Abschnitt
+         "Kombiniert"): alle sechs Achsen gleichzeitig auf ein Wort,
+         einzeln ein-/ausschaltbar und frei verschiebbar. Erscheint als
+         letzter Erklär-Schritt, direkt VOR dem Band-verbinden-Screen
+         (siehe geraeteVerbindenAnzeigen/weiterBtn-Handler unten). Eigene
+         Modifikator-Klassen (schritt--test/karte--test), weil dieser
+         Schritt – anders als alle anderen – scrollen muss und
+         linksbündig statt zentriert ist. -->
+    <section class="schritt schritt--test" data-schritt="7">
+      <div class="karte karte--test">
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">Bonus</span>
+        <h1 class="schritt-titel" data-einblenden style="--verz:.1s">Probier’s selbst</h1>
+        <p class="schritt-text schritt-text--test" data-einblenden style="--verz:.2s">
+          Schalte einzelne Dimensionen ein oder aus und verschiebe die
+          Regler frei – so lässt sich spüren, wie mehrere Zustände
+          gleichzeitig auf dieselbe Schrift wirken.
+        </p>
+
+        <div class="test-buehne">
+          <div class="test-wort" id="test-wort">Hallo</div>
+        </div>
+
+        <div class="test-achsen">
+
+          <div class="test-achse" id="test-achse-intensitaet">
+            <div class="test-achse-kopf">
+              <label class="test-schalter" title="Intensität ein-/ausschalten">
+                <input type="checkbox" id="test-schalter-intensitaet" checked>
+                <span class="test-schalter-visuell"></span>
+              </label>
+              <span class="test-achse-label">Intensität</span>
+            </div>
+            <div class="test-regler-zeile">
+              <input type="range" id="test-regler-intensitaet" min="100" max="900" step="1" value="400"
+                aria-label="Intensität">
+              <span class="test-wert" id="test-wert-intensitaet"></span>
+            </div>
+          </div>
+
+          <div class="test-achse" id="test-achse-tempo">
+            <div class="test-achse-kopf">
+              <label class="test-schalter" title="Tempo ein-/ausschalten">
+                <input type="checkbox" id="test-schalter-tempo" checked>
+                <span class="test-schalter-visuell"></span>
+              </label>
+              <span class="test-achse-label">Tempo</span>
+            </div>
+            <div class="test-regler-zeile">
+              <input type="range" id="test-regler-tempo" min="100" max="900" step="1" value="400"
+                aria-label="Tempo">
+              <span class="test-wert" id="test-wert-tempo"></span>
+            </div>
+          </div>
+
+          <div class="test-achse" id="test-achse-stabilitaet">
+            <div class="test-achse-kopf">
+              <label class="test-schalter" title="Stabilität ein-/ausschalten">
+                <input type="checkbox" id="test-schalter-stabilitaet" checked>
+                <span class="test-schalter-visuell"></span>
+              </label>
+              <span class="test-achse-label">Stabilität</span>
+            </div>
+            <div class="test-regler-zeile">
+              <input type="range" id="test-regler-stabilitaet" min="0" max="10" step="0.5" value="0"
+                aria-label="Stabilität">
+              <span class="test-wert" id="test-wert-stabilitaet"></span>
+            </div>
+          </div>
+
+          <div class="test-achse" id="test-achse-wachheit">
+            <div class="test-achse-kopf">
+              <label class="test-schalter" title="Wachheit ein-/ausschalten">
+                <input type="checkbox" id="test-schalter-wachheit" checked>
+                <span class="test-schalter-visuell"></span>
+              </label>
+              <span class="test-achse-label">Wachheit</span>
+            </div>
+            <div class="test-regler-zeile">
+              <input type="range" id="test-regler-wachheit" min="0" max="100" step="1" value="50"
+                aria-label="Wachheit">
+              <span class="test-wert" id="test-wert-wachheit"></span>
+            </div>
+          </div>
+
+          <div class="test-achse" id="test-achse-gefasstheit">
+            <div class="test-achse-kopf">
+              <label class="test-schalter" title="Gefasstheit ein-/ausschalten">
+                <input type="checkbox" id="test-schalter-gefasstheit" checked>
+                <span class="test-schalter-visuell"></span>
+              </label>
+              <span class="test-achse-label">Gefasstheit</span>
+            </div>
+            <div class="test-regler-zeile">
+              <input type="range" id="test-regler-gefasstheit" min="0" max="100" step="1" value="50"
+                aria-label="Gefasstheit">
+              <span class="test-wert" id="test-wert-gefasstheit"></span>
+            </div>
+          </div>
+
+          <div class="test-achse" id="test-achse-tonalitaet">
+            <div class="test-achse-kopf">
+              <label class="test-schalter" title="Tonalität ein-/ausschalten">
+                <input type="checkbox" id="test-schalter-tonalitaet" checked>
+                <span class="test-schalter-visuell"></span>
+              </label>
+              <span class="test-achse-label">Tonalität</span>
+            </div>
+            <div class="test-regler-zeile">
+              <input type="range" id="test-regler-tonalitaet" min="0" max="100" step="1" value="50"
+                aria-label="Tonalität">
+              <span class="test-wert" id="test-wert-tonalitaet"></span>
+            </div>
+          </div>
+
+        </div>
       </div>
     </section>
 
@@ -1127,6 +1385,160 @@
 
   function schnittStack(schnitt) {
     return "'" + schnitt + "', 'Situra-Regular', 'Inter', sans-serif";
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  ZUSÄTZLICHER SCHRITT ("Probier's selbst") – derselbe kombinierte
+  //  Regler-Mechanismus wie situra-slider.html, Abschnitt "Kombiniert":
+  //  jede der sechs Achsen bleibt technisch unabhängig, wirkt aber
+  //  gemeinsam auf dasselbe Beispielwort, und lässt sich einzeln per
+  //  Schalter deaktivieren (dann greift immer neutral(), unabhängig
+  //  von der Reglerposition). 1:1 aus der Showcase-Seite übernommen –
+  //  intensitaetZuSchriftschnitt() nutzt das oben bereits vorhandene
+  //  SITURA_SCHRIFTSCHNITTE, umrechnen() ist neu (existierte hier noch
+  //  nicht), sonst keine Umbenennungen gegenüber der Vorlage.
+  // ══════════════════════════════════════════════════════════════
+  function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
+    return zuMin + (wert - vonMin) / (vonMax - vonMin) * (zuMax - zuMin);
+  }
+
+  function intensitaetZuSchriftschnitt(intensitaet) {
+    const stufenBreite = 800 / SITURA_SCHRIFTSCHNITTE.length; // (900−100) / 7
+    const index = Math.min(
+      SITURA_SCHRIFTSCHNITTE.length - 1,
+      Math.max(0, Math.floor((intensitaet - 100) / stufenBreite))
+    );
+    return SITURA_SCHRIFTSCHNITTE[index];
+  }
+
+  const testWort = document.getElementById('test-wort');
+  if (testWort) {
+    (function buchstabenVorbereitenTest() {
+      const text = testWort.textContent;
+      testWort.textContent = '';
+      for (const zeichen of text) {
+        const span = document.createElement('span');
+        span.textContent = zeichen;
+        span.classList.add('zitter-buchstabe');
+        const dauer     = (0.3 + Math.random() * 0.4).toFixed(2);
+        const verzoeger = (-Math.random() * 1.2).toFixed(2);
+        span.style.animationName           = 'situraZittern';
+        span.style.animationDuration       = `${dauer}s`;
+        span.style.animationTimingFunction = 'ease-in-out';
+        span.style.animationIterationCount = 'infinite';
+        span.style.animationDelay          = `${verzoeger}s`;
+        testWort.appendChild(span);
+      }
+    })();
+
+    const TEST_BLUR_MAX         = 5.0;
+    const TEST_TRANSPARENZ_MIN  = 0.35;
+    const TEST_TON_KUEHL        = [124, 167, 201]; // #7ca7c9
+    const TEST_TON_WARM         = [224, 138, 79];  // #e08a4f
+
+    function testAchseEinrichten(name, konfig) {
+      const wrapper  = document.getElementById(`test-achse-${name}`);
+      const schalter = document.getElementById(`test-schalter-${name}`);
+      const regler   = document.getElementById(`test-regler-${name}`);
+      const wertEl   = document.getElementById(`test-wert-${name}`);
+
+      function aktualisieren() {
+        const aktiv = schalter.checked;
+        wrapper.classList.toggle('test-achse--aus', !aktiv);
+        regler.disabled = !aktiv;
+        if (aktiv) {
+          konfig.anwenden(Number(regler.value), wertEl);
+        } else {
+          konfig.neutral();
+          wertEl.textContent = 'Aus';
+        }
+      }
+
+      schalter.addEventListener('change', aktualisieren);
+      regler.addEventListener('input', aktualisieren);
+      aktualisieren();
+    }
+
+    testAchseEinrichten('intensitaet', {
+      anwenden(wert, wertEl) {
+        const schnitt = intensitaetZuSchriftschnitt(wert);
+        testWort.style.fontFamily = `'${schnitt}', 'Inter', sans-serif`;
+        wertEl.innerHTML = `<strong>${schnitt}</strong> · ${wert}`;
+      },
+      neutral() {
+        testWort.style.fontFamily = `'Situra-Regular', 'Inter', sans-serif`;
+      }
+    });
+
+    testAchseEinrichten('tempo', {
+      anwenden(wert, wertEl) {
+        const spacing = umrechnen(wert, 100, 900, -0.04, 0.12);
+        testWort.style.letterSpacing = `${spacing.toFixed(3)}em`;
+        wertEl.innerHTML = `<strong>${spacing.toFixed(3)}em</strong> · ${wert}`;
+      },
+      neutral() {
+        testWort.style.letterSpacing = 'normal';
+      }
+    });
+
+    testAchseEinrichten('stabilitaet', {
+      anwenden(wert, wertEl) {
+        const amp = wert;        // px – direkt die Reglerstärke
+        const rot = wert * 1.2;  // Grad – proportional zur Stärke
+        testWort.querySelectorAll('.zitter-buchstabe').forEach(function (span) {
+          span.style.setProperty('--amp', `${amp}px`);
+          span.style.setProperty('--rot', `${rot}deg`);
+          span.style.animationPlayState = wert > 0 ? 'running' : 'paused';
+        });
+        wertEl.innerHTML = wert <= 0
+          ? `<strong>ruhig</strong> · 0`
+          : `<strong>${amp.toFixed(1)}px</strong> · ${wert}`;
+      },
+      neutral() {
+        testWort.querySelectorAll('.zitter-buchstabe').forEach(function (span) {
+          span.style.setProperty('--amp', '0px');
+          span.style.setProperty('--rot', '0deg');
+          span.style.animationPlayState = 'paused';
+        });
+      }
+    });
+
+    testAchseEinrichten('wachheit', {
+      anwenden(wert, wertEl) {
+        const blur = umrechnen(wert, 0, 100, TEST_BLUR_MAX, 0);
+        testWort.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
+        wertEl.innerHTML = `<strong>${blur.toFixed(2)}px</strong> · ${wert}`;
+      },
+      neutral() {
+        testWort.style.filter = 'none';
+      }
+    });
+
+    testAchseEinrichten('gefasstheit', {
+      anwenden(wert, wertEl) {
+        const deckkraft = umrechnen(wert, 0, 100, TEST_TRANSPARENZ_MIN, 1);
+        testWort.style.opacity = deckkraft.toFixed(2);
+        wertEl.innerHTML = `<strong>${deckkraft.toFixed(2)}</strong> · ${wert}`;
+      },
+      neutral() {
+        testWort.style.opacity = '1';
+      }
+    });
+
+    testAchseEinrichten('tonalitaet', {
+      anwenden(wert, wertEl) {
+        const t = wert / 100;
+        const r = Math.round(umrechnen(t, 0, 1, TEST_TON_KUEHL[0], TEST_TON_WARM[0]));
+        const g = Math.round(umrechnen(t, 0, 1, TEST_TON_KUEHL[1], TEST_TON_WARM[1]));
+        const b = Math.round(umrechnen(t, 0, 1, TEST_TON_KUEHL[2], TEST_TON_WARM[2]));
+        testWort.style.color = `rgb(${r}, ${g}, ${b})`;
+        const label = wert < 35 ? 'kühl' : wert > 65 ? 'warm' : 'neutral';
+        wertEl.innerHTML = `<strong>${label}</strong> · ${wert}`;
+      },
+      neutral() {
+        testWort.style.color = '';
+      }
+    });
   }
 
   // Begrüßungs-Screen ("Hallo, schön dass du dich für Momentum

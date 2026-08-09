@@ -607,6 +607,151 @@
     .infos-liste strong { color: #000000; }
     .phone-frame.emotion-an .infos-liste strong { color: #ffffff; }
 
+    /* ── Testregler (Infos-Overlay): derselbe kombinierte Regler-Block
+       wie situra-slider.html ("Kombiniert") und der Onboarding-Schritt
+       "Probier's selbst" – hier als Abschluss der Infos-Karte, nutzt
+       dieselben --text/--text-2/--text-3/--border-Variablen wie der Rest
+       des Menüs, damit Licht-/Dunkelmodus automatisch mitgeht. ── */
+    .testregler-trenner {
+      border-top: 1px solid var(--border-light);
+      margin-top: 4px;
+    }
+
+    .testregler-buehne {
+      min-height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 0 4px;
+    }
+
+    .testregler-wort {
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 2.4rem;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      color: #000000;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    /* Fällt Tonalität aus (siehe testreglerAchseEinrichten, JS), wird
+       die per JS gesetzte Inline-Farbe entfernt und dieser CSS-Default
+       greift wieder – WICHTIG: chat.html hat (anders als onboarding.html)
+       keine --text-Variable, nur feste #000000/#ffffff je Modus (wie bei
+       .tagebuch-tag) – sonst bleibt das Wort im Emotion-Modus (dunkler
+       Hintergrund) unsichtbar schwarz-auf-schwarz statt weiß. */
+    .phone-frame.emotion-an .testregler-wort { color: #ffffff; }
+
+    @keyframes situraZittern {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25%      { transform: translate(var(--amp, 0px), calc(var(--amp, 0px) * -1)) rotate(calc(var(--rot, 0deg) * -1)); }
+      50%      { transform: translate(calc(var(--amp, 0px) * -1), var(--amp, 0px)) rotate(var(--rot, 0deg)); }
+      75%      { transform: translate(var(--amp, 0px), var(--amp, 0px)) rotate(calc(var(--rot, 0deg) * -1)); }
+    }
+
+    .testregler-achsen {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .testregler-achse { display: flex; flex-direction: column; gap: 8px; }
+
+    .testregler-achse-kopf { display: flex; align-items: center; gap: 10px; }
+
+    .testregler-achse-label {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      color: #000000;
+      transition: color 0.25s ease;
+    }
+
+    .phone-frame.emotion-an .testregler-achse-label { color: #ffffff; }
+    .testregler-achse--aus .testregler-achse-label { color: var(--text-3); }
+    .testregler-achse--aus .testregler-regler-zeile { opacity: 0.35; }
+
+    .testregler-schalter { flex-shrink: 0; display: inline-flex; cursor: pointer; }
+    .testregler-schalter input { display: none; }
+
+    .testregler-schalter-visuell {
+      width: 32px; height: 18px;
+      background: transparent;
+      border: 1.5px solid var(--text-3);
+      border-radius: 9px;
+      position: relative;
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .testregler-schalter-visuell::after {
+      content: '';
+      position: absolute;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--text-3);
+      top: 1.5px; left: 1.5px;
+      transition: transform 0.25s ease, background-color 0.25s ease;
+    }
+
+    .testregler-schalter input:checked + .testregler-schalter-visuell {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .testregler-schalter input:checked + .testregler-schalter-visuell::after {
+      transform: translateX(14px);
+      background: var(--bg);
+    }
+
+    .testregler-regler-zeile { display: flex; align-items: center; gap: 12px; }
+
+    .testregler-regler-zeile input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      min-width: 0;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .testregler-regler-zeile input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+
+    .testregler-regler-zeile input[type="range"]::-moz-range-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      cursor: pointer;
+    }
+
+    .testregler-wert {
+      flex-shrink: 0;
+      min-width: 13ch;
+      text-align: right;
+      font-size: 11px;
+      color: var(--text-2);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+
+    .testregler-wert strong {
+      color: #000000;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-weight: normal;
+    }
+
+    .phone-frame.emotion-an .testregler-wert strong { color: #ffffff; }
+
     /* ── Gruppeninfo: Mitgliederzeile mit Entfernen-"×" ──────────── */
     .gruppenmitglied-zeile {
       display: flex;
@@ -1407,6 +1552,54 @@
     }
 
     .phone-frame.emotion-an .tagebuch-text { color: #ffffff; }
+
+    /* Kleiner Hinweis über dem Eintragstext, wenn er bereits in den
+       Moment-Bereich geteilt wurde (siehe tagebuchEintragTeilen, JS) –
+       rein darstellend, keine reaktive Typografie. */
+    .tagebuch-geteilt-hinweis {
+      display: block;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 5px;
+    }
+
+    /* Teilen-Button: outline = noch nicht geteilt, gefüllt = bereits
+       geteilt – dieselbe Filled/Outline-Konvention wie der Emotion-
+       Schalter an anderer Stelle der App. */
+    .tagebuch-teilen-btn {
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin-top: 2px;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 1.5px solid var(--text-3);
+      background: transparent;
+      color: var(--text-3);
+      font-size: 12px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .tagebuch-teilen-btn:hover { border-color: var(--text-2); color: var(--text-2); }
+
+    .tagebuch-teilen-btn--aktiv {
+      background: #000000;
+      border-color: #000000;
+      color: #ffffff;
+    }
+
+    .phone-frame.emotion-an .tagebuch-teilen-btn--aktiv {
+      background: #ffffff;
+      border-color: #ffffff;
+      color: #000000;
+    }
 
     .tagebuch-leer-hinweis {
       font-family: 'Situra-Medium', 'Inter', sans-serif;
@@ -2901,6 +3094,112 @@
           Bei Demo-Kontakten (Chats, Momente) wird derselbe Mechanismus mit
           plausibel simulierten Werten angewendet, nicht mit echten Sensordaten.
         </p>
+
+        <!-- ── Testregler: derselbe kombinierte Regler-Block wie
+             situra-slider.html ("Kombiniert") und der Onboarding-Schritt
+             "Probier's selbst" – dauerhaft über Menü → Infos erreichbar.
+             Eigene testregler-*-Klassen (Menü-Kontext: Karte im Overlay,
+             kein eigener Screen), Mechanismus 1:1 übernommen. ── -->
+        <div class="testregler-trenner"></div>
+        <p class="infos-text">Zum Ausprobieren: Achsen ein-/ausschalten und die Regler bewegen.</p>
+
+        <div class="testregler-buehne">
+          <div class="testregler-wort" id="testregler-wort">Hallo</div>
+        </div>
+
+        <div class="testregler-achsen">
+
+          <div class="testregler-achse" id="testregler-achse-intensitaet">
+            <div class="testregler-achse-kopf">
+              <label class="testregler-schalter" title="Intensität ein-/ausschalten">
+                <input type="checkbox" id="testregler-schalter-intensitaet" checked>
+                <span class="testregler-schalter-visuell"></span>
+              </label>
+              <span class="testregler-achse-label">Intensität</span>
+            </div>
+            <div class="testregler-regler-zeile">
+              <input type="range" id="testregler-regler-intensitaet" min="100" max="900" step="1" value="400"
+                aria-label="Intensität">
+              <span class="testregler-wert" id="testregler-wert-intensitaet"></span>
+            </div>
+          </div>
+
+          <div class="testregler-achse" id="testregler-achse-tempo">
+            <div class="testregler-achse-kopf">
+              <label class="testregler-schalter" title="Tempo ein-/ausschalten">
+                <input type="checkbox" id="testregler-schalter-tempo" checked>
+                <span class="testregler-schalter-visuell"></span>
+              </label>
+              <span class="testregler-achse-label">Tempo</span>
+            </div>
+            <div class="testregler-regler-zeile">
+              <input type="range" id="testregler-regler-tempo" min="100" max="900" step="1" value="400"
+                aria-label="Tempo">
+              <span class="testregler-wert" id="testregler-wert-tempo"></span>
+            </div>
+          </div>
+
+          <div class="testregler-achse" id="testregler-achse-stabilitaet">
+            <div class="testregler-achse-kopf">
+              <label class="testregler-schalter" title="Stabilität ein-/ausschalten">
+                <input type="checkbox" id="testregler-schalter-stabilitaet" checked>
+                <span class="testregler-schalter-visuell"></span>
+              </label>
+              <span class="testregler-achse-label">Stabilität</span>
+            </div>
+            <div class="testregler-regler-zeile">
+              <input type="range" id="testregler-regler-stabilitaet" min="0" max="10" step="0.5" value="0"
+                aria-label="Stabilität">
+              <span class="testregler-wert" id="testregler-wert-stabilitaet"></span>
+            </div>
+          </div>
+
+          <div class="testregler-achse" id="testregler-achse-wachheit">
+            <div class="testregler-achse-kopf">
+              <label class="testregler-schalter" title="Wachheit ein-/ausschalten">
+                <input type="checkbox" id="testregler-schalter-wachheit" checked>
+                <span class="testregler-schalter-visuell"></span>
+              </label>
+              <span class="testregler-achse-label">Wachheit</span>
+            </div>
+            <div class="testregler-regler-zeile">
+              <input type="range" id="testregler-regler-wachheit" min="0" max="100" step="1" value="50"
+                aria-label="Wachheit">
+              <span class="testregler-wert" id="testregler-wert-wachheit"></span>
+            </div>
+          </div>
+
+          <div class="testregler-achse" id="testregler-achse-gefasstheit">
+            <div class="testregler-achse-kopf">
+              <label class="testregler-schalter" title="Gefasstheit ein-/ausschalten">
+                <input type="checkbox" id="testregler-schalter-gefasstheit" checked>
+                <span class="testregler-schalter-visuell"></span>
+              </label>
+              <span class="testregler-achse-label">Gefasstheit</span>
+            </div>
+            <div class="testregler-regler-zeile">
+              <input type="range" id="testregler-regler-gefasstheit" min="0" max="100" step="1" value="50"
+                aria-label="Gefasstheit">
+              <span class="testregler-wert" id="testregler-wert-gefasstheit"></span>
+            </div>
+          </div>
+
+          <div class="testregler-achse" id="testregler-achse-tonalitaet">
+            <div class="testregler-achse-kopf">
+              <label class="testregler-schalter" title="Tonalität ein-/ausschalten">
+                <input type="checkbox" id="testregler-schalter-tonalitaet" checked>
+                <span class="testregler-schalter-visuell"></span>
+              </label>
+              <span class="testregler-achse-label">Tonalität</span>
+            </div>
+            <div class="testregler-regler-zeile">
+              <input type="range" id="testregler-regler-tonalitaet" min="0" max="100" step="1" value="50"
+                aria-label="Tonalität">
+              <span class="testregler-wert" id="testregler-wert-tonalitaet"></span>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
 
@@ -7005,7 +7304,7 @@
     try { return JSON.parse(localStorage.getItem(TAGEBUCH_KEY)) || []; } catch (e) { return []; }
   }
 
-  let tagebuchEintraege = tagebuchEintraegeLaden(); // [{ text, wortSnapshots, zeitstempel }], neueste zuerst
+  let tagebuchEintraege = tagebuchEintraegeLaden(); // [{ text, wortSnapshots, zeitstempel, geteilt }], neueste zuerst
 
   function tagebuchEintraegeSpeichern() {
     try {
@@ -7146,14 +7445,73 @@
 
     const textEl = document.createElement('div');
     textEl.className = 'tagebuch-text';
+
+    // Sichtbarer Hinweis, dass dieser Eintrag bereits in den Moment-
+    // Bereich geteilt wurde (siehe tagebuchEintragTeilen unten) – wie
+    // gefordert am Eintrag selbst erkennbar, nicht nur am gefüllten
+    // Teilen-Button rechts.
+    if (eintrag.geteilt) {
+      const geteiltHinweis = document.createElement('span');
+      geteiltHinweis.className = 'tagebuch-geteilt-hinweis';
+      geteiltHinweis.textContent = 'Im Moment geteilt';
+      textEl.appendChild(geteiltHinweis);
+    }
+
+    const textInhalt = document.createElement('div');
+    textEl.appendChild(textInhalt);
     // Wiederverwendet dieselbe Wort-für-Wort-Render-Funktion wie MOMENT
     // (siehe momentTextRendern weiter oben) – identisches Prinzip,
-    // eingefrorene Achsen pro Wort in Stil übersetzen.
-    momentTextRendern(textEl, eintrag.text, eintrag.wortSnapshots);
+    // eingefrorene Achsen pro Wort in Stil übersetzen. Eigener
+    // textInhalt-Container, weil momentTextRendern sein Ziel per
+    // innerHTML='' leert – der Geteilt-Hinweis darüber soll das
+    // überleben.
+    momentTextRendern(textInhalt, eintrag.text, eintrag.wortSnapshots);
+
+    // Optionales, bewusst ausgelöstes Teilen in den Moment-Bereich (siehe
+    // tagebuchEintragTeilen unten) – der Eintrag behält dabei exakt
+    // seinen ursprünglichen Schnappschuss (eintrag.wortSnapshots wird
+    // unverändert weitergereicht, NICHT neu erfasst).
+    const teilenBtn = document.createElement('button');
+    teilenBtn.type = 'button';
+    teilenBtn.className = 'tagebuch-teilen-btn';
+    teilenBtn.classList.toggle('tagebuch-teilen-btn--aktiv', !!eintrag.geteilt);
+    teilenBtn.textContent = '↗';
+    teilenBtn.title = eintrag.geteilt ? 'Erneut im Moment-Bereich teilen' : 'Im Moment-Bereich teilen';
+    teilenBtn.setAttribute('aria-label', teilenBtn.title);
+    teilenBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      tagebuchEintragTeilen(eintrag);
+    });
 
     wrapper.appendChild(datumSpalte);
     wrapper.appendChild(textEl);
+    wrapper.appendChild(teilenBtn);
     return wrapper;
+  }
+
+  // Postet einen bestehenden Tagebuch-Eintrag optional in den Moment-
+  // Bereich – WICHTIG: der Eintrag behält dabei seinen URSPRÜNGLICHEN
+  // typografischen Zustand (eintrag.wortSnapshots, der Schnappschuss vom
+  // Moment des Schreibens), er wird NICHT neu erfasst/getippt. Nutzt
+  // exakt denselben "Du"-Moment-Mechanismus wie momentSenden() oben
+  // (ein aktiver eigener Moment pro Tag, siehe duHatHeuteGepostet) –
+  // ein erneutes Teilen ersetzt einen ggf. schon heute gesetzten
+  // eigenen Moment, genau wie ein neu getippter Moment das täte.
+  function tagebuchEintragTeilen(eintrag) {
+    momente['Du'] = {
+      text: eintrag.text,
+      wortSnapshots: eintrag.wortSnapshots.slice(),
+      datum: heutigesDatum()
+    };
+    duMomentSpeichern(momente['Du']);
+
+    eintrag.geteilt = true;
+    tagebuchEintraegeSpeichern();
+
+    momentLeisteRendern();
+    momentComposerAktualisieren();
+
+    tagebuchListeRendern();
   }
 
   // Nicht alle Einträge auf einmal rendern – zeigt anfangs nur die
@@ -7285,7 +7643,7 @@
       wortSnapshots.push({ achsen: { ...aktuelleAchsen, pausenZuschlag: pausenZuschlagVerbrauchen(leblos) }, leblos });
     }
 
-    tagebuchEintraege.unshift({ text: text, wortSnapshots: wortSnapshots, zeitstempel: Date.now() });
+    tagebuchEintraege.unshift({ text: text, wortSnapshots: wortSnapshots, zeitstempel: Date.now(), geteilt: false });
     tagebuchEintraegeSpeichern();
 
     // Eigener Durchschnitt (siehe Abschnitt PROFIL oben) fließt auch aus
@@ -7489,6 +7847,156 @@
   tagebuchAnsichtSetzen('liste');
   tagebuchSchlafGraphRendern(); // dauerhaft sichtbar (siehe .tagebuch-schlafgraph), unabhängig von der Liste/Monat-Ansicht
 
+
+  // ── Testregler (Infos-Overlay): derselbe kombinierte Regler-
+  // Mechanismus wie situra-slider.html ("Kombiniert") und der
+  // Onboarding-Schritt "Probier's selbst" – jede Achse einzeln
+  // ein-/ausschaltbar, wirkt gemeinsam auf ein Beispielwort.
+  // intensitaetZuSchriftschnitt()/umrechnen() sind die bereits an
+  // anderer Stelle in dieser Datei definierten Funktionen (siehe
+  // sensorZuSchriftAchse weiter oben) – hier bewusst NICHT erneut
+  // definiert, sondern wiederverwendet. WICHTIG zur Position dieses
+  // Blocks: er MUSS nach SITURA_SCHRIFTSCHNITTE (siehe
+  // intensitaetZuSchriftschnitt weiter oben) stehen, weil er seine
+  // Achsen sofort beim Einrichten einmal anwendet (aktualisieren()
+  // in testreglerAchseEinrichten) – anders als bei über Events
+  // ausgelösten Aufrufen reicht Hoisting hier NICHT aus, ein direkt
+  // ausgeführter Aufruf auf Modulebene braucht die zugehörigen
+  // const-Deklarationen bereits tatsächlich initialisiert (sonst
+  // ReferenceError durch die Temporal Dead Zone, siehe SITURA_
+  // SCHRIFTSCHNITTE) – deshalb ganz am Ende des Skripts, nach allen
+  // anderen Initialisierungen.
+  (function testreglerEinrichten() {
+    const testreglerWort = document.getElementById('testregler-wort');
+    if (!testreglerWort) return;
+
+    (function buchstabenVorbereitenTestregler() {
+      const text = testreglerWort.textContent;
+      testreglerWort.textContent = '';
+      for (const zeichen of text) {
+        const span = document.createElement('span');
+        span.textContent = zeichen;
+        span.classList.add('zitter-buchstabe');
+        const dauer     = (0.3 + Math.random() * 0.4).toFixed(2);
+        const verzoeger = (-Math.random() * 1.2).toFixed(2);
+        span.style.animationName           = 'situraZittern';
+        span.style.animationDuration       = `${dauer}s`;
+        span.style.animationTimingFunction = 'ease-in-out';
+        span.style.animationIterationCount = 'infinite';
+        span.style.animationDelay          = `${verzoeger}s`;
+        testreglerWort.appendChild(span);
+      }
+    })();
+
+    const TESTREGLER_BLUR_MAX        = 5.0;
+    const TESTREGLER_TRANSPARENZ_MIN = 0.35;
+    const TESTREGLER_TON_KUEHL       = [124, 167, 201]; // #7ca7c9
+    const TESTREGLER_TON_WARM        = [224, 138, 79];  // #e08a4f
+
+    function testreglerAchseEinrichten(name, konfig) {
+      const wrapper  = document.getElementById(`testregler-achse-${name}`);
+      const schalter = document.getElementById(`testregler-schalter-${name}`);
+      const regler   = document.getElementById(`testregler-regler-${name}`);
+      const wertEl   = document.getElementById(`testregler-wert-${name}`);
+
+      function aktualisieren() {
+        const aktiv = schalter.checked;
+        wrapper.classList.toggle('testregler-achse--aus', !aktiv);
+        regler.disabled = !aktiv;
+        if (aktiv) {
+          konfig.anwenden(Number(regler.value), wertEl);
+        } else {
+          konfig.neutral();
+          wertEl.textContent = 'Aus';
+        }
+      }
+
+      schalter.addEventListener('change', aktualisieren);
+      regler.addEventListener('input', aktualisieren);
+      aktualisieren();
+    }
+
+    testreglerAchseEinrichten('intensitaet', {
+      anwenden(wert, wertEl) {
+        const schnitt = intensitaetZuSchriftschnitt(wert);
+        testreglerWort.style.fontFamily = `'${schnitt}', 'Inter', sans-serif`;
+        wertEl.innerHTML = `<strong>${schnitt}</strong> · ${wert}`;
+      },
+      neutral() {
+        testreglerWort.style.fontFamily = `'Situra-Regular', 'Inter', sans-serif`;
+      }
+    });
+
+    testreglerAchseEinrichten('tempo', {
+      anwenden(wert, wertEl) {
+        const spacing = umrechnen(wert, 100, 900, -0.04, 0.12);
+        testreglerWort.style.letterSpacing = `${spacing.toFixed(3)}em`;
+        wertEl.innerHTML = `<strong>${spacing.toFixed(3)}em</strong> · ${wert}`;
+      },
+      neutral() {
+        testreglerWort.style.letterSpacing = 'normal';
+      }
+    });
+
+    testreglerAchseEinrichten('stabilitaet', {
+      anwenden(wert, wertEl) {
+        const amp = wert;        // px – direkt die Reglerstärke
+        const rot = wert * 1.2;  // Grad – proportional zur Stärke
+        testreglerWort.querySelectorAll('.zitter-buchstabe').forEach(function (span) {
+          span.style.setProperty('--amp', `${amp}px`);
+          span.style.setProperty('--rot', `${rot}deg`);
+          span.style.animationPlayState = wert > 0 ? 'running' : 'paused';
+        });
+        wertEl.innerHTML = wert <= 0
+          ? `<strong>ruhig</strong> · 0`
+          : `<strong>${amp.toFixed(1)}px</strong> · ${wert}`;
+      },
+      neutral() {
+        testreglerWort.querySelectorAll('.zitter-buchstabe').forEach(function (span) {
+          span.style.setProperty('--amp', '0px');
+          span.style.setProperty('--rot', '0deg');
+          span.style.animationPlayState = 'paused';
+        });
+      }
+    });
+
+    testreglerAchseEinrichten('wachheit', {
+      anwenden(wert, wertEl) {
+        const blur = umrechnen(wert, 0, 100, TESTREGLER_BLUR_MAX, 0);
+        testreglerWort.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
+        wertEl.innerHTML = `<strong>${blur.toFixed(2)}px</strong> · ${wert}`;
+      },
+      neutral() {
+        testreglerWort.style.filter = 'none';
+      }
+    });
+
+    testreglerAchseEinrichten('gefasstheit', {
+      anwenden(wert, wertEl) {
+        const deckkraft = umrechnen(wert, 0, 100, TESTREGLER_TRANSPARENZ_MIN, 1);
+        testreglerWort.style.opacity = deckkraft.toFixed(2);
+        wertEl.innerHTML = `<strong>${deckkraft.toFixed(2)}</strong> · ${wert}`;
+      },
+      neutral() {
+        testreglerWort.style.opacity = '1';
+      }
+    });
+
+    testreglerAchseEinrichten('tonalitaet', {
+      anwenden(wert, wertEl) {
+        const t = wert / 100;
+        const r = Math.round(umrechnen(t, 0, 1, TESTREGLER_TON_KUEHL[0], TESTREGLER_TON_WARM[0]));
+        const g = Math.round(umrechnen(t, 0, 1, TESTREGLER_TON_KUEHL[1], TESTREGLER_TON_WARM[1]));
+        const b = Math.round(umrechnen(t, 0, 1, TESTREGLER_TON_KUEHL[2], TESTREGLER_TON_WARM[2]));
+        testreglerWort.style.color = `rgb(${r}, ${g}, ${b})`;
+        const label = wert < 35 ? 'kühl' : wert > 65 ? 'warm' : 'neutral';
+        wertEl.innerHTML = `<strong>${label}</strong> · ${wert}`;
+      },
+      neutral() {
+        testreglerWort.style.color = '';
+      }
+    });
+  })();
 </script>
 </body>
 </html>
