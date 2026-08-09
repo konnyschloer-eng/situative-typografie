@@ -3118,7 +3118,7 @@
           <li><strong>Stabilität</strong> – bei Anspannung beginnt die Schrift zu zittern (approximierte Pulsvariabilität).</li>
           <li><strong>Wachheit</strong> – über deinen Schlaf gemessen: scharf oder unscharf.</li>
           <li><strong>Gefasstheit</strong><em class="test-badge">Testwert</em> – lässt den Text kräftig oder blass wirken.</li>
-          <li><strong>Tonalität</strong><em class="test-badge">Testwert</em> – rein illustrativ, färbt nur im Onboarding kühl bis warm.</li>
+          <li><strong>Tonalität</strong><em class="test-badge">Testwert</em> – rein illustrativ, verändert die Schriftgröße von klein (kühl) zu groß (warm).</li>
         </ul>
         <p class="infos-text">
           Bei Demo-Kontakten (Chats, Momente) wird derselbe Mechanismus mit
@@ -8000,8 +8000,17 @@
 
     const TESTREGLER_BLUR_MAX        = 5.0;
     const TESTREGLER_TRANSPARENZ_MIN = 0.35;
-    const TESTREGLER_TON_KUEHL       = [124, 167, 201]; // #7ca7c9
-    const TESTREGLER_TON_WARM        = [224, 138, 79];  // #e08a4f
+
+    // Tonalität (Körpertemperatur, weiterhin nicht angebunden – siehe
+    // sensorZuSchriftAchse) steuert die Schriftgröße statt Farbe: kühl =
+    // klein, warm = groß. Bewusst NUR ±12% um die tatsächlich gerenderte
+    // Basisgröße (per getComputedStyle erfasst, VOR jeder Inline-
+    // Überschreibung) – die Schriftgrößen-Hierarchie der App (Nachricht
+    // > Kontaktname etc.) darf durch diesen Regler nicht durchbrochen
+    // werden, siehe Anforderung.
+    const TESTREGLER_GROESSE_BASIS_PX = parseFloat(getComputedStyle(testreglerWort).fontSize);
+    const TESTREGLER_GROESSE_MIN_PX   = TESTREGLER_GROESSE_BASIS_PX * 0.88;
+    const TESTREGLER_GROESSE_MAX_PX   = TESTREGLER_GROESSE_BASIS_PX * 1.12;
 
     function testreglerAchseEinrichten(name, konfig) {
       const wrapper  = document.getElementById(`testregler-achse-${name}`);
@@ -8094,16 +8103,13 @@
 
     testreglerAchseEinrichten('tonalitaet', {
       anwenden(wert, wertEl) {
-        const t = wert / 100;
-        const r = Math.round(umrechnen(t, 0, 1, TESTREGLER_TON_KUEHL[0], TESTREGLER_TON_WARM[0]));
-        const g = Math.round(umrechnen(t, 0, 1, TESTREGLER_TON_KUEHL[1], TESTREGLER_TON_WARM[1]));
-        const b = Math.round(umrechnen(t, 0, 1, TESTREGLER_TON_KUEHL[2], TESTREGLER_TON_WARM[2]));
-        testreglerWort.style.color = `rgb(${r}, ${g}, ${b})`;
-        const label = wert < 35 ? 'kühl' : wert > 65 ? 'warm' : 'neutral';
+        const groesse = umrechnen(wert, 0, 100, TESTREGLER_GROESSE_MIN_PX, TESTREGLER_GROESSE_MAX_PX);
+        testreglerWort.style.fontSize = `${groesse.toFixed(1)}px`;
+        const label = wert < 35 ? 'klein' : wert > 65 ? 'groß' : 'mittel';
         wertEl.innerHTML = `<strong>${label}</strong> · ${wert}`;
       },
       neutral() {
-        testreglerWort.style.color = '';
+        testreglerWort.style.fontSize = '';
       }
     });
   })();

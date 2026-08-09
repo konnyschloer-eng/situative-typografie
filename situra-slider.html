@@ -442,16 +442,14 @@
       </div>
     </section>
 
-    <!-- 6 — Tonalität → Farbverlauf kühl↔warm (einzige bewusste
-         Farb-Ausnahme im sonst rein monochromen Design – zeigt genau
-         die Dimension, um die es hier geht). -->
+    <!-- 6 — Tonalität → Schriftgröße kühl↔warm (klein↔groß). -->
     <section class="dimension">
       <div class="dimension-kopf">
         <span class="dimension-nr">06</span>
         <h2>Tonalität</h2>
       </div>
       <p class="dimension-text">
-        Eine wärmere Tonalität färbt die Schrift von kühl zu warm.
+        Eine wärmere Tonalität lässt die Schrift von klein zu groß wachsen.
       </p>
       <div class="dimension-buehne">
         <div class="dimension-wort" id="wort-tonalitaet">Hallo</div>
@@ -728,25 +726,25 @@
     gefasstheitAktualisieren();
 
     // ═══════════════════════════════════════════════════════════
-    // 6 — TONALITÄT: Farbverlauf kühl → warm, stufenlos.
-    // Einzige bewusste Farb-Ausnahme im sonst rein monochromen
-    // Design – zeigt direkt, was diese eine Dimension bedeutet.
-    // 0 = kühl (gedecktes Blaugrau), 100 = warm (gedecktes Amber).
+    // 6 — TONALITÄT: Schriftgröße kühl → warm, stufenlos.
+    // kühl = klein, warm = groß. Bewusst NUR ±12% um die tatsächlich
+    // gerenderte Basisgröße (per getComputedStyle erfasst, VOR jeder
+    // Inline-Überschreibung, da .dimension-wort eine responsive
+    // clamp()-Größe hat) – die Schriftgrößen-Hierarchie bleibt so in
+    // engen Grenzen.
     // ═══════════════════════════════════════════════════════════
     const reglerTonalitaet = document.getElementById('regler-tonalitaet');
     const wortTonalitaet    = document.getElementById('wort-tonalitaet');
     const wertTonalitaet    = document.getElementById('wert-tonalitaet');
-    const TON_KUEHL = [124, 167, 201]; // #7ca7c9
-    const TON_WARM  = [224, 138, 79];  // #e08a4f
+    const TON_GROESSE_BASIS_PX = parseFloat(getComputedStyle(wortTonalitaet).fontSize);
+    const TON_GROESSE_MIN_PX   = TON_GROESSE_BASIS_PX * 0.88;
+    const TON_GROESSE_MAX_PX   = TON_GROESSE_BASIS_PX * 1.12;
 
     function tonalitaetAktualisieren() {
       const wert = Number(reglerTonalitaet.value);
-      const t = wert / 100;
-      const r = Math.round(umrechnen(t, 0, 1, TON_KUEHL[0], TON_WARM[0]));
-      const g = Math.round(umrechnen(t, 0, 1, TON_KUEHL[1], TON_WARM[1]));
-      const b = Math.round(umrechnen(t, 0, 1, TON_KUEHL[2], TON_WARM[2]));
-      wortTonalitaet.style.color = `rgb(${r}, ${g}, ${b})`;
-      const label = wert < 35 ? 'kühl' : wert > 65 ? 'warm' : 'neutral';
+      const groesse = umrechnen(wert, 0, 100, TON_GROESSE_MIN_PX, TON_GROESSE_MAX_PX);
+      wortTonalitaet.style.fontSize = `${groesse.toFixed(1)}px`;
+      const label = wert < 35 ? 'klein' : wert > 65 ? 'groß' : 'mittel';
       wertTonalitaet.innerHTML = `<strong>${label}</strong> · ${wert}`;
     }
     reglerTonalitaet.addEventListener('input', tonalitaetAktualisieren);
@@ -885,16 +883,16 @@
 
     kombiAchseEinrichten('tonalitaet', {
       anwenden(wert, wertEl) {
-        const t = wert / 100;
-        const r = Math.round(umrechnen(t, 0, 1, TON_KUEHL[0], TON_WARM[0]));
-        const g = Math.round(umrechnen(t, 0, 1, TON_KUEHL[1], TON_WARM[1]));
-        const b = Math.round(umrechnen(t, 0, 1, TON_KUEHL[2], TON_WARM[2]));
-        wortKombiniert.style.color = `rgb(${r}, ${g}, ${b})`;
-        const label = wert < 35 ? 'kühl' : wert > 65 ? 'warm' : 'neutral';
+        // Dieselbe ±12%-Basis wie Abschnitt 6 (TON_GROESSE_MIN_PX/MAX_PX,
+        // siehe dort) – wortKombiniert teilt dieselbe .dimension-wort-
+        // Klasse/Basisgröße wie wortTonalitaet.
+        const groesse = umrechnen(wert, 0, 100, TON_GROESSE_MIN_PX, TON_GROESSE_MAX_PX);
+        wortKombiniert.style.fontSize = `${groesse.toFixed(1)}px`;
+        const label = wert < 35 ? 'klein' : wert > 65 ? 'groß' : 'mittel';
         wertEl.innerHTML = `<strong>${label}</strong> · ${wert}`;
       },
       neutral() {
-        wortKombiniert.style.color = '';
+        wortKombiniert.style.fontSize = '';
       }
     });
   </script>

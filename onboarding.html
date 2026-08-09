@@ -443,19 +443,21 @@
       to   { letter-spacing: -0.02em; }
     }
 
-    /* Tonalität (Körpertemperatur) → Textfarbe – kühl = gedämpftes
-       Dunkelblau, warm = gedämpftes Dunkelrot. Rein illustrativ NUR hier
-       im Onboarding: in der eigentlichen App (chat.html) wirkt Tonalität
-       bewusst NICHT auf die Farbe (Testwert, nicht real gemessen – Text
-       bleibt dort schwarz/weiß je nach Modus, siehe Kommentar an
-       sensorZuSchriftAchse in chat.html). */
-    .demo-farbe { color: #4a6d8c; }
-    .demo-farbe.demo-aktiv {
-      animation: demoFarbe 1.3s cubic-bezier(.3,0,.2,1) 0.55s both;
+    /* Tonalität (Körpertemperatur) → Schriftgröße – kühl = klein, warm =
+       groß. Rein illustrativ NUR hier im Onboarding: in der eigentlichen
+       App (chat.html) wirkt Tonalität bewusst NICHT auf die Typografie
+       (Testwert, nicht real gemessen, siehe Kommentar an
+       sensorZuSchriftAchse in chat.html). Skaliert per transform:scale()
+       statt fester px-Werte, damit dieselbe ±12%-Spanne unabhängig von
+       der Basisgröße des jeweiligen Elements (Titel vs. Fließtext-Wort)
+       funktioniert. */
+    .demo-groesse { transform: scale(0.88); }
+    .demo-groesse.demo-aktiv {
+      animation: demoGroesse 1.3s cubic-bezier(.3,0,.2,1) 0.55s both;
     }
-    @keyframes demoFarbe {
-      from { color: #4a6d8c; }
-      to   { color: #8c4a4a; }
+    @keyframes demoGroesse {
+      from { transform: scale(0.88); }
+      to   { transform: scale(1.12); }
     }
 
     /* Schlafqualität (Testwert) → Unschärfe (filter: blur) */
@@ -509,13 +511,13 @@
       100% { opacity: 1; transform: translateY(0);    letter-spacing: -0.02em; }
     }
 
-    .demo-wort--titel.demo-farbe.demo-aktiv {
-      animation: titelEinfliegenFarbe 1.6s cubic-bezier(.3,0,.2,1) both;
+    .demo-wort--titel.demo-groesse.demo-aktiv {
+      animation: titelEinfliegenGroesse 1.6s cubic-bezier(.3,0,.2,1) both;
     }
-    @keyframes titelEinfliegenFarbe {
-      0%   { opacity: 0; transform: translateY(14px); color: #4a6d8c; }
-      25%  { opacity: 1; transform: translateY(0);    color: #4a6d8c; }
-      100% { opacity: 1; transform: translateY(0);    color: #8c4a4a; }
+    @keyframes titelEinfliegenGroesse {
+      0%   { opacity: 0; transform: translateY(14px) scale(0.88); }
+      25%  { opacity: 1; transform: translateY(0)    scale(0.88); }
+      100% { opacity: 1; transform: translateY(0)    scale(1.12); }
     }
 
     .demo-wort--titel.demo-blur.demo-aktiv {
@@ -1142,10 +1144,10 @@
     <section class="schritt" data-schritt="6">
       <div class="karte">
         <span class="schritt-eyebrow" data-einblenden style="--verz:0s">6 / 6 · Tonalität · Testwert</span>
-        <h1 class="schritt-titel demo-wort demo-wort--titel demo-farbe" data-demo="farbe" data-einblenden style="--verz:.1s">Tonalität</h1>
+        <h1 class="schritt-titel demo-wort demo-wort--titel demo-groesse" data-demo="groesse" data-einblenden style="--verz:.1s">Tonalität</h1>
         <p class="schritt-text" data-einblenden style="--verz:.24s">
-          Als Testwert färbt deine Körpertemperatur die Schrift von kühl zu
-          <span class="demo-wort demo-farbe" data-demo="farbe">warm</span>.
+          Als Testwert verändert deine Körpertemperatur die Schriftgröße von klein zu
+          <span class="demo-wort demo-groesse" data-demo="groesse">groß</span>.
         </p>
       </div>
     </section>
@@ -1433,8 +1435,16 @@
 
     const TEST_BLUR_MAX         = 5.0;
     const TEST_TRANSPARENZ_MIN  = 0.35;
-    const TEST_TON_KUEHL        = [124, 167, 201]; // #7ca7c9
-    const TEST_TON_WARM         = [224, 138, 79];  // #e08a4f
+
+    // Tonalität (Körpertemperatur, weiterhin nicht angebunden) steuert
+    // die Schriftgröße statt Farbe: kühl = klein, warm = groß. Bewusst
+    // NUR ±12% um die tatsächlich gerenderte Basisgröße (per
+    // getComputedStyle erfasst, VOR jeder Inline-Überschreibung, da
+    // test-wort eine responsive clamp()-Größe hat) – die Schriftgrößen-
+    // Hierarchie der App bleibt dadurch unangetastet.
+    const TEST_GROESSE_BASIS_PX = parseFloat(getComputedStyle(testWort).fontSize);
+    const TEST_GROESSE_MIN_PX   = TEST_GROESSE_BASIS_PX * 0.88;
+    const TEST_GROESSE_MAX_PX   = TEST_GROESSE_BASIS_PX * 1.12;
 
     function testAchseEinrichten(name, konfig) {
       const wrapper  = document.getElementById(`test-achse-${name}`);
@@ -1527,16 +1537,13 @@
 
     testAchseEinrichten('tonalitaet', {
       anwenden(wert, wertEl) {
-        const t = wert / 100;
-        const r = Math.round(umrechnen(t, 0, 1, TEST_TON_KUEHL[0], TEST_TON_WARM[0]));
-        const g = Math.round(umrechnen(t, 0, 1, TEST_TON_KUEHL[1], TEST_TON_WARM[1]));
-        const b = Math.round(umrechnen(t, 0, 1, TEST_TON_KUEHL[2], TEST_TON_WARM[2]));
-        testWort.style.color = `rgb(${r}, ${g}, ${b})`;
-        const label = wert < 35 ? 'kühl' : wert > 65 ? 'warm' : 'neutral';
+        const groesse = umrechnen(wert, 0, 100, TEST_GROESSE_MIN_PX, TEST_GROESSE_MAX_PX);
+        testWort.style.fontSize = `${groesse.toFixed(1)}px`;
+        const label = wert < 35 ? 'klein' : wert > 65 ? 'groß' : 'mittel';
         wertEl.innerHTML = `<strong>${label}</strong> · ${wert}`;
       },
       neutral() {
-        testWort.style.color = '';
+        testWort.style.fontSize = '';
       }
     });
   }
