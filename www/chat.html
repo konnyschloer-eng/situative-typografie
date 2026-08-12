@@ -94,6 +94,8 @@
       --bubble-outline: rgba(0, 0, 0, 0.75);   /* Sprechblasen-Outline, heller Modus */
       --scrollbar-farbe: rgba(0, 0, 0, 0.22);  /* Scroll-Indikator, heller Modus */
       --emotion-karte-bg: rgba(0, 0, 0, 0.85); /* Karte hinter dem Emotion-Schalter, heller Modus */
+      --ring-ungesehen: #000000; /* "Ungesehen"-Ring um Moment-Kreise, heller Modus – bei hellem
+                                     Hintergrund verschwindet ein fest weißer Ring sonst spurlos */
       /* Emotion-Schalter AN: volle Füllung statt nur Farbwechsel der
          Schiene (siehe .schalter-visuell) – Kontrastfarbe zur Schrift
          des Modus, --schalter-fuellung-kontrast ist die Thumb-Farbe
@@ -119,6 +121,7 @@
       --bubble-outline: var(--bubble-outline);  /* Sprechblasen-Outline, dunkler Modus */
       --scrollbar-farbe: rgba(255, 255, 255, 0.22); /* Scroll-Indikator, dunkler Modus */
       --emotion-karte-bg: rgba(255, 255, 255, 0.10); /* Karte hinter dem Emotion-Schalter, dunkler Modus */
+      --ring-ungesehen: #ffffff; /* "Ungesehen"-Ring um Moment-Kreise, dunkler Modus */
       --schalter-fuellung:           #ffffff;
       --schalter-fuellung-kontrast:  #000000;
     }
@@ -155,7 +158,8 @@
       .moment-feed,
       .moment-kommentar-liste,
       #tab-profil,
-      #eingabe {
+      #eingabe,
+      .raum-zone-nachrichten {
         scrollbar-width: thin;                              /* Firefox */
         scrollbar-color: var(--scrollbar-farbe) transparent; /* Firefox */
       }
@@ -171,7 +175,8 @@
     .moment-feed::-webkit-scrollbar,
     .moment-kommentar-liste::-webkit-scrollbar,
     #tab-profil::-webkit-scrollbar,
-    #eingabe::-webkit-scrollbar {
+    #eingabe::-webkit-scrollbar,
+    .raum-zone-nachrichten::-webkit-scrollbar {
       width: 4px;
     }
 
@@ -185,7 +190,8 @@
     .moment-feed::-webkit-scrollbar-track,
     .moment-kommentar-liste::-webkit-scrollbar-track,
     #tab-profil::-webkit-scrollbar-track,
-    #eingabe::-webkit-scrollbar-track {
+    #eingabe::-webkit-scrollbar-track,
+    .raum-zone-nachrichten::-webkit-scrollbar-track {
       background: transparent;
     }
 
@@ -199,7 +205,8 @@
     .moment-feed::-webkit-scrollbar-thumb,
     .moment-kommentar-liste::-webkit-scrollbar-thumb,
     #tab-profil::-webkit-scrollbar-thumb,
-    #eingabe::-webkit-scrollbar-thumb {
+    #eingabe::-webkit-scrollbar-thumb,
+    .raum-zone-nachrichten::-webkit-scrollbar-thumb {
       background: var(--scrollbar-farbe);
       border-radius: 999px;
     }
@@ -214,7 +221,8 @@
     .moment-feed::-webkit-scrollbar-button,
     .moment-kommentar-liste::-webkit-scrollbar-button,
     #tab-profil::-webkit-scrollbar-button,
-    #eingabe::-webkit-scrollbar-button {
+    #eingabe::-webkit-scrollbar-button,
+    .raum-zone-nachrichten::-webkit-scrollbar-button {
       display: none;
     }
 
@@ -635,7 +643,7 @@
       white-space: nowrap;
     }
 
-    /* Fällt Tonalität aus (siehe testreglerAchseEinrichten, JS), wird
+    /* Fällt Temperatur aus (siehe testreglerAchseEinrichten, JS), wird
        die per JS gesetzte Inline-Farbe entfernt und dieser CSS-Default
        greift wieder – WICHTIG: chat.html hat (anders als onboarding.html)
        keine --text-Variable, nur feste #000000/#ffffff je Modus (wie bei
@@ -862,10 +870,15 @@
       font-size: 19px;
     }
 
-    /* Ungesehener Moment: dünner weißer Ring um den Kreis, per
-       box-shadow (kein zusätzlicher Platzverbrauch/Layout-Shift). */
+    /* Ungesehener Moment: dünner Ring um den Kreis, per box-shadow (kein
+       zusätzlicher Platzverbrauch/Layout-Shift). KORREKTUR – war fest
+       weiß: bei ausgeschaltetem Emotion-Modus (heller Hintergrund)
+       verschwand der Ring dadurch praktisch unsichtbar. --ring-ungesehen
+       folgt jetzt demselben modusabhängigen Variablen-Muster wie --bg/
+       --text-2/etc. (siehe .phone-frame/.phone-frame.emotion-an oben):
+       schwarz im hellen, weiß im dunklen Modus. */
     .avatar--moment-ungesehen {
-      box-shadow: 0 0 0 2px #ffffff;
+      box-shadow: 0 0 0 2px var(--ring-ungesehen);
     }
 
     /* Eigener Kreis: Profilbild (falls vorhanden) statt Buchstabe,
@@ -2095,7 +2108,7 @@
       letter-spacing: 0.03em;
     }
 
-    /* ── Sensor-Anzeige (Intensität/Tempo/Stabilität/Tonalität):
+    /* ── Sensor-Anzeige (Intensität/Tempo/Stabilität/Temperatur):
        ein-/ausfahrbar an derselben Stelle statt dauerhaft sichtbar –
        exakt dieselbe Auf-/Zuklapp-Mechanik wie .test-drawer unten
        (grid-template-rows 0fr → 1fr), nur eigene Klassen, damit beide
@@ -2124,12 +2137,20 @@
 
     .info-drawer-griff:hover { color: var(--text-2); }
 
-    .info-drawer-griff svg {
+    /* Auf-/Zuklapp-Pfeil als reines Schriftzeichen (Situra, wie der
+       übrige Text) statt SVG-Chevron – konsequent zum Konzept "Typografie
+       statt Icons". ">" liegend (90°) zeigt geschlossen nach unten
+       ("aufklappen"), gedreht (-90°) im offenen Zustand nach oben
+       ("zuklappen") – exakt dieselbe Zeigerichtung/Animation wie zuvor
+       der um 180° gedrehte SVG-Chevron. */
+    .info-drawer-pfeil {
+      display: inline-block;
+      transform: rotate(90deg);
       transition: transform 0.4s cubic-bezier(.4, 0, .2, 1);
     }
 
-    .info-drawer.offen .info-drawer-griff svg {
-      transform: rotate(180deg);
+    .info-drawer.offen .info-drawer-pfeil {
+      transform: rotate(-90deg);
     }
 
     .info-drawer-inhalt {
@@ -2183,12 +2204,16 @@
 
     .test-drawer-griff:hover { color: var(--text-2); }
 
-    .test-drawer-griff svg {
+    /* Reines Schriftzeichen statt SVG-Chevron – siehe Kommentar bei
+       .info-drawer-pfeil weiter oben, identisches Prinzip. */
+    .test-drawer-pfeil {
+      display: inline-block;
+      transform: rotate(90deg);
       transition: transform 0.4s cubic-bezier(.4, 0, .2, 1);
     }
 
-    .test-drawer.offen .test-drawer-griff svg {
-      transform: rotate(180deg);
+    .test-drawer.offen .test-drawer-pfeil {
+      transform: rotate(-90deg);
     }
 
     .test-drawer-inhalt {
@@ -2264,98 +2289,167 @@
       display: inline-block;
     }
 
-    .nachricht-andere .text {
+    /* ── Blase als EINE durchgehende Kontur (Körper + Spitze) ──────────
+       KORREKTUR (Umbau von border+Dreieck-Pseudoelement auf clip-path):
+       die alte Technik zeichnete den Blasenkörper über "border" und die
+       Spitze über ein zusätzliches, separat positioniertes Dreieckspaar
+       (::before/::after) – zwei GRUNDVERSCHIEDENE Zeichenwege, die an der
+       Nahtstelle (Übergang Rundung → Spitze) nie exakt zusammenfinden;
+       in Vergrößerung war dort immer ein sichtbarer Versatz/Ansatz zu
+       erkennen. Neue Lösung, identisch zum bereits bewährten Muster im
+       Gruppenraum (siehe .raum-nachricht weiter unten, ausführliche
+       Herleitung dort): GENAU EIN clip-path je Ebene bildet Körper UND
+       Spitze als einzige, zusammenhängende Silhouette. Zwei ineinander-
+       liegende Ebenen (::before außen in Kontur-Farbe, ::after 1px
+       kleiner innen in Hintergrundfarbe) ergeben zusammen den 1px-Strich,
+       der der GESAMTEN Form folgt statt nur dem rechteckigen Blasenkörper.
+       .text selbst bleibt unsichtbar (reine Text-Ebene) – border/
+       border-radius entfallen deshalb komplett, z-index:0 öffnet einen
+       eigenen Stapelkontext, damit die negativ gestapelten Ebenen INNER-
+       HALB dieser Blase bleiben statt hinter einen entfernteren Vorfahren
+       zu "entkommen" (siehe ausführliche Begründung bei .raum-nachricht).
+
+       KORREKTUR (echte Rundungen statt Facetten): clip-path: polygon()
+       kennt NUR gerade Linien zwischen den Punkten – die vorherige
+       4-Punkte-Viertelkreis-Näherung pro Ecke war deshalb in Wirklichkeit
+       ein Achteck-Ausschnitt und zeigte bei genauerem Hinsehen sichtbar
+       ABGESCHRÄGTE statt weich gerundete Ecken. clip-path: path(...) MIT
+       echten Kurvenbefehlen (hier: quadratische Bézier "Q") behebt das –
+       kann aber nur ABSOLUTE Pixel-Koordinaten (keine Prozente/calc()),
+       muss die tatsächliche, erst zur Laufzeit bekannte Blasengröße also
+       aus JS bekommen: --blase-radius/--blase-spitze/--blase-versatz
+       (Design-Token-Variablen, siehe unten) legen die ZIEL-Maße fest,
+       blasenKonturAktualisieren (JS, siehe dort) liest sie aus, misst die
+       tatsächlich gerenderte Blasengröße (ResizeObserver hält das bei
+       jeder Größenänderung – z. B. während der font-size-Transition beim
+       Moduswechsel einer großen Gruppen-Zone – synchron) und schreibt
+       den fertigen SVG-Pfad in --blase-aussen/--blase-innen (per
+       CSS-Variable statt style-Zugriff, weil ::before/::after aus JS
+       nicht direkt ansprechbar sind – Custom Properties vererben sich
+       aber normal an Pseudoelemente). Dieselbe Funktion fixiert im
+       selben Aufwasch auch die max-width jeder einzelnen .wort-Spanne in
+       echten Pixeln (siehe .wort, CSS, und die Funktion selbst für die
+       Begründung – behebt das separate "Wort bricht mitten im Wort um"-
+       Problem). --andere und --ich teilen sich jetzt dieselben Regeln
+       (kein eigener gespiegelter Punktesatz mehr nötig): die Spiegelung
+       steckt in der von JS berechneten Pfad-STRING selbst. */
+    .nachricht-andere .text,
+    .nachricht-ich .text {
+      --blase-radius: 18px;
+      --blase-spitze: 12px;
+      --blase-versatz: 16px;
       color: #000000; /* wie eigene Nachrichten – nur die Outline unterscheidet den Absender */
       font-variation-settings: 'wght' 400;
       display: inline-block;
       max-width: 88%;
       background: transparent;
-      border: 1px solid rgba(0, 0, 0, 0.7);
-      border-radius: 18px 18px 18px 6px;
       padding: 18px 24px;
       position: relative;
-      transition: border-color 0.4s ease, color 0.4s ease;
+      z-index: 0;
     }
 
-    /* Spitze unten links – äußeres Dreieck (Outline-Farbe) */
-    .nachricht-andere .text::before {
-      content: '';
-      position: absolute;
-      bottom: -12px;
-      left: 16px;
-      width: 0; height: 0;
-      border-right: 12px solid transparent;
-      border-top: 12px solid rgba(0, 0, 0, 0.7);
-      transition: border-color 0.4s ease;
-    }
-
-    /* Spitze unten links – inneres Dreieck (Hintergrund, erzeugt Hohlraum) */
-    .nachricht-andere .text::after {
-      content: '';
-      position: absolute;
-      bottom: -10px;
-      left: 17px;
-      width: 0; height: 0;
-      border-right: 10px solid transparent;
-      border-top: 10px solid var(--bg);
-      transition: border-color 0.4s ease;
-    }
-
-    .nachricht-ich .text {
-      color: #000000; /* bleibt konstant – Lesbarkeit */
-      font-variation-settings: 'wght' 400;
-      display: inline-block;
-      max-width: 88%;
-      background: transparent;
-      border: 1px solid rgba(0, 0, 0, 0.7);
-      border-radius: 18px 18px 6px 18px;
-      padding: 18px 24px;
-      position: relative;
-      transition: border-color 0.4s ease, color 0.4s ease;
-    }
-
-    /* Spitze unten rechts – äußeres Dreieck (Outline-Farbe) */
-    .nachricht-ich .text::before {
-      content: '';
-      position: absolute;
-      bottom: -12px;
-      right: 16px;
-      width: 0; height: 0;
-      border-left: 12px solid transparent;
-      border-top: 12px solid rgba(0, 0, 0, 0.7);
-      transition: border-color 0.4s ease;
-    }
-
-    /* Spitze unten rechts – inneres Dreieck (Hintergrund, erzeugt Hohlraum) */
+    /* Gemeinsamer Ebenen-Reset für beide Konturen (Absender-Richtung
+       steckt nur noch im per JS berechneten Pfad, nicht mehr in eigenen
+       Rand-Eigenschaften). transition hier (nicht am Elternelement,
+       siehe .nachricht-andere/.nachricht-ich .text oben): Pseudoelemente
+       erben KEINE transition-Deklaration ihres Elternelements und werden
+       von der globalen ".phone-frame *"-Regel (MODUSWECHSEL-TRANSITION,
+       siehe dort) NICHT erfasst (der Universalselektor "*" matcht nur
+       echte Elemente) – ohne diese eigene Zeile würde die Konturfarbe
+       beim Emotion-Moduswechsel abrupt statt weich umspringen. */
+    .nachricht-andere .text::before,
+    .nachricht-andere .text::after,
+    .nachricht-ich .text::before,
     .nachricht-ich .text::after {
       content: '';
       position: absolute;
-      bottom: -10px;
-      right: 17px;
-      width: 0; height: 0;
-      border-left: 10px solid transparent;
-      border-top: 10px solid var(--bg);
-      transition: border-color 0.4s ease;
+      left: 0; right: 0; top: 0;
+      transition: background-color 0.4s ease;
     }
 
-    /* Zeilenumbruch + große zentrale Darstellung */
+    /* Äußere Ebene (Kontur-Farbe) – ihre eigene Box reicht um --blase-
+       spitze über die Blase hinaus, wodurch die volle Höhe im eigenen
+       Pfad automatisch die Spitzenlänge mit einschließt – funktioniert
+       dadurch unabhängig von der tatsächlichen (erst zur Laufzeit
+       bekannten) Blasengröße. Fallback-Pfad ("M0,0Z", ein leerer Punkt)
+       nur für den einen Frame vor dem ersten JS-Lauf relevant. */
+    .nachricht-andere .text::before,
+    .nachricht-ich .text::before {
+      bottom: calc(-1 * var(--blase-spitze));
+      background: rgba(0, 0, 0, 0.7);
+      z-index: -2;
+      clip-path: path(var(--blase-aussen, 'M0,0Z'));
+    }
+
+    /* Innere Ebene (Hintergrundfarbe) – 1px ringsum kleiner (rechts/
+       links/oben je 1px eingerückt, unten 1px weniger verlängert) –
+       "stanzt" das Loch, das zusammen mit der äußeren Ebene den
+       1px-Strich ergibt. */
+    .nachricht-andere .text::after,
+    .nachricht-ich .text::after {
+      left: 1px; right: 1px; top: 1px;
+      bottom: calc(-1 * (var(--blase-spitze) - 1px));
+      background: var(--bg);
+      z-index: -1;
+      clip-path: path(var(--blase-innen, 'M0,0Z'));
+    }
+
+    /* Zeilenumbruch + große zentrale Darstellung.
+       KORREKTUR ("Hallo" bricht mitten im Wort um, obwohl reichlich Platz
+       da wäre): word-break:break-word entfernt – per Spezifikation ist
+       das NICHT dasselbe wie overflow-wrap:break-word, sondern entspricht
+       word-break:normal + overflow-wrap:ANYWHERE. "anywhere" fließt (im
+       Gegensatz zu "break-word", das nachweislich nur als allerletzter
+       Ausweg greift) in die INTRINSISCHE Breitenberechnung mit ein – der
+       Browser darf die Wort-Box dadurch schon beim Ermitteln ihrer
+       bevorzugten (shrink-to-fit-)Breite kleiner ansetzen, als sie
+       eigentlich bräuchte, weil er ein Umbrechen "irgendwo" jederzeit für
+       zulässig hält. word-break ist zudem eine VERERBTE Eigenschaft und
+       wirkte dadurch bis auf .wort weiter (siehe .wort, CSS) – genau dort
+       sollte ausschließlich das eigene, bewusst zurückhaltende
+       overflow-wrap:break-word gelten (nur allerletzter Ausweg bei
+       einem einzelnen, wirklich zu langen Wort). overflow-wrap:break-word
+       hier allein reicht als Sicherheitsnetz für den Fallback-Textpfad
+       ohne .wort-Spans (siehe nachrichtElementErstellen, JS) bereits aus. */
     .nachricht .text {
       font-size: 30px;
       line-height: 1.35;
       text-align: center;
       overflow-wrap: break-word;
-      word-break: break-word;
       min-width: 0;
     }
 
     /* Jedes Wort als eigene Box: trägt seinen EIGENEN eingefrorenen
        Dimensions-Zustand (siehe JS: wortZustaende). inline-block hält
        das Wort als Einheit zusammen; bricht nur um, wenn es selbst
-       breiter als die verfügbare Zeile ist (z. B. sehr lange Wörter). */
+       breiter als die verfügbare Zeile ist (z. B. sehr lange Wörter).
+       KORREKTUR ("Wort bricht mitten im Wort um, obwohl reichlich Platz
+       da wäre"): max-width:100% hier ist nur der FALLBACK, bevor JS
+       läuft. Ein Prozentwert gegen ein Elternelement, dessen eigene
+       Breite selbst per shrink-to-fit (inline-block ohne explizite
+       Breite, siehe .text/.raum-nachricht) aus IHREM Inhalt berechnet
+       wird, löst Chromium beim ERSTEN Layout nach einem Größensprung
+       (z. B. Wachsen einer Zone zur großen Bühnen-Blase) nachweislich
+       nicht zuverlässig neu auf – der Prozentsatz blieb dabei am alten,
+       zu schmalen Wert hängen, sichtbar als Wort, das mitten im Wort
+       umbricht. blasenKonturAktualisieren (JS, siehe dort) überschreibt
+       max-width hier deshalb IMMER per Inline-Style mit einem echten
+       Pixelwert (= tatsächliche Content-Breite der Blase), sobald die
+       Blase im DOM steht bzw. sich ihre Größe ändert – Inline-Style
+       gewinnt automatisch gegen diese Klassenregel, keine !important
+       nötig. */
     .wort {
       display: inline-block;
       max-width: 100%;
       overflow-wrap: break-word;
+      /* Explizit gegen ein evtl. geerbtes word-break:break-word eines
+         Vorfahren (siehe Korrektur bei .nachricht .text) abgesichert –
+         DAS entspricht per Spezifikation overflow-wrap:ANYWHERE (bricht
+         schon bei der Breitenberechnung, nicht erst als letzter Ausweg)
+         und würde hier genau das ungewollte "bricht mitten im Wort trotz
+         Platz"-Verhalten auslösen. Nur das eigene, bewusst zurück-
+         haltende overflow-wrap:break-word oben soll hier je greifen. */
+      word-break: normal;
     }
 
     /* Absender-Label oberhalb der Nachricht */
@@ -2402,43 +2496,87 @@
     .raum-bereich {
       flex: 1;
       min-height: 0;
-      display: grid;
+      display: flex;
+      flex-direction: column;
       gap: 1px;
-      background: var(--border-light);
+      background: var(--bg);
       overflow: hidden;
-      position: relative; /* Bezugsrahmen für .raum-verbindung (position:absolute) */
+      position: relative;
     }
 
     /* Gleiche Spezifität wie die UA-Regel "[hidden] { display:none }"
        (siehe Kommentar bei .tagebuch-neu-btn[hidden] weiter unten) –
        muss hier explizit gewinnen, sonst bliebe der Raum trotz
-       hidden-Attribut als Grid sichtbar. */
+       hidden-Attribut als Flex-Spalte sichtbar. */
     .raum-bereich[hidden] { display: none; }
+
+    /* Eine "Zeile" der räumlichen Anordnung (siehe raumZeilenAufbauen, JS)
+       – ein horizontaler Flex-Container mit einer festen Teilmenge der
+       Zonen. Jede Zeile ist ein UNABHÄNGIGER Flex-Kontext (Spalten
+       müssen sich nicht über Zeilen hinweg ausrichten). --zeilen-gewicht
+       (Default 1 = neutral) steuert die HÖHE dieser Zeile relativ zu den
+       übrigen Zeilen (siehe raumZeilenGewichteSetzen, JS): die Zeile mit
+       dem Verschmelzungs-Container (siehe .raum-merge weiter unten)
+       bekommt ein größeres Gewicht, alle reinen Einzelzonen-Zeilen ein
+       kleineres – dadurch wird der gemeinsame Gesprächsraum groß, der
+       Rest schrumpft entsprechend (Punkt 3 der Anforderung). transition
+       NACH der MODUSWECHSEL-TRANSITION-Regel notiert (siehe dort). */
+    .raum-zeile {
+      display: flex;
+      flex-direction: row;
+      flex: var(--zeilen-gewicht, 1) 1 0;
+      min-height: 0;
+      gap: 1px;
+    }
 
     .raum-zone {
       background: var(--bg);
+      /* Trennlinie zwischen den Zonen sitzt als Inset-Schatten AUF der
+         Zone selbst (statt als Hintergrundfarbe auf .raum-bereich/
+         .raum-zeile) – so bleibt sie exakt 1px fein, unabhängig von der
+         tatsächlichen Zonengröße. Sprechen zwei (oder mehr) Personen
+         miteinander, gibt es zwischen ihnen gar keine zwei Zonen mehr,
+         die sich eine Kante teilen könnten – sie sind dann EIN einziges
+         .raum-merge-Element (siehe dort) – die Trennlinie "verschwindet"
+         dadurch automatisch, ganz ohne eigene Ein-/Ausblend-Regel. */
+      box-shadow: inset 0 0 0 1px var(--border-light);
       display: flex;
       flex-direction: column;
-      min-width: 0;
-      min-height: 0;
+      /* Alle Zonen EINER Zeile teilen sich den verfügbaren Platz gleich
+         (die Größen-Hervorhebung sitzt jetzt auf der Zeile, siehe
+         .raum-zeile --zeilen-gewicht oben, nicht mehr pro Zone). */
+      flex: 1 1 0;
+      /* Mindestgröße (passive Zonen dürfen nicht faktisch verschwinden):
+         Flexbox unterschreitet min-width/-height nicht, auch wenn eine
+         geschrumpfte Zeile rechnerisch eine kleinere Höhe ergäbe – Name
+         und mindestens eine verkleinerte Nachricht bleiben dadurch immer
+         erkennbar. */
+      min-width: 96px;
+      min-height: 72px;
       padding: 10px 12px;
       overflow: hidden;
       position: relative;
+      /* Bezugsrahmen für die cqw-Schriftskalierung in .raum-nachricht/
+         .raum-zone-name (Schrift soll proportional zur TATSÄCHLICHEN
+         Zonengröße wachsen/schrumpfen – dadurch wächst die Schrift im
+         Verschmelzungs-Container ganz von selbst mit, sobald die Zeile
+         größer wird, ohne eigene Regel dafür). */
+      container-type: inline-size;
     }
 
-    /* "Du" landet unabhängig von Personenzahl/Grid-Größe immer in der
-       letzten Zeile/Spalte (unten rechts). WICHTIG: "-2 / -1" (nicht
-       nur "-1"!) – eine einzelne negative Linie ("-1") wäre nur der
-       Start der Platzierung mit Default-Spannweite 1 AB der letzten
-       Linie, würde also eine zusätzliche implizite Spalte/Zeile NACH
-       dem Grid erzeugen statt die letzte VORHANDENE Zelle zu treffen.
-       "-2 / -1" spannt dagegen exakt von der vorletzten zur letzten
-       Linie – das ist die letzte reguläre Zelle. Die übrigen
-       Mitglieder füllen die restlichen Zellen automatisch in
-       Quelltext-Reihenfolge (siehe raumZonenAufbauen, JS). */
+    /* Frisch erzeugte Zonen/Verschmelzungs-Container (siehe raumZone-
+       Erzeugen/raumMergeErzeugen, JS) starten unsichtbar und blenden
+       sich erst NACH einem gerenderten Frame ein (Klasse wird dann per
+       JS entfernt) – ohne diesen Zwischenschritt hätte die opacity-
+       transition (siehe .raum-zone weiter unten, MODUSWECHSEL-Block)
+       keinen "Vorher"-Wert, von dem sie interpolieren könnte, und das
+       Erscheinen wäre abrupt statt weich. */
+    .raum-eintretend { opacity: 0; }
+
+    /* "Du" landet unabhängig von Personenzahl immer in der letzten
+       Zeile (siehe raumZonenAufbauen, JS: füllt die letzte Mitglieder-
+       Zeile auf oder bekommt eine eigene) und dort rechtsbündig. */
     .raum-zone--du {
-      grid-column: -2 / -1;
-      grid-row: -2 / -1;
       align-items: flex-end;
       text-align: right;
     }
@@ -2454,94 +2592,402 @@
 
     .raum-zone-nachrichten {
       flex: 1;
+      /* Korrektur – MUSS unabhängig vom align-items der Zone immer die
+         volle Zonenbreite bekommen (align-self überschreibt gezielt nur
+         dieses eine Element): .raum-zone--du setzt zonenweit align-
+         items:flex-end (rechtsbündige Namens-Ausrichtung) – ohne dieses
+         align-self würde dieser Nachrichten-Stapel dadurch NICHT mehr
+         gestreckt, sondern schrumpfte auf die Breite seines eigenen
+         Inhalts (Fit-Content) und würde rechtsbündig verankert. Damit
+         hätte max-width:100% in .raum-nachricht keine definite Bezugs-
+         breite mehr zum Umbrechen – eine lange Nachricht bliebe einzeilig
+         und ragte, da rechts verankert, weit über den LINKEN Zonenrand
+         hinaus (genau der gemeldete "Nachricht ragt heraus"-Fehler, hier
+         zusätzlich zur Ursache in .raum-zone--du sichtbar geworden). */
+      align-self: stretch;
       min-height: 0;
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
+      /* Korrektur – KEIN justify-content:flex-end mehr: überschreitet
+         der Inhalt (z. B. zwei lange Testnachrichten in einer schmalen
+         Zone) die verfügbare Höhe, hängt bei flex-end-Ausrichtung der
+         Überlauf am ANFANG (oben) – das ragte dort sichtbar über den
+         Zonenrand hinaus. Stattdessen normale Lesereihenfolge (älteste
+         oben) + Scroll-zum-Ende in raumNachrichtHinzufuegen (JS, analog
+         zum bestehenden "chat.scrollTop = chat.scrollHeight" im
+         1:1-Chat) – dadurch bleibt IMMER die neueste Nachricht sichtbar,
+         und bei Überlauf ist die ältere per Scroll (overflow-y:auto
+         unten) trotzdem vollständig erreichbar statt einfach
+         abgeschnitten oder herausragend. */
+      /* flex-start (Default) nötig, seit .raum-nachricht eine sichtbare
+         Sprechblasen-Outline hat (siehe unten) – sonst würde die Blase
+         auf die volle Zonenbreite gestreckt, unabhängig von der
+         tatsächlichen Textlänge. Bei reinem Text (vorher) fiel das
+         mangels sichtbarem Rand nicht auf. */
+      align-items: flex-start;
       gap: 6px;
+      /* Korrektur – Nachrichten dürfen nie aus der Zone herausragen:
+         übersteigt der Inhalt (z. B. ein langer Testtext in einer
+         kleinen/klein gewichteten Zone) die verfügbare Höhe, wird HIER
+         gescrollt statt dass .raum-zone (overflow:hidden) den Text
+         sichtbar abschneidet – bleibt so immer vollständig lesbar, ohne
+         die Zonengröße selbst zu sprengen. Scrollbalken-Optik siehe
+         gemeinsamer SCROLLBALKEN-Block ganz oben (.raum-zone-nachrichten
+         dort mit aufgenommen). overflow-x explizit hidden (nicht default
+         "visible" belassen): wird nur overflow-y gesetzt, rechnet der
+         Browser das offene overflow-x automatisch zu "auto" um (CSS-
+         Overflow-Spezifikation). Exakt dasselbe Muster wie .chat-bereich
+         im 1:1-Chat. */
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     .raum-zone--du .raum-zone-nachrichten { align-items: flex-end; }
 
-    /* Einzelne Nachricht IST das Text-Element (kein extra Absender-
-       Label pro Nachricht nötig – das steht schon einmal oben in
-       .raum-zone-name). Kleiner als der 1:1-Chat (26–30px), damit
-       mehrere Zonen nebeneinander Platz haben. */
-    /* transition für opacity/transform steht bewusst NICHT hier, siehe
-       Regel nach MODUSWECHSEL-TRANSITION weiter unten. */
+    /* Große Zone (aktive Person solo ODER gemeinsamer Verschmelzungs-Raum,
+       siehe raumGrossEl/.raum-zone--gross, JS): Nachrichten sollen nicht
+       weiter oben in der Zeilenreihenfolge/unten in der Ecke kleben,
+       sondern vertikal MITTIG im jetzt großen, verfügbaren Raum stehen –
+       "safe center" fällt automatisch auf normalen Scroll-Start zurück,
+       sobald mehr Nachrichten da sind, als vertikal hineinpassen (exakt
+       dasselbe Muster wie .chat-bereich im 1:1-Chat, siehe dort), statt
+       wie reines "center" den Anfang UND das Ende abzuschneiden. Gilt für
+       BEIDE große Formen (Solo-Zone wie Verschmelzungs-Raum) – betrifft
+       nur die VERTIKALE Verteilung des gesamten Nachrichten-Stapels; die
+       links/rechts-Unterscheidung PRO einzelner Nachricht (wer spricht,
+       siehe .raum-eintrag--ich/--andere weiter unten) bleibt im
+       Verschmelzungs-Raum davon unberührt. */
+    .raum-zone--gross .raum-zone-nachrichten { justify-content: safe center; }
+
+    /* Nur in der SOLO großen Zone (ein einzelner Absender, kein
+       gemeinsamer Raum – :not(.raum-merge) grenzt das ab) zusätzlich
+       horizontal zentriert, ganz analog zum 1:1-Chat (siehe .chat-bereich
+       weiter oben): Typografie soll dort das dominante Element sein.
+       Höhere Spezifität als .raum-zone--du .raum-zone-nachrichten oben
+       (3 statt 2 Klassen), gewinnt daher auch für die eigene ("Du")
+       große Solo-Zone. Im Verschmelzungs-Raum bleibt links/rechts bewusst
+       erhalten (einzige Unterscheidung, wer spricht, siehe Kommentar
+       oben) – text-align:center für BEIDE großen Formen gemeinsam sitzt
+       bei .raum-zone--gross .raum-nachricht weiter unten (die Blase
+       selbst ist dort ohnehin für Solo UND Verschmelzungs-Raum gleich
+       groß, siehe dort). */
+    .raum-zone--gross:not(.raum-merge) .raum-zone-nachrichten { align-items: center; }
+
+    /* Verschmelzungs-Container (siehe .raum-merge weiter unten): hier
+       sprechen mehrere Personen im selben Bereich, jede Nachricht muss
+       sich EINZELN nach links oder rechts ausrichten (siehe .raum-
+       eintrag--ich/--andere unten, align-self) statt einheitlich wie in
+       einer Einzelzone – deshalb hier NEUTRAL "stretch" statt flex-start/
+       -end. Nach .raum-zone-nachrichten notiert, gewinnt bei gleicher
+       Spezifität (beide Klassen sitzen gemeinsam auf demselben Element,
+       siehe raumMergeErzeugen, JS) durch die spätere Stelle im
+       Stylesheet. */
+    .raum-merge-nachrichten {
+      align-items: stretch;
+      /* KORREKTUR – Blasen überlappten sich: die geerbte gap:6px (siehe
+         .raum-zone-nachrichten weiter oben) war für die kompakte Zonen-
+         Darstellung bemessen. Im Verschmelzungs-Raum ragt die Spitze
+         jeder großen Blase 12px nach unten heraus (siehe .raum-merge-
+         nachrichten .raum-nachricht weiter unten) – 6px Abstand reichte
+         dadurch nicht, die zweite Blase lag über der Spitze der ersten.
+         28px = 12px Spitzenlänge + spürbarer Rest-Abstand, verhindert
+         jede Überschneidung unabhängig von der tatsächlichen Bläschen-
+         höhe (variiert durch unterschiedlich langen Text). */
+      gap: 28px;
+    }
+
+    /* Ein "Eintrag" bündelt optionales Absender-Label + Sprechblase
+       (siehe raumNachrichtHinzufuegen, JS) und ist selbst das Element,
+       das sich ausrichtet – in einer Einzelzone übernimmt es einfach die
+       align-items-Ausrichtung der Zone (s.o.), im Verschmelzungs-
+       Container richtet sich dagegen JEDER Eintrag EINZELN aus: "Du"
+       rechts, alle anderen links – exakt dasselbe Links/Rechts-Prinzip
+       wie .raum-zone--du vs. übrige Zonen, nur jetzt pro Nachricht statt
+       pro Zone, weil mehrere Personen denselben Bereich teilen. */
+    .raum-eintrag {
+      display: flex;
+      flex-direction: column;
+      max-width: 100%;
+    }
+    .raum-eintrag--ich    { align-self: flex-end;   align-items: flex-end; }
+    .raum-eintrag--andere { align-self: flex-start; align-items: flex-start; }
+
+    /* In der großen SOLO-Zone (siehe .raum-zone--gross weiter oben) trägt
+       nur eine einzige Person vor – "Du" links/rechts zu unterscheiden
+       gibt es dort nichts, deshalb hier bewusst zentriert statt des
+       links/rechts-Prinzips von .raum-eintrag--ich/--andere oben (das
+       bleibt für den Verschmelzungs-Raum unverändert bestehen, siehe
+       :not(.raum-merge) unten). align-self auf .raum-eintrag selbst
+       überschreibt sonst IMMER das align-items der Zone (s.o.) – ohne
+       diese Regel bliebe die Nachricht trotz zentrierter Zone optisch in
+       der rechten/linken Ecke hängen.
+       KORREKTUR ("Wort bricht mitten im Wort um") – width:100% hier
+       ergänzt (exakt wie beim gleich gelagerten .raum-merge-nachrichten
+       .raum-eintrag--ich/--andere weiter unten, das dieses Problem nie
+       hatte): OHNE eine feste Breite ist .raum-eintrag hier selbst
+       shrink-to-fit (align-items:center statt stretch) und übernimmt
+       dabei die Breite der Blase – die Blase wiederum begrenzt sich
+       selbst auf max-width:88% GENAU DIESES .raum-eintrag (siehe
+       .raum-zone--gross .raum-nachricht weiter unten). Zwei ineinander
+       verschachtelte shrink-to-fit-Elemente, deren Breiten sich
+       GEGENSEITIG über einen Prozentsatz < 100% begrenzen, haben
+       rechnerisch nur EINEN stabilen Fixpunkt: 0 – jede Neuberechnung
+       (z. B. durch den ResizeObserver in blasenKonturAktualisieren, JS)
+       konvergiert dadurch schrittweise gegen immer schmalere Werte, bis
+       Wörter mitten im Wort umbrechen. width:100% macht .raum-eintrag
+       stattdessen zu einer FESTEN Bezugsgröße (100% der stabilen,
+       tatsächlichen Zonenbreite) – die 88%-Grenze der Blase hat dann
+       einen echten, nicht-zirkulären Bezugspunkt. */
+    .raum-zone--gross:not(.raum-merge) .raum-eintrag--ich,
+    .raum-zone--gross:not(.raum-merge) .raum-eintrag--andere {
+      align-self: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    /* Absender-Name über einer Nachricht – NUR im Verschmelzungs-
+       Container gesetzt, und dort auch nur, sobald mehr als zwei
+       Personen mitreden (siehe raumNachrichtHinzufuegen, JS): bei genau
+       zwei Personen ist die Zuordnung durch links/rechts bereits
+       eindeutig (identisch zum bisherigen Zonen-Prinzip), ein Name wäre
+       dort nur redundant. */
+    .raum-eintrag-sender {
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 2px;
+    }
+
+    /* "e"-Kennzeichen unter eigenen Nachrichten ("Du"), analog zu
+       .nachricht-status im 1:1-Chat (siehe dort für die vollständige
+       Begründung) – fehlte im Gruppenraum komplett. Gleiche Bedeutung:
+       "e" sichtbar = emotionale Typografie war beim Senden aktiv, leer =
+       neutral/leblos gesendet (Abwesenheit ist das Signal, siehe JS,
+       raumNachrichtHinzufuegen). Sitzt als eigenes Element NACH der
+       Blase im selben .raum-eintrag-Wrapper – align-items der Zone/des
+       Verschmelzungs-Containers (siehe .raum-eintrag--ich weiter oben
+       bzw. .raum-merge-nachrichten .raum-eintrag--ich weiter unten)
+       positioniert es dadurch automatisch passend (rechtsbündig in der
+       Einzelzone, mittig im Verschmelzungs-Raum) – keine eigene
+       text-align-Regel nötig. */
+    .raum-eintrag-status {
+      font-size: 13px;
+      line-height: 1;
+      /* 10px Abstand zur LAYOUT-Kante der Blase – die Spitze selbst ragt
+         absolut positioniert darüber hinaus (siehe .raum-nachricht--ich/
+         --andere::before weiter unten, beeinflusst die Layout-Höhe der
+         Blase NICHT) und würde bei zu knappem Abstand hier optisch mit
+         dem Kennzeichen kollidieren. In der großen Zone (Solo ODER
+         Verschmelzungs-Raum, 12px lange Spitze statt 7px) per eigener
+         Regel weiter unten zusätzlich vergrößert. */
+      margin-top: 10px;
+      color: var(--text-2);
+      font-style: italic;
+      user-select: none;
+    }
+
+    /* ── Einzelne Nachricht als EINE durchgehende Kontur (Körper +
+       Spitze) ───────────────────────────────────────────────────────
+       Exakt dieselbe Zwei-Ebenen-clip-path-Technik wie beim 1:1-Chat
+       (siehe .nachricht-andere/.nachricht-ich .text weiter oben, dort
+       auch die ausführliche Herleitung/Begründung) – hier nur kompakter
+       dimensioniert (R=14px/Spitze 7px statt 18px/12px), damit mehrere
+       Zonen nebeneinander Platz haben. .raum-nachricht selbst bleibt
+       unsichtbar (reine Text-Ebene, kein border/box-shadow/border-radius
+       mehr), z-index:0 öffnet dafür den eigenen Stapelkontext (siehe
+       ausführliche Begründung weiter unten). Eine GROSSE Zone (Solo ODER
+       Verschmelzungs-Raum, siehe .raum-zone--gross weiter unten)
+       überschreibt Größe UND Konturmaße auf dieselben 18px/12px-Werte
+       wie der 1:1-Chat – "vergleichbar mit dem Einzelchat", nicht nur
+       hochskalierte Miniatur-Maße. */
     .raum-nachricht {
-      font-size: 14px;
+      --blase-radius: 14px;
+      --blase-spitze: 7px;
+      --blase-versatz: 10px;
+      display: inline-block;
+      max-width: 100%;
+      font-size: 14px; /* Fallback für Browser ohne Container-Query-Einheiten, siehe Regel direkt darunter */
       line-height: 1.35;
       overflow-wrap: break-word;
       color: #000000;
+      background: transparent;
+      padding: 9px 13px;
+      position: relative;
+      /* Eigener Stapelkontext für die negativ gestapelten Konturebenen
+         (siehe ::before/::after weiter unten): ohne eigenen z-index
+         "entkommen" negative z-index-Kinder bis zum nächsten Vorfahren,
+         der tatsächlich einen Stapelkontext eröffnet, und landen dort
+         HINTER dessen eigenem (undurchsichtigem) Hintergrund – z. B.
+         hinter .raum-zone { background: var(--bg) }, komplett unsichtbar. */
+      z-index: 0;
     }
+
+    /* Schriftgröße skaliert PROPORTIONAL zur tatsächlichen Zonenbreite
+       (cqw = 1% der Inline-Größe von .raum-zone, siehe dort "container-
+       type: inline-size") – dadurch wächst die Schrift von selbst mit,
+       sobald die Zone größer wird. clamp() sorgt für eine lesbare
+       Untergrenze in der kleinsten (Mindestgröße-)Zone und eine
+       Obergrenze, die nicht größer wirkt als nötig. Gilt nur für
+       NICHT-große Zonen – eine GROSSE Zone (siehe .raum-zone--gross
+       weiter unten) überschreibt das auf eine feste Größe wie im
+       1:1-Chat. Als EIGENE, zweite font-size-Deklaration notiert (nicht
+       die einzige): unterstützt ein Browser cqw nicht, ist nur diese
+       eine Deklaration ungültig und fällt auf den 14px-Fallback direkt
+       darüber zurück, statt ganz ohne font-size dazustehen. */
+    .raum-nachricht { font-size: clamp(9px, 9cqw, 34px); }
 
     .phone-frame.emotion-an .raum-nachricht { color: #ffffff; }
 
-    /* ── Dynamische Gewichtung: wer zuletzt schrieb bzw. per @name
-       angesprochen wurde, wird groß dargestellt, alle übrigen klein
-       (aber weiterhin lesbar, inkl. ihrer Typografie – man soll sehen,
-       wie jemand "zuhört"). Klassen werden pro Zone gesetzt/entfernt
-       von raumGroesseAktualisieren (JS) – siehe dort. Bewusst KEIN
-       transform:scale() auf die ganze Zone: das würde deren
-       getBoundingClientRect() verändern, auf die raumRichtungBestimmen/
-       raumVerbindungZeichnen für stabile Positionen angewiesen sind –
-       daher nur Schriftgröße innerhalb der ansonsten unveränderten
-       Zelle. Kein drittes "neutral" nötig: ohne beide Klassen gilt der
-       Standard direkt oben (14px/10px). ── */
-    .raum-zone--gross .raum-nachricht { font-size: 20px; }
-    .raum-zone--gross .raum-zone-name { font-size: 12px; }
+    /* Gemeinsamer Ebenen-Reset für beide Konturen – siehe .nachricht-
+       andere/.nachricht-ich .text weiter oben für die ausführliche
+       Begründung der eigenen transition-Zeile hier (Pseudoelemente
+       erben keine transition ihres Elternelements und werden von der
+       globalen ".phone-frame *"-Regel nicht erfasst). */
+    .raum-nachricht--andere::before,
+    .raum-nachricht--andere::after,
+    .raum-nachricht--ich::before,
+    .raum-nachricht--ich::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; top: 0;
+      transition: background-color 0.4s ease;
+    }
 
-    .raum-zone--klein .raum-nachricht { font-size: 11px; opacity: 0.6; }
-    .raum-zone--klein .raum-zone-name { opacity: 0.6; }
+    /* Äußere Ebene (Kontur-Farbe) – reicht um --blase-spitze über die
+       Blase hinaus, wodurch die volle Höhe im eigenen Pfad automatisch
+       die Spitzenlänge mit einschließt (siehe 1:1-Chat-Pendant weiter
+       oben für die vollständige Begründung dieses Musters UND von
+       clip-path: path(...) statt polygon() für echte Bézier-Rundungen). */
+    .raum-nachricht--andere::before,
+    .raum-nachricht--ich::before {
+      bottom: calc(-1 * var(--blase-spitze));
+      background: rgba(0, 0, 0, 0.7);
+      z-index: -2;
+      clip-path: path(var(--blase-aussen, 'M0,0Z'));
+    }
 
-    /* Verblassen: max. 2 Nachrichten gleichzeitig sichtbar pro Zone
-       (wie im 1:1-Chat) – die ältere bekommt diese Klasse, blendet
-       sich weich aus und wird danach per Timer entfernt (siehe JS),
-       statt abrupt zu verschwinden. WICHTIG: als .raum-nachricht.raum-
-       nachricht--verblasst (statt nur .raum-nachricht--verblasst)
-       notiert und bewusst NACH den .raum-zone--klein-Regeln oben
-       platziert – gleiche Spezifität (zwei Klassen) wie
-       ".raum-zone--klein .raum-nachricht", gewinnt bei einem Gleich-
-       stand also durch die spätere Position im Stylesheet. Ohne das
-       würde eine alte Nachricht in einer klein geschalteten Zone beim
-       Verblassen bei opacity 0.6 hängen bleiben statt auf 0 zu gehen. */
-    .raum-nachricht.raum-nachricht--verblasst {
+    /* Innere Ebene (Hintergrundfarbe) – 1px ringsum kleiner, "stanzt" das
+       Loch, das zusammen mit der äußeren Ebene den 1px-Strich ergibt. */
+    .raum-nachricht--andere::after,
+    .raum-nachricht--ich::after {
+      left: 1px; right: 1px; top: 1px;
+      bottom: calc(-1 * (var(--blase-spitze) - 1px));
+      background: var(--bg);
+      z-index: -1;
+      clip-path: path(var(--blase-innen, 'M0,0Z'));
+    }
+
+    .phone-frame.emotion-an .raum-nachricht--andere::before,
+    .phone-frame.emotion-an .raum-nachricht--ich::before {
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    /* ── Große Zone (Solo ODER gemeinsamer Verschmelzungs-Raum): große,
+       mittige Bühnen-Darstellung ──────────────────────────────────────
+       Bühne für die reagierende Typografie statt Nachrichtenprotokoll –
+       Nachrichten hier wie im 1:1-Chat groß und MITTIG (siehe .nachricht-
+       andere/.nachricht-ich .text weiter oben), nicht klein/links-rechts
+       aufgereiht wie in kompakten Zonen. Alle Selektoren hier mit
+       .raum-zone--gross als Präfix notiert (sitzt sowohl auf dem
+       Verschmelzungs-Container als auch auf der großen Solo-Zone, siehe
+       raumGrossEl, JS) – dadurch automatisch höhere Spezifität als die
+       kompakten Basis-Regeln oben, kleine Zonen (kein aktiver großer
+       Raum) bleiben davon unberührt. */
+    .raum-merge-nachrichten .raum-eintrag--ich,
+    .raum-merge-nachrichten .raum-eintrag--andere {
+      align-self: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    /* "e"-Kennzeichen (siehe .raum-eintrag-status weiter oben) braucht
+       hier mehr Abstand zur Blasen-Layout-Kante: die Spitze ist in der
+       großen Zone 12px lang statt 7px in einer kompakten Zone. */
+    .raum-zone--gross .raum-eintrag-status { margin-top: 18px; }
+
+    /* ── Kontur EINE durchgehende Form (Blase + Spitze) ───────────────
+       Dieselbe Zwei-Ebenen-clip-path: path(...)-Technik wie beim 1:1-Chat
+       und den kompakten Zonen (siehe .nachricht-andere/.nachricht-ich
+       .text bzw. .raum-nachricht--andere/--ich weiter oben für die
+       vollständige Herleitung, inkl. Begründung für echte Bézier-Kurven
+       statt polygon()-Facetten) – hier mit denselben Maßen wie der
+       1:1-Chat (Radius 18px/17px, Spitze 12px/11px): eine große Zone
+       soll "vergleichbar mit dem Einzelchat" wirken, nicht wie eine
+       hochskalierte Miniatur. */
+    .raum-zone--gross .raum-nachricht {
+      --blase-radius: 18px;
+      --blase-spitze: 12px;
+      --blase-versatz: 16px;
+      max-width: 88%;
+      font-size: 30px;
+      padding: 18px 24px;
+      text-align: center;
+      background: transparent;
+      z-index: 0;
+    }
+
+    .raum-zone--gross .raum-nachricht--andere::before,
+    .raum-zone--gross .raum-nachricht--andere::after,
+    .raum-zone--gross .raum-nachricht--ich::before,
+    .raum-zone--gross .raum-nachricht--ich::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; top: 0;
+      transition: background-color 0.4s ease; /* siehe Begründung bei .nachricht-andere/.nachricht-ich .text::before weiter oben */
+    }
+
+    /* Äußere Ebene (Kontur-Farbe) – ihre eigene Box reicht um --blase-
+       spitze über die Blase hinaus, wodurch die volle Höhe im eigenen
+       Pfad automatisch die Spitzenlänge mit einschließt – funktioniert
+       dadurch unabhängig von der tatsächlichen (erst zur Laufzeit
+       bekannten) Blasenhöhe. */
+    .raum-zone--gross .raum-nachricht--andere::before,
+    .raum-zone--gross .raum-nachricht--ich::before {
+      bottom: calc(-1 * var(--blase-spitze));
+      background: rgba(0, 0, 0, 0.7);
+      z-index: -2;
+      clip-path: path(var(--blase-aussen, 'M0,0Z'));
+    }
+
+    /* Innere Ebene (Hintergrundfarbe) – 1px ringsum kleiner (rechts/
+       links/oben je 1px eingerückt, unten 1px weniger verlängert) –
+       "stanzt" das Loch, das zusammen mit der äußeren Ebene den
+       1px-Strich ergibt. */
+    .raum-zone--gross .raum-nachricht--andere::after,
+    .raum-zone--gross .raum-nachricht--ich::after {
+      left: 1px; right: 1px; top: 1px;
+      bottom: calc(-1 * (var(--blase-spitze) - 1px));
+      background: var(--bg);
+      z-index: -1;
+      clip-path: path(var(--blase-innen, 'M0,0Z'));
+    }
+
+    .phone-frame.emotion-an .raum-zone--gross .raum-nachricht--andere::before,
+    .phone-frame.emotion-an .raum-zone--gross .raum-nachricht--ich::before {
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Verblassen: max. 2 gleichzeitig sichtbare Nachrichten pro Liste,
+       einheitlich Einzelzone wie gemeinsamer Verschmelzungs-Container
+       (siehe raumNachrichtHinzufuegen, JS – der frühere Sonderfall "3 im
+       Raum" aus Zeiten kompakter Blasen entfällt, seit dort dieselben
+       großen Bühnen-Blasen wie im 1:1-Chat stehen, siehe .raum-zone--
+       gross .raum-nachricht weiter oben) – die älteste bekommt
+       diese Klasse, blendet sich weich aus und wird danach per Timer
+       entfernt, statt abrupt zu verschwinden. Im gemeinsamen Raum läuft
+       davor zusätzlich eine Mindest-Lesezeit (siehe raumEintragVerblassen
+       Planen, JS), bevor diese Klasse überhaupt gesetzt wird. Sitzt auf
+       dem .raum-eintrag-Wrapper (nicht der Blase direkt), damit auch ein
+       eventuelles Absender-Label (.raum-eintrag-sender) mit ausblendet. */
+    .raum-eintrag.raum-eintrag--verblasst {
       opacity: 0;
     }
 
-    /* ── @-Mentions: gerichtete Nachrichten "docken" optisch an ───
-       --lehn-x/--lehn-y (je -1/0/1, von JS aus der relativen
-       Grid-Position von Sender- und Ziel-Zone gesetzt) lehnen die
-       Nachricht ein paar Pixel Richtung Zielzone. ── */
-    .raum-nachricht--gerichtet {
-      transform: translate(calc(var(--lehn-x, 0) * 7px), calc(var(--lehn-y, 0) * 7px));
-    }
-
-    /* Kurzlebige Verbindungslinie zwischen Sender- und Ziel-Zone,
-       Position/Rotation/Länge werden per JS via getBoundingClientRect
-       einmalig gesetzt (style.left/top/width/transform). */
-    /* transition für opacity steht bewusst NICHT hier, siehe Regel nach
-       MODUSWECHSEL-TRANSITION weiter unten. */
-    .raum-verbindung {
-      position: absolute;
-      left: 0;
-      top: 0;
-      height: 2px;
-      width: 0;
-      background: var(--accent);
-      transform-origin: left center;
-      opacity: 0.75;
-      border-radius: 999px;
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    .raum-verbindung--ausblendend { opacity: 0; }
-
-    /* Kurzer Puls auf der letzten Nachricht der angesprochenen Person
-       – bewusst kein Farbwechsel (monochromes Prinzip der App, siehe
-       Kommentar bei sensorZuSchriftAchse/Tonalität), sondern ein
+    /* Kurzer Puls auf der gerade eingefügten Nachricht, solange sie Teil
+       eines aktiven Verschmelzungs-Raums ist (siehe raumNachrichtSenden,
+       JS) – bewusst kein Farbwechsel (monochromes Prinzip der App, siehe
+       Kommentar bei sensorZuSchriftAchse/Temperatur), sondern ein
        kurzes Glühen in der jeweils aktuellen Textfarbe. */
     @keyframes raum-echo-puls {
       0%, 100% { text-shadow: none; }
@@ -2739,30 +3185,51 @@
        aufgenommen statt sich auf die globale Regel zu verlassen. */
     .schalter-visuell::after { transition: transform 0.4s ease, background-color 0.4s ease; }
 
-    /* Gruppenraum – Verblassen/Andocken (siehe .raum-nachricht/
-       .raum-verbindung oben): eigene transition-property, muss ebenso
-       NACH der MODUSWECHSEL-TRANSITION-Regel stehen, sonst gewinnt
-       deren transition-property (nur background-color/border-color/
-       color) und opacity ändert sich abrupt statt weich zu verblassen
-       – zusätzlich bliebe dann transitionend aus, wodurch die JS-Auf-
-       räumlogik (Entfernen der verblassten Nachricht/Linie) nie greift. */
-    .raum-nachricht    { transition: opacity 0.6s ease, transform 0.6s ease, font-size 0.6s ease; }
-    .raum-verbindung   { transition: opacity 1s ease; }
+    /* Gruppenraum: eigene transition-property, muss ebenso NACH der
+       MODUSWECHSEL-TRANSITION-Regel stehen, sonst gewinnt deren
+       transition-property (nur background-color/border-color/color) und
+       font-size ändert sich abrupt statt weich. Die Konturfarbe selbst
+       hängt nicht mehr an .raum-nachricht (kein box-shadow/border mehr,
+       siehe Kommentar dort) – die beiden Kontur-Ebenen (::before/::after)
+       tragen ihre eigene transition-Zeile direkt an sich selbst, siehe
+       dort (Pseudoelemente erben keine transition ihres Elternelements). */
+    .raum-nachricht { transition: font-size 0.6s ease; }
 
-    /* Dynamische Gewichtung (siehe .raum-zone--gross/--klein weiter
-       oben): eigene Transition aus demselben Grund NACH der globalen
-       MODUSWECHSEL-TRANSITION-Regel nötig, sonst würde nur die
-       Zonen-Namens-Schriftgröße abrupt springen statt weich zu wechseln. */
-    .raum-zone-name { transition: font-size 0.6s ease, opacity 0.6s ease; }
+    /* Absender-Label + Sprechblasen-Wrapper (siehe .raum-eintrag, CSS
+       weiter oben): eigene opacity-Transition aus demselben Grund NACH
+       der globalen MODUSWECHSEL-TRANSITION-Regel nötig – trägt sowohl
+       das Verblassen alter Nachrichten (.raum-eintrag--verblasst) als
+       auch das Ein-/Ausblenden ganzer Zonen beim Verschmelzen/Auflösen
+       (siehe .raum-zone/.raum-merge unten – Wrapper UND Zone teilen sich
+       dieselbe Übergangsdauer, damit beide Ebenen synchron wirken). */
+    .raum-eintrag { transition: opacity 0.6s ease; }
+
+    /* Zonen-Name (Kopfzeile jeder Zone/des Verschmelzungs-Containers). */
+    .raum-zone-name { transition: opacity 0.6s ease; }
+
+    /* Zeilen-Gewichtung (siehe .raum-zeile, CSS weiter oben):
+       --zeilen-gewicht steuert flex-grow (ein reiner <number>-Wert, in
+       Chromium/Android-WebView zuverlässig interpolierbar, anders als
+       eine grid-template-columns/-rows-Transition – siehe Kommentar-
+       Historie, das wurde an dieser Stelle bereits einmal probiert und
+       wegen unzuverlässiger Animation auf genau diesem WebView-Stand
+       wieder verworfen). Aus demselben Grund wie oben NACH der globalen
+       MODUSWECHSEL-TRANSITION-Regel nötig. */
+    .raum-zeile { transition: flex-grow 0.6s ease; }
+
+    /* Zonen/Verschmelzungs-Container selbst blenden sich beim Entstehen/
+       Verschwinden weich ein bzw. aus (siehe .raum-eintretend weiter
+       oben und raumStrukturUmbauen, JS). */
+    .raum-zone { transition: opacity 0.5s ease; }
 
     /* ── Invertierter Modus (Emotion AN): helle Schrift auf dunklem Grund ── */
     /* Überschreibt hartcodierte Farben, die nicht über CSS-Variablen laufen.  */
     .phone-frame.emotion-an .app-logo              { filter: invert(1); }
     .phone-frame.emotion-an .gespraechs-name       { color: #ffffff; }
-    .phone-frame.emotion-an .nachricht-andere .text         { color: #ffffff; border-color: rgba(255,255,255,0.7); }
-    .phone-frame.emotion-an .nachricht-andere .text::before { border-top-color: rgba(255,255,255,0.7); }
-    .phone-frame.emotion-an .nachricht-ich .text            { color: #ffffff; border-color: rgba(255,255,255,0.7); }
-    .phone-frame.emotion-an .nachricht-ich .text::before    { border-top-color: rgba(255,255,255,0.7); }
+    .phone-frame.emotion-an .nachricht-andere .text          { color: #ffffff; }
+    .phone-frame.emotion-an .nachricht-ich .text             { color: #ffffff; }
+    .phone-frame.emotion-an .nachricht-andere .text::before,
+    .phone-frame.emotion-an .nachricht-ich .text::before     { background: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an #eingabe                { color: #ffffff; }
     .phone-frame.emotion-an .suche-eingabe          { color: #ffffff; }
     .phone-frame.emotion-an .moment-eingabe         { color: #ffffff; }
@@ -3117,8 +3584,8 @@
           <li><strong>Tempo</strong> – schnelles Tippen rückt Buchstaben eng zusammen, langsames zieht sie auseinander.</li>
           <li><strong>Stabilität</strong> – bei Anspannung beginnt die Schrift zu zittern (approximierte Pulsvariabilität).</li>
           <li><strong>Wachheit</strong> – über deinen Schlaf gemessen: scharf oder unscharf.</li>
-          <li><strong>Gefasstheit</strong><em class="test-badge">Testwert</em> – lässt den Text kräftig oder blass wirken.</li>
-          <li><strong>Tonalität</strong><em class="test-badge">Testwert</em> – rein illustrativ, verändert die Schriftgröße von klein (kühl) zu groß (warm).</li>
+          <li><strong>Atmung</strong><em class="test-badge">Testwert</em> – lässt den Text kräftig oder blass wirken.</li>
+          <li><strong>Temperatur</strong><em class="test-badge">Testwert</em> – rein illustrativ, verändert die Schriftgröße von klein (kühl) zu groß (warm).</li>
         </ul>
         <p class="infos-text">
           Bei Demo-Kontakten (Chats, Momente) wird derselbe Mechanismus mit
@@ -3201,30 +3668,30 @@
 
           <div class="testregler-achse" id="testregler-achse-gefasstheit">
             <div class="testregler-achse-kopf">
-              <label class="testregler-schalter" title="Gefasstheit ein-/ausschalten">
+              <label class="testregler-schalter" title="Atmung ein-/ausschalten">
                 <input type="checkbox" id="testregler-schalter-gefasstheit" checked>
                 <span class="testregler-schalter-visuell"></span>
               </label>
-              <span class="testregler-achse-label">Gefasstheit</span>
+              <span class="testregler-achse-label">Atmung</span>
             </div>
             <div class="testregler-regler-zeile">
               <input type="range" id="testregler-regler-gefasstheit" min="0" max="100" step="1" value="50"
-                aria-label="Gefasstheit">
+                aria-label="Atmung">
               <span class="testregler-wert" id="testregler-wert-gefasstheit"></span>
             </div>
           </div>
 
           <div class="testregler-achse" id="testregler-achse-tonalitaet">
             <div class="testregler-achse-kopf">
-              <label class="testregler-schalter" title="Tonalität ein-/ausschalten">
+              <label class="testregler-schalter" title="Temperatur ein-/ausschalten">
                 <input type="checkbox" id="testregler-schalter-tonalitaet" checked>
                 <span class="testregler-schalter-visuell"></span>
               </label>
-              <span class="testregler-achse-label">Tonalität</span>
+              <span class="testregler-achse-label">Temperatur</span>
             </div>
             <div class="testregler-regler-zeile">
               <input type="range" id="testregler-regler-tonalitaet" min="0" max="100" step="1" value="50"
-                aria-label="Tonalität">
+                aria-label="Temperatur">
               <span class="testregler-wert" id="testregler-wert-tonalitaet"></span>
             </div>
           </div>
@@ -3293,7 +3760,7 @@
     <header class="kopfzeile">
       <div class="kopfzeile-titelzeile">
         <div class="kopfzeile-links">
-          <button class="zurueck-btn" id="zurueck-btn">&#8592;</button>
+          <button class="zurueck-btn" id="zurueck-btn">&lt;</button>
           <button class="chat-partner-btn" id="chat-partner-btn" title="Gruppeninfo anzeigen">
             <div class="avatar avatar--chat" id="chat-partner-avatar">–</div>
             <span class="kopfzeile-titel" id="chat-partner-name">–</span>
@@ -3313,10 +3780,7 @@
           aria-expanded="false" aria-controls="info-drawer-inhalt"
           title="Sensor-Anzeige ein-/ausblenden">
           <span>Sensor-Anzeige</span>
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
-            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 9l6 6 6-6"/>
-          </svg>
+          <span class="info-drawer-pfeil" aria-hidden="true">&gt;</span>
         </button>
 
         <div class="info-drawer-inhalt" id="info-drawer-inhalt">
@@ -3354,7 +3818,7 @@
 
               <div class="sensor-dimension">
                 <div class="dimension-header">
-                  <span class="dimension-label">Tonalität</span>
+                  <span class="dimension-label">Temperatur</span>
                   <span class="dimension-wert" id="wert-tonalitaet">500</span>
                 </div>
                 <input class="dimension-slider" type="range"
@@ -3373,10 +3837,7 @@
                 aria-expanded="false" aria-controls="test-drawer-inhalt"
                 title="Test-Eingaben ein-/ausblenden">
                 <span>Test-Eingaben</span>
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
-                  stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M6 9l6 6 6-6"/>
-                </svg>
+                <span class="test-drawer-pfeil" aria-hidden="true">&gt;</span>
               </button>
 
               <div class="test-drawer-inhalt" id="test-drawer-inhalt">
@@ -3419,7 +3880,7 @@
              die Demo-Antworten-Simulation (1:1 + Gruppenraum) über
              die Konsole weiter auslösbar ist, ohne dass sie im
              normalen Interface sichtbar ist. -->
-        <button id="antwort-btn" hidden>&#8592; Antwort</button>
+        <button id="antwort-btn" hidden>&lt; Antwort</button>
         <!-- textarea statt input: wächst automatisch nach oben -->
         <textarea id="eingabe" rows="1"
           placeholder="Nachricht schreiben …"
@@ -3727,6 +4188,52 @@
     eintrag.querySelector('.gespraechs-vorschau').textContent = gruppe.mitglieder.join(', ');
   }
 
+  // ── Gruppenbilder aus assets/gruppen/ ────────────────────────────
+  // Exakt dasselbe Manifest-Prinzip wie AVATARS_MANIFEST/AVATAR_FOTO_
+  // ORDNER weiter unten (Kontaktfotos), nur für Gruppen: ein Bild in
+  // assets/gruppen/ mit dem Gruppennamen als Dateiname (z. B.
+  // "Wochenende.jpg" für die Gruppe "Wochenende") reicht – scripts/
+  // sync-web.js trägt die gefundenen Dateinamen beim Kopieren nach
+  // www/ in denselben Platzhalter-Mechanismus ein wie bei den Kontakt-
+  // Avataren. Anders als bei Kontakten wird der Name NICHT aus dem
+  // Dateinamen abgeleitet (Gruppennamen sind freier Text, oft mit
+  // Leerzeichen) – stattdessen wird der Dateiname (ohne Endung) gegen
+  // den bereits vorhandenen gruppe.name abgeglichen. Ein manuell
+  // hochgeladenes Bild (siehe Gruppeninfo/Neue-Gruppe weiter unten)
+  // hat immer Vorrang und wird nie überschrieben. Bild wird wie bei
+  // Kontakten erst vorab geladen (new Image()) und nur bei Erfolg
+  // übernommen, damit ein im Manifest gelisteter, aber inzwischen
+  // fehlender/kaputter Dateiname nie zu einem leeren Kreis führt (der
+  // Buchstaben-Fallback bleibt sonst einfach stehen).
+  const GRUPPEN_MANIFEST    = /* @GRUPPEN_MANIFEST@ */ [];
+  const GRUPPEN_FOTO_ORDNER = 'assets/gruppen/';
+
+  function gruppenBildAusManifestFinden(gruppenName) {
+    const gesucht = gruppenName.toLowerCase();
+    return GRUPPEN_MANIFEST.find(function (datei) {
+      return datei.replace(/\.[^./\\]+$/, '').toLowerCase() === gesucht;
+    }) || null;
+  }
+
+  function gruppenBildManifestAnwenden(gruppe) {
+    if (gruppe.bild) return; // hochgeladenes Bild hat Vorrang, nichts zu tun
+    const dateiname = gruppenBildAusManifestFinden(gruppe.name);
+    if (!dateiname) return;
+    const url  = GRUPPEN_FOTO_ORDNER + dateiname;
+    const bild = new Image();
+    bild.onload = function () {
+      if (gruppe.bild) return; // zwischenzeitlich doch manuell gesetzt – nicht überschreiben
+      gruppe.bild = url;
+      gruppeneintragAktualisieren(gruppe);
+      if (aktuellerChatIstGruppe && aktuelleGruppe === gruppe) {
+        gruppenAvatarAnwenden(chatPartnerAvatar, gruppe);
+      }
+    };
+    bild.src = url;
+  }
+
+  gruppen.forEach(gruppenBildManifestAnwenden);
+
   // Öffnet die bestehende Chat-Ansicht im Gruppen-Modus: Titel und
   // Avatar zeigen die Gruppe. ABER: statt des klassischen Verlaufs
   // (#chat) wird der räumliche Gruppenraum (#gruppen-raum, siehe
@@ -3848,6 +4355,9 @@
     const gruppe = { name: name, mitglieder: ausgewaehlt, bild: neueGruppeBildDataUrl };
     gruppen.push(gruppe);
     gruppenEintragErstellen(gruppe);
+    // Ohne manuell gewähltes Foto (s. o.) noch versuchen, eins per Namen
+    // aus assets/gruppen/ zu finden (siehe gruppenBildManifestAnwenden).
+    gruppenBildManifestAnwenden(gruppe);
 
     neueGruppeSchliessen();
     zeigeGruppenChat(gruppe);
@@ -4585,7 +5095,7 @@
     const wobbleRotRoh = umrechnen(rohwerte.stabilitaet, 100, 900, WOBBLE_ROT_MAX, 0);
     const wobbleRot    = wobbleRotRoh < WOBBLE_ROT_TOTZONE ? 0 : wobbleRotRoh;
 
-    // Tonalität (Körpertemperatur) ist ein Testwert (nicht real gemessen)
+    // Temperatur (Körpertemperatur) ist ein Testwert (nicht real gemessen)
     // und wirkt bewusst NICHT auf die Typografie der eigentlichen App –
     // die Farb-Zuordnung kühl→warm ist rein illustrativ im Onboarding zu
     // sehen (siehe onboarding.html, demo-farbe). Chat/Momente bleiben
@@ -4693,7 +5203,7 @@
     // Tempo steuert NICHT das Zittern – nur Laufweite und Einblend-Speed.
     element.style.letterSpacing = `${achsen.spacing.toFixed(3)}em`;
 
-    // Tonalität wirkt bewusst NICHT auf die Farbe hier (siehe Kommentar
+    // Temperatur wirkt bewusst NICHT auf die Farbe hier (siehe Kommentar
     // an sensorZuSchriftAchse) – Text bleibt schwarz/weiß je nach Modus
     // (element.style.color bleibt unangetastet, siehe stilNeutralAnwenden).
 
@@ -5123,6 +5633,185 @@
   // BUGFIX: #chat ist ein einziges, global geteiltes DOM-Element –
   // zeigeChat() hat es beim Kontaktwechsel nie geleert/neu befüllt,
   // wodurch alle 1:1-Kontakte denselben angezeigten Verlauf "teilten"
+  // ── Sprechblasen-Kontur: EINE durchgehende Form (Körper+Spitze) ────
+  // Gemeinsam für 1:1-Chat (.text) UND Gruppenraum (.raum-nachricht,
+  // kompakt wie groß) – siehe CSS (.nachricht-andere/.nachricht-ich
+  // .text, .raum-nachricht--andere/--ich, .raum-zone--gross .raum-
+  // nachricht) für die Zwei-Ebenen-clip-path:path(...)-Technik (::before
+  // außen in Kontur-Farbe, ::after 1px kleiner innen in Hintergrund-
+  // farbe) und die --blase-radius/--blase-spitze/--blase-versatz
+  // Design-Token-Variablen je Kontext, die hier ausgelesen werden.
+  //
+  // WARUM JS statt reinem CSS: clip-path: polygon() kennt nur gerade
+  // Linien – eine Rundung ließ sich damit nur grob als Vieleck annähern
+  // (sichtbar abgeschrägte statt weich gerundete Ecken). Echte Kurven
+  // gibt es in clip-path nur über path(...) mit SVG-Pfadbefehlen (hier:
+  // quadratische Bézier "Q") – path() akzeptiert dafür ausschließlich
+  // ABSOLUTE Pixel-Koordinaten, keine Prozente/calc(). Da die Blasen-
+  // größe von der (erst zur Laufzeit bekannten) Textlänge abhängt, wird
+  // der Pfad hier aus der TATSÄCHLICH gerenderten Größe berechnet und
+  // per CSS-Variable an die ::before/::after-Ebenen weitergereicht
+  // (Custom Properties vererben sich an Pseudoelemente, ein direkter
+  // style-Zugriff auf ::before/::after ist aus JS dagegen nicht
+  // möglich). blasenKonturBeobachter hält das bei jeder Größenänderung
+  // synchron (Font-Größen-Transition beim Wachsen/Schrumpfen einer
+  // Gruppen-Zone, Fenster-/Orientierungswechsel, o. ä.).
+  //
+  // Dieselbe Messung behebt im selben Aufwasch ein zweites, unabhängiges
+  // Problem: .wort (siehe CSS) begrenzt jedes Wort auf max-width:100%,
+  // damit nur GENUIN zu lange Wörter selbst umbrechen – ein Prozentwert
+  // gegen ein shrink-to-fit-Elternelement (.text/.raum-nachricht haben
+  // keine explizite Breite) wird von Chromium nach einem Größensprung
+  // (z. B. Zone wächst zur großen Bühnen-Blase) aber nicht zuverlässig
+  // neu aufgelöst und blieb am alten, zu schmalen Wert hängen – sichtbar
+  // als Wort, das MITTEN im Wort umbricht, obwohl reichlich Platz da
+  // wäre. Fix: dieselbe Funktion schreibt die tatsächliche Content-
+  // Breite als echten Pixelwert direkt auf jede .wort-Spanne (Inline-
+  // Style gewinnt automatisch gegen die Prozent-Klassenregel).
+  function blasenPfad(breite, hoeheGesamt, radius, spitze, versatz, rechts) {
+    const koerperHoehe = hoeheGesamt - spitze;
+    if (!rechts) {
+      // Spitze unten LINKS: Uhrzeigersinn ab der linken Kante der Ecke
+      // oben-links, drei Ecken echt gerundet (Q-Kurve, Kontrollpunkt =
+      // die scharfe Eckposition selbst), die vierte (unten-links, wo
+      // die Spitze sitzt) BEWUSST ungerundet – die Spitze wächst als
+      // einfache Verlängerung der linken Kante nach unten heraus, kein
+      // eigener Rundungspunkt lässt sie organisch statt angesetzt wirken.
+      return 'M0,' + radius + ' Q0,0 ' + radius + ',0' +
+        ' L' + (breite - radius) + ',0 Q' + breite + ',0 ' + breite + ',' + radius +
+        ' L' + breite + ',' + (koerperHoehe - radius) + ' Q' + breite + ',' + koerperHoehe + ' ' + (breite - radius) + ',' + koerperHoehe +
+        ' L' + versatz + ',' + koerperHoehe + ' L0,' + hoeheGesamt + ' Z';
+    }
+    // Spitze unten RECHTS ("Du") – horizontal gespiegelte Punktfolge.
+    return 'M' + breite + ',' + radius + ' Q' + breite + ',0 ' + (breite - radius) + ',0' +
+      ' L' + radius + ',0 Q0,0 0,' + radius +
+      ' L0,' + (koerperHoehe - radius) + ' Q0,' + koerperHoehe + ' ' + radius + ',' + koerperHoehe +
+      ' L' + (breite - versatz) + ',' + koerperHoehe + ' L' + breite + ',' + hoeheGesamt + ' Z';
+  }
+
+  function blasenKonturAktualisieren(el) {
+    const woerter = el.querySelectorAll('.wort');
+    // VOR jeder Messung zurücksetzen – sonst entsteht ein sich selbst
+    // verstärkender Rückkopplungs-Kreis: .raum-nachricht/.text haben
+    // selbst keine feste Breite (shrink-to-fit, siehe CSS), ihre
+    // gemessene Breite hängt also direkt von der AKTUELLEN max-width
+    // jedes .wort ab – die aber genau die Zahl ist, die diese Funktion
+    // gleich neu berechnet. Bliebe der alte (ggf. bereits zu kleine)
+    // Wert beim Messen stehen, könnte ein neu berechneter Wert nie
+    // wieder GRÖSSER werden als vorher, selbst wenn (z. B. nach einer
+    // font-size-Transition beim Schrumpfen einer Gruppen-Zone) eigentlich
+    // wieder mehr Platz da wäre – über mehrere ResizeObserver-Ticks
+    // hinweg "rastet" die Blase dann immer enger ein, bis Wörter mitten
+    // im Wort umbrechen, obwohl reichlich Platz vorhanden wäre (genau
+    // der ursprünglich gemeldete Fehler). "none" statt der Prozent-
+    // Basisregel entkoppelt die Messung: die Blase kann jetzt nur noch
+    // durch IHRE EIGENE max-width (fest gegen ein stabiles Elternelement,
+    // siehe .raum-eintrag/.nachricht) begrenzt werden, nicht mehr im
+    // Kreis durch ihre eigenen Wörter.
+    woerter.forEach(function (wort) { wort.style.maxWidth = 'none'; });
+
+    // KORREKTUR ("Hallo" bricht mitten im Wort um, obwohl rechnerisch
+    // reichlich Platz da wäre") – offsetWidth/offsetHeight liefern per
+    // Spezifikation GERUNDETE Ganzzahl-Pixel, nicht die tatsächliche
+    // (subpixelgenaue) Breite. Bei Buchstabenabstand (letter-spacing,
+    // siehe stilAnwenden, JS) braucht ein Wort oft exakt einen
+    // gebrochenen Pixelwert (z. B. 77.25px) – offsetWidth rundete diesen
+    // Wert bislang auf 77px ab, wodurch der berechnete max-width-Wert
+    // GENAU DAS fehlende Viertel-Pixel zu knapp war und das Wort exakt
+    // an dieser Kante umbrach. getBoundingClientRect() liefert dieselbe
+    // Breite subpixelgenau (als float) – exakt genug, um diesen
+    // Rundungsfehler zu vermeiden.
+    const eigeneBox = el.getBoundingClientRect();
+    const breite = eigeneBox.width;
+    const hoeheKoerper = eigeneBox.height;
+    if (!breite || !hoeheKoerper) return; // noch nicht gerendert (z. B. unsichtbare Zone)
+
+    const cs = getComputedStyle(el);
+    const radius  = parseFloat(cs.getPropertyValue('--blase-radius'))  || 0;
+    const spitze  = parseFloat(cs.getPropertyValue('--blase-spitze'))  || 0;
+    const versatz = parseFloat(cs.getPropertyValue('--blase-versatz')) || 0;
+    const rechts = el.classList.contains('raum-nachricht--ich') || !!el.closest('.nachricht-ich');
+
+    const aussen = blasenPfad(breite, hoeheKoerper + spitze, radius, spitze, versatz, rechts);
+    const innen  = blasenPfad(breite - 2, hoeheKoerper + spitze - 2, radius - 1, spitze - 1, versatz - 1, rechts);
+    el.style.setProperty('--blase-aussen', JSON.stringify(aussen));
+    el.style.setProperty('--blase-innen', JSON.stringify(innen));
+
+    const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    // +0.5px Sicherheitsspanne: rundet den ohnehin schon subpixelgenauen
+    // Wert bewusst leicht AUFwärts statt abwärts – fängt verbleibende
+    // Subpixel-Rundungsunterschiede zwischen dieser Messung und dem
+    // eigentlichen Zeilenumbruch-Layout des Browsers ab (verschiedene
+    // interne Rundungsschritte), ohne die Blase sichtbar zu vergrößern.
+    const inhaltsBreite = Math.max(0, breite - padX) + 0.5;
+    woerter.forEach(function (wort) {
+      wort.style.maxWidth = inhaltsBreite + 'px';
+    });
+  }
+
+  const blasenKonturBeobachter = new ResizeObserver(function (entries) {
+    entries.forEach(function (entry) { blasenKonturAktualisieren(entry.target); });
+  });
+
+  // Fordert für jedes .wort in "el" GEZIELT genau den Schriftschnitt an,
+  // den es per style.fontFamily aktuell tatsächlich trägt (siehe
+  // stilAnwenden/stilNeutralAnwenden, JS: jedes Wort bekommt individuell
+  // einen von 7 statischen Situra-Dateien zugewiesen, abhängig von
+  // Sensor-/Emotionswerten – WELCHE Datei das ist, steht erst hier zur
+  // Laufzeit fest, nicht generell für die ganze Seite). Gibt ein Promise
+  // zurück, das erfüllt ist, sobald alle diese Anfragen abgeschlossen
+  // sind (geladen ODER endgültig fehlgeschlagen – .catch(()=>{}) pro
+  // Anfrage verhindert, dass eine einzelne fehlgeschlagene Schriftdatei
+  // das gemeinsame Promise.all ablehnen lässt).
+  //
+  // document.fonts.load() statt des allgemeinen document.fonts.ready:
+  // .ready wird erst erfüllt, nachdem der Browser über einen eigenen
+  // Layout/Paint-Durchlauf erkannt hat, dass eine bestimmte Schrift
+  // gebraucht wird – wird .ready SEHR knapp nach dem Einfügen geprüft
+  // (wie hier, direkt im selben Tick), kann dieser Erkennungs-Durchlauf
+  // noch gar nicht gelaufen sein, das Promise löst sich dann auf, OHNE
+  // dass die gerade erst zugewiesene neue Schriftdatei überhaupt zum
+  // Laden angestoßen wurde. document.fonts.load(spec, text) stößt das
+  // Laden dagegen sofort UND explizit selbst an (unabhängig von einem
+  // eigenen Layout-Durchlauf) und liefert exakt DAFÜR ein Promise.
+  function blasenSchriftenLaden(el) {
+    if (!(window.document && document.fonts && document.fonts.load)) return Promise.resolve();
+    const anfragen = [];
+    el.querySelectorAll('.wort').forEach(function (wort) {
+      const cs = getComputedStyle(wort);
+      const angabe = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+      anfragen.push(document.fonts.load(angabe, wort.textContent).catch(function () {}));
+    });
+    return Promise.all(anfragen);
+  }
+
+  // Richtet Kontur + Wort-Breiten-Fix für eine frisch eingefügte Blase
+  // ein – EIN sofortiger Lauf (für ein direktes erstes Rendering, auch
+  // falls die Schrift(en) schon aus einer vorherigen Nachricht geladen
+  // sind – der Normalfall) UND ein autoritativer zweiter Lauf, sobald
+  // blasenSchriftenLaden bestätigt, dass die für DIESE Wörter konkret
+  // benötigten Schriftschnitte sicher geladen sind (siehe dort für die
+  // Begründung), plus laufende Überwachung per ResizeObserver.
+  //
+  // KORREKTUR ("Hallo" bricht mitten im Wort um, obwohl reichlich Platz
+  // da wäre): lief die erste (sofortige) Messung VOR Abschluss des
+  // Ladevorgangs der für dieses Wort zugewiesenen Situra-Datei, maß der
+  // Browser die Wortbreite noch mit der Fallback-Schrift (Inter/
+  // sans-serif) – eine ANDERE (oft schmalere) Zeichenbreite als Situra.
+  // Der daraus berechnete Pixelwert für .wort max-width (siehe
+  // blasenKonturAktualisieren) wurde dann per Inline-Style FEST
+  // geschrieben; wechselte die Schrift Sekundenbruchteile später zu
+  // Situra, änderte sich die tatsächlich benötigte Breite – der bereits
+  // gesetzte (jetzt zu kleine) max-width-Wert blieb aber bestehen, weil
+  // daraus keine Größenänderung der Blase mehr folgte, die der
+  // ResizeObserver hätte bemerken können (die Blase war ja bereits auf
+  // den – falschen – Wert geschrumpft).
+  function blasenKonturEinrichten(el) {
+    blasenKonturAktualisieren(el);
+    blasenKonturBeobachter.observe(el);
+    blasenSchriftenLaden(el).then(function () { blasenKonturAktualisieren(el); });
+  }
+
   // (Tims Nachrichten blieben sichtbar, wenn man zu Paul wechselte).
   // Jetzt lebt der eigentliche Verlauf hier, pro Kontakt getrennt –
   // #chat ist nur noch die Anzeige des GERADE GEÖFFNETEN Kontakts,
@@ -5225,7 +5914,11 @@
   function chatVerlaufAnzeigen(name) {
     chat.innerHTML = '';
     (chatVerlaeufe[name] || []).forEach(function (eintrag) {
-      chat.appendChild(nachrichtElementErstellen(eintrag));
+      const wrapper = nachrichtElementErstellen(eintrag);
+      chat.appendChild(wrapper);
+      // Kontur/Wort-Breiten erst NACH dem Einfügen berechenbar (braucht
+      // echtes Layout, siehe blasenKonturEinrichten).
+      blasenKonturEinrichten(wrapper.querySelector('.text'));
     });
     chat.scrollTop = chat.scrollHeight;
   }
@@ -5282,87 +5975,206 @@
   //      konsistent.
   // ═══════════════════════════════════════════════════════════════
 
-  // ── Dynamische Gewichtung: wer zuletzt schrieb bzw. per @name
-  // angesprochen wurde, wird groß dargestellt (siehe .raum-zone--gross/
-  // --klein, CSS). raumAktivesPaar hält das laufende Gespräch fest,
-  // damit @name nur beim ERSTEN Mal einer Konversation nötig ist
-  // (siehe raumGerichteteNachrichtVerarbeiten weiter unten) – löst sich
-  // auf, sobald jemand außerhalb des Paars ohne @ schreibt, oder nach
-  // RAUM_PAUSE_MS ohne neue Nachricht (raumGewichtungZuruecksetzen).
-  let raumAktivesPaar     = null; // { a: name, b: name } | null
+  // ── Verschmelzende Zonen statt verschmelzender Blasen ──────────
+  // Sprechen zwei (oder mehr) Personen miteinander, verschwindet NICHT
+  // mehr die Trennlinie zwischen zwei Sprechblasen (frühere Version,
+  // siehe Kommentar-Historie), sondern die Trennlinie zwischen ihren
+  // ZONEN: beide Zonen werden zu einem einzigen .raum-merge-Element
+  // (siehe raumMergeErzeugen weiter unten und .raum-merge, CSS), das den
+  // gemeinsamen Gesprächsraum bildet – groß, mit einer gemeinsamen,
+  // chronologischen Nachrichtenliste, in der jede Blase weiterhin für
+  // sich steht (eigene Spitze, kein Verschmelzen der Blasen selbst).
+  // raumAktiveGruppe hält die Namen aller aktuell "im Raum" befindlichen
+  // Personen fest (wächst, sobald eine weitere Person mitmacht – Punkt
+  // 6 der Anforderung) und löst sich auf, sobald jemand außerhalb davon
+  // ohne @ schreibt, oder nach RAUM_PAUSE_MS ohne neue Nachricht (siehe
+  // raumGewichtungZuruecksetzen).
+  let raumAktiveGruppe   = null; // Set<name> | null
+  let raumMergeNamen     = [];   // Namen, die GERADE im .raum-merge stecken (Vergleichsbasis für raumRaumNeuAufbauen)
   let raumLetzterSprecher = null;
+  // Name der Einzelzone, die GERADE (ohne aktiven Verschmelzungs-Raum)
+  // allein groß dargestellt wird, weil sie zuletzt gesprochen hat – siehe
+  // "Grundregel" in raumRaumNeuAufbauen: wer zuletzt schreibt, wird IMMER
+  // groß, auch ganz ohne @-Adressierung; nur eine echte @-Ansprache lässt
+  // daraus zusätzlich einen gemeinsamen Verschmelzungs-Raum werden (dann
+  // gilt raumMergeNamen statt dieser Variable). null, solange niemand
+  // zuletzt gesprochen hat bzw. gerade ein Verschmelzungs-Raum aktiv ist.
+  let raumSoloName        = null;
   let raumNeutralTimer    = null;
-  const RAUM_PAUSE_MS = 6000;
+  // Deutlich länger als ein kurzes Aufblitzen (war ursprünglich 6000 – zu
+  // kurz, ein normales Tippen+Senden dauert oft schon länger, wodurch
+  // die Zuordnung vorzeitig verfiel und der Raum fälschlich schrumpfte).
+  const RAUM_PAUSE_MS = 30000;
 
-  // Entfernt alle Größen-Klassen (Rückkehr zur neutralen Standardgröße,
-  // siehe CSS) und setzt Paar/Sprecher zurück – "neutraler Ausgangs-
-  // zustand" nach längerer Pause bzw. beim frischen Öffnen einer Gruppe.
-  function raumGewichtungZuruecksetzen() {
-    clearTimeout(raumNeutralTimer);
-    raumNeutralTimer = null;
-    raumAktivesPaar     = null;
-    raumLetzterSprecher = null;
-    gruppenRaum.querySelectorAll('.raum-zone').forEach(function (zone) {
-      zone.classList.remove('raum-zone--gross', 'raum-zone--klein');
-    });
+  // Mindest-Lesezeit im gemeinsamen Verschmelzungs-Raum, BEVOR eine
+  // überzählige Nachricht zu verblassen beginnt ("Nachrichten
+  // verschwinden zu schnell") – gilt NUR dort (siehe Aufrufstelle in
+  // raumNachrichtHinzufuegen): Einzelzonen wurden nicht bemängelt, ihr
+  // bisheriges Sofort-Verblassen bleibt unverändert.
+  const RAUM_MERGE_MIN_LESEZEIT_MS = 4000;
+
+  // Zeilen-Gewichte für die reale Flex-Größenaufteilung (siehe
+  // .raum-zeile, --zeilen-gewicht, CSS, und raumZeilenGewichteSetzen
+  // unten): die Zeile mit dem Verschmelzungs-Container bekommt das
+  // GROSSE Gewicht, alle reinen Einzelzonen-Zeilen das KLEINE – dadurch
+  // wird der gemeinsame Gesprächsraum groß, der Rest schrumpft
+  // entsprechend (Punkt 3 der Anforderung), ohne dass sich Zeilen dabei
+  // überlappen können (echte Flex-Neuaufteilung, kein transform:scale()).
+  const RAUM_GEWICHT_GROSS = 2.2;
+  const RAUM_GEWICHT_KLEIN = 0.5;
+
+  // "Du" ans Ende sortieren (Konvention aus der ursprünglichen Version:
+  // "Du" bleibt so unabhängig von Personenzahl/Gesprächskonstellation
+  // immer als Letzte(r) auffindbar).
+  function raumDuZuletzt(namen) {
+    const ohneDu = namen.filter(function (n) { return n !== 'Du'; });
+    return namen.indexOf('Du') !== -1 ? ohneDu.concat(['Du']) : ohneDu;
   }
 
-  // Setzt .raum-zone--gross auf den/die aktuell hervorgehobene(n)
-  // Person(en) (letzte(r) Sprecher(in) + ggf. Gesprächspartner(in) aus
-  // raumAktivesPaar), .raum-zone--klein auf alle übrigen. Startet
-  // zugleich den Pause-Rückfall-Timer neu.
-  function raumGroesseAktualisieren() {
-    if (!raumLetzterSprecher) return;
+  // "Ben, Clara & Du" – Aufzählung mit "&" vor dem letzten Namen, für
+  // den Kopf des Verschmelzungs-Containers (siehe .raum-merge-name).
+  function raumNamenAufzaehlen(namen) {
+    if (namen.length <= 1) return namen.join('');
+    return namen.slice(0, -1).join(', ') + ' & ' + namen[namen.length - 1];
+  }
 
-    const gross = new Set([raumLetzterSprecher]);
-    if (raumAktivesPaar) {
-      gross.add(raumAktivesPaar.a);
-      gross.add(raumAktivesPaar.b);
+  // Erzeugt eine leere Einzel-Zone (Name-Kopf + Nachrichtenliste) für
+  // "name" – wiederverwendbar sowohl beim Erst-Aufbau (raumZonenAufbauen)
+  // als auch beim Wieder-Entstehen einer Zone, wenn sich ein gemeinsamer
+  // Raum auflöst (siehe raumStrukturUmbauen). Startet mit der
+  // .raum-eintretend-Klasse (opacity 0, siehe CSS) – wird vom Aufrufer
+  // entfernt, sobald das Element im DOM steht (löst die Einblend-
+  // Transition aus, siehe Kommentar dort).
+  function raumZoneErzeugen(name) {
+    const istDu = name === 'Du';
+    const zone = document.createElement('div');
+    zone.className = 'raum-zone raum-eintretend' + (istDu ? ' raum-zone--du' : '');
+    zone.dataset.name = name;
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'raum-zone-name';
+    nameEl.textContent = name;
+    zone.appendChild(nameEl);
+
+    const nachrichtenEl = document.createElement('div');
+    nachrichtenEl.className = 'raum-zone-nachrichten';
+    zone.appendChild(nachrichtenEl);
+
+    return zone;
+  }
+
+  // Erzeugt den (leeren) Verschmelzungs-Container – strukturell dieselbe
+  // Zone-Erzeugen-Bauweise wie raumZoneErzeugen, nur mit zusätzlicher
+  // .raum-merge-Klasse (siehe CSS: übernimmt Box-Optik von .raum-zone 1:1,
+  // die Nachrichtenliste bekommt aber align-items:stretch statt fest
+  // links/rechts, weil sich jede Nachricht darin EINZELN ausrichtet,
+  // siehe .raum-eintrag--ich/--andere).
+  function raumMergeErzeugen() {
+    const zone = document.createElement('div');
+    zone.className = 'raum-zone raum-merge raum-eintretend';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'raum-zone-name raum-merge-name';
+    zone.appendChild(nameEl);
+
+    const nachrichtenEl = document.createElement('div');
+    nachrichtenEl.className = 'raum-zone-nachrichten raum-merge-nachrichten';
+    zone.appendChild(nachrichtenEl);
+
+    return zone;
+  }
+
+  // Findet die bestehende EINZEL-Zone von "name" im DOM (nicht den
+  // Verschmelzungs-Container, auch wenn "name" gerade dort mitspricht –
+  // :not(.raum-merge) grenzt das gezielt ab).
+  function raumEinzelZoneVon(name) {
+    return gruppenRaum.querySelector('.raum-zone[data-name="' + CSS.escape(name) + '"]:not(.raum-merge)');
+  }
+
+  // Verteilt (bereits existierende!) Zonen-Elemente auf .raum-zeile-
+  // Zeilen, quadratisch gepackt, und hängt optional den Verschmelzungs-
+  // Container als eigene, erste Vollbreite-Zeile davor – dadurch teilt
+  // sich diese Zeile den Platz mit den übrigen NUR über ihr eigenes
+  // --zeilen-gewicht (siehe raumZeilenGewichteSetzen), nicht über eine
+  // feste Spaltenzahl. Zeilen-Elemente selbst werden dabei komplett NEU
+  // erzeugt (billig – sie tragen selbst keinen Zustand), die Zonen/der
+  // Merge-Container werden per appendChild HINEINVERSCHOBEN, behalten
+  // dadurch ihren kompletten Zustand (Nachrichten, Scroll-Position)
+  // unabhängig davon, in welcher Zeile sie zuvor standen.
+  function raumZeilenAufbauen(inaktivZonen, mergeZone) {
+    gruppenRaum.replaceChildren();
+
+    if (mergeZone) {
+      const mergeZeile = document.createElement('div');
+      mergeZeile.className = 'raum-zeile';
+      mergeZeile.appendChild(mergeZone);
+      gruppenRaum.appendChild(mergeZeile);
     }
 
-    gruppenRaum.querySelectorAll('.raum-zone').forEach(function (zone) {
-      const istGross = gross.has(zone.dataset.name);
-      zone.classList.toggle('raum-zone--gross', istGross);
-      zone.classList.toggle('raum-zone--klein', !istGross);
-    });
+    if (!inaktivZonen.length) return;
 
-    clearTimeout(raumNeutralTimer);
-    raumNeutralTimer = setTimeout(raumGewichtungZuruecksetzen, RAUM_PAUSE_MS);
+    const spalten = Math.ceil(Math.sqrt(inaktivZonen.length));
+    for (let i = 0; i < inaktivZonen.length; i += spalten) {
+      const zeileEl = document.createElement('div');
+      zeileEl.className = 'raum-zeile';
+      inaktivZonen.slice(i, i + spalten).forEach(function (zone) { zeileEl.appendChild(zone); });
+      gruppenRaum.appendChild(zeileEl);
+    }
   }
 
-  // Baut die Zonen einer Gruppe neu auf (bei jedem Öffnen, siehe
-  // zeigeGruppenChat oben). Spalten/Zeilen ergeben sich generisch aus
-  // der Personenzahl (Mitglieder + "Du") – kein Sonderfall pro Zahl
-  // nötig, "Du" wird unabhängig davon per CSS auf die letzte Zelle
-  // gepinnt (.raum-zone--du, siehe CSS).
+  // Schreibt --zeilen-gewicht auf jede aktuelle .raum-zeile (siehe CSS):
+  // ohne EINE groß dargestellte Zeile bleiben alle Zeilen neutral (1), MIT
+  // einer groß dargestellten Zeile bekommt die Zeile, die das große
+  // Element enthält (immer die erste, siehe raumZeilenAufbauen) – sei es
+  // der Verschmelzungs-Container (@-Ansprache) ODER die einzelne, solo
+  // groß dargestellte Zone des zuletzt sprechenden Absenders (keine
+  // Ansprache, siehe raumSoloName) – das GROSSE Gewicht, alle übrigen das
+  // KLEINE.
+  function raumZeilenGewichteSetzen(grossAktiv) {
+    Array.from(gruppenRaum.children).forEach(function (zeile, i) {
+      const istGrossZeile = grossAktiv && i === 0 && raumGrossEl && zeile.contains(raumGrossEl);
+      zeile.style.setProperty('--zeilen-gewicht', grossAktiv ? (istGrossZeile ? RAUM_GEWICHT_GROSS : RAUM_GEWICHT_KLEIN) : 1);
+    });
+  }
+
+  // Aktuell sichtbarer Verschmelzungs-Container, oder null.
+  let raumMergeEl = null;
+  // Das aktuell groß dargestellte Element der ersten Zeile, unabhängig
+  // davon ob es sich um raumMergeEl (Verschmelzung) oder eine solo große
+  // Einzelzone (raumSoloName) handelt – von raumZeilenGewichteSetzen
+  // genutzt, um dessen Zeile zu erkennen.
+  let raumGrossEl = null;
+
+  // Timer der verzögerten Auflösen-Transition (siehe raumRaumNeuAufbauen
+  // weiter unten) – null, solange gerade keine Auflösung anläuft.
+  let raumAufloesenTimer = null;
+
+  // Baut die Zonen einer Gruppe beim ERSTEN Öffnen komplett neu auf
+  // (siehe zeigeGruppenChat oben): eine eigene, leere Zone pro Mitglied +
+  // "Du", alle einzeln, gleich groß, kein Verschmelzungs-Container. Für
+  // spätere Verschmelzen/Auflösen-Übergänge siehe raumRaumNeuAufbauen
+  // weiter unten – die verschiebt/migriert bestehende Zonen, statt bei
+  // jeder Nachricht alles wegzuwerfen und neu zu bauen.
   function raumZonenAufbauen(gruppe) {
     gruppenRaum.innerHTML = '';
+    raumMergeEl    = null;
+    raumMergeNamen = [];
+    raumGrossEl    = null;
+    raumSoloName   = null;
+    // Ein evtl. noch laufender Auflösen-Timer (siehe raumRaumNeuAufbauen)
+    // gehört zur VORHERIGEN Gruppe – ohne diesen Abbruch würde er später
+    // gegen die frisch geöffnete (andere) Gruppe feuern.
+    clearTimeout(raumAufloesenTimer);
+    raumAufloesenTimer = null;
 
-    const namen   = gruppe.mitglieder.concat(['Du']);
-    const anzahl  = namen.length;
-    const spalten = Math.ceil(Math.sqrt(anzahl));
-    const zeilen  = Math.ceil(anzahl / spalten);
-    gruppenRaum.style.gridTemplateColumns = 'repeat(' + spalten + ', 1fr)';
-    gruppenRaum.style.gridTemplateRows    = 'repeat(' + zeilen + ', 1fr)';
-
-    namen.forEach(function (name) {
-      const istDu = name === 'Du';
-
-      const zone = document.createElement('div');
-      zone.className = 'raum-zone' + (istDu ? ' raum-zone--du' : '');
-      zone.dataset.name = name;
-
-      const nameEl = document.createElement('div');
-      nameEl.className = 'raum-zone-name';
-      nameEl.textContent = name;
-      zone.appendChild(nameEl);
-
-      const nachrichtenEl = document.createElement('div');
-      nachrichtenEl.className = 'raum-zone-nachrichten';
-      zone.appendChild(nachrichtenEl);
-
-      gruppenRaum.appendChild(zone);
+    const namen = raumDuZuletzt(gruppe.mitglieder.concat(['Du']));
+    const zonen = namen.map(function (name) {
+      const zone = raumZoneErzeugen(name);
+      zone.classList.remove('raum-eintretend'); // Erst-Aufbau: sofort sichtbar, keine Einblend-Animation nötig
+      return zone;
     });
+    raumZeilenAufbauen(zonen, null);
+    raumZeilenGewichteSetzen(false);
   }
 
   // Simulierte Rohwerte eines Gruppenmitglieds für die reagierende
@@ -5386,18 +6198,64 @@
     });
   }
 
-  // Fügt eine Nachricht in die Zone von "name" ein. Die Nachricht IST
-  // das Text-Element (kein zusätzliches Absender-Label pro Nachricht –
-  // das steht bereits einmal oben in .raum-zone-name). Gibt das neue
-  // Element zurück (für das @-Andocken, siehe raumGerichteteNachricht-
-  // Verarbeiten weiter unten).
-  function raumNachrichtHinzufuegen(name, text, wortSnapshots) {
-    const zone = gruppenRaum.querySelector('.raum-zone[data-name="' + CSS.escape(name) + '"]');
-    if (!zone) return null;
-    const stack = zone.querySelector('.raum-zone-nachrichten');
+  // Plant das Verblassen (+ späteres Entfernen) von "eintrag" frühestens
+  // RAUM_MERGE_MIN_LESEZEIT_MS NACH dessen Einfügen (siehe dataset.
+  // eingefuegtUm, gesetzt in raumNachrichtHinzufuegen) – auch wenn der
+  // Nachrichten-Puffer schon vorher überläuft, weil mehrere Personen
+  // schnell hintereinander schreiben ("Nachrichten verschwinden zu
+  // schnell"). dataset.verblassenGeplant verhindert doppelte Timer,
+  // falls derselbe (noch nicht entfernte) Eintrag durch mehrere schnelle
+  // Folgenachrichten wiederholt als "ältester" erkannt wird, bevor sein
+  // erster Timer überhaupt gefeuert hat.
+  function raumEintragVerblassenPlanen(eintrag) {
+    if (eintrag.dataset.verblassenGeplant) return;
+    eintrag.dataset.verblassenGeplant = '1';
+    const eingefuegtUm  = Number(eintrag.dataset.eingefuegtUm) || Date.now();
+    const vergangen     = Date.now() - eingefuegtUm;
+    const restwartezeit = Math.max(0, RAUM_MERGE_MIN_LESEZEIT_MS - vergangen);
+    setTimeout(function () {
+      eintrag.classList.add('raum-eintrag--verblasst');
+      setTimeout(function () { eintrag.remove(); }, 650); // > 0.6s CSS-Transition
+    }, restwartezeit);
+  }
 
-    const el = document.createElement('p');
-    el.className = 'raum-nachricht';
+  // Fügt eine Nachricht von "name" ein – landet automatisch im richtigen
+  // Container: ist "name" GERADE Teil des aktiven Verschmelzungs-Raums
+  // (raumAktiveGruppe, siehe raumRaumNeuAufbauen – MUSS bereits vor
+  // diesem Aufruf auf den aktuellen Stand gebracht worden sein, siehe
+  // raumNachrichtSenden), landet sie in der gemeinsamen Liste, sonst in
+  // der eigenen Einzelzone. Jede Nachricht ist ein ".raum-eintrag"-
+  // Wrapper (optionales Absender-Label + die eigentliche Sprechblase,
+  // siehe CSS) – in einer Einzelzone richtet sich "Du" rechts aus, alle
+  // anderen links (wie im 1:1-Chat eigene vs. fremde Nachrichten); im
+  // gemeinsamen Verschmelzungs-Raum steht dagegen jede Blase mittig,
+  // groß, wie auf einer Bühne (siehe .raum-merge-nachrichten, CSS).
+  // Gibt die Sprechblase selbst zurück (für den Echo-Puls).
+  function raumNachrichtHinzufuegen(name, text, wortSnapshots) {
+    const mergeAktiv = !!(raumAktiveGruppe && raumAktiveGruppe.has(name) && raumMergeEl);
+    const zone  = mergeAktiv ? raumMergeEl : raumEinzelZoneVon(name);
+    const stack = zone ? zone.querySelector('.raum-zone-nachrichten') : null;
+    if (!stack) return null;
+
+    const istIch = name === 'Du';
+    const eintrag = document.createElement('div');
+    eintrag.className = 'raum-eintrag ' + (istIch ? 'raum-eintrag--ich' : 'raum-eintrag--andere');
+    eintrag.dataset.sender = name;
+    eintrag.dataset.eingefuegtUm = String(Date.now());
+
+    // Absender-Label NUR im Verschmelzungs-Container UND nur, sobald
+    // mehr als zwei Personen mitreden – bei genau zwei Personen ist die
+    // Zuordnung durch links/rechts bereits eindeutig (siehe .raum-
+    // eintrag-sender, CSS-Kommentar).
+    if (mergeAktiv && !istIch && raumAktiveGruppe.size > 2) {
+      const senderLabel = document.createElement('div');
+      senderLabel.className = 'raum-eintrag-sender';
+      senderLabel.textContent = name;
+      eintrag.appendChild(senderLabel);
+    }
+
+    const el = document.createElement('div');
+    el.className = 'raum-nachricht ' + (istIch ? 'raum-nachricht--ich' : 'raum-nachricht--andere');
 
     const woerter = text.split(/\s+/).filter(function (w) { return w.length > 0; });
     woerter.forEach(function (wort, i) {
@@ -5414,20 +6272,52 @@
       if (i < woerter.length - 1) el.appendChild(document.createTextNode(' '));
     });
 
-    stack.appendChild(el);
+    eintrag.appendChild(el);
 
-    // Verblassen: höchstens 2 Nachrichten gleichzeitig sichtbar PRO
-    // ZONE (dasselbe Prinzip wie "max. 2" im 1:1-Chat oben, aber pro
-    // Zone statt global) – die älteste blendet sich weich aus statt
-    // abrupt zu verschwinden (kein Scrollen in den Zonen). Entfernen
-    // per Timer statt transitionend-Event: bewusst robuster, u. a.
-    // falls die Zone zwischenzeitlich neu aufgebaut wird (Gruppen-
-    // wechsel) und das Element gar nicht mehr sichtbar transitioniert.
-    const bestehende = Array.from(stack.children).filter(function (k) { return k !== el; });
-    if (bestehende.length >= 2) {
+    // "e"-Kennzeichen (siehe .raum-eintrag-status, CSS) – exakt dieselbe
+    // Regel wie im 1:1-Chat (dort .nachricht-status, siehe chatEintrag-
+    // Element): nur bei "Du"s eigenen Nachrichten, sichtbar sobald
+    // mindestens EIN Wort emotional (nicht "leblos") eingefroren wurde.
+    if (istIch) {
+      const statusEl = document.createElement('div');
+      statusEl.className = 'raum-eintrag-status';
+      const hatEmotionalesWort = wortSnapshots.some(function (s) { return !s.leblos; });
+      statusEl.textContent = hatEmotionalesWort ? 'e' : '';
+      eintrag.appendChild(statusEl);
+    }
+
+    stack.appendChild(eintrag);
+    // Kontur/Wort-Breiten erst NACH dem Einfügen berechenbar (braucht
+    // echtes Layout, siehe blasenKonturEinrichten).
+    blasenKonturEinrichten(el);
+
+    // Ans Ende scrollen – analog zu "chat.scrollTop = chat.scrollHeight"
+    // im 1:1-Chat (siehe chatVerlaufAnzeigen). Wichtig bei langen
+    // Nachrichten: hält die NEUESTE Nachricht sichtbar, auch wenn der
+    // Stapel (siehe .raum-zone-nachrichten, CSS: overflow-y:auto) mehr
+    // Höhe braucht, als die Zone hergibt.
+    stack.scrollTop = stack.scrollHeight;
+
+    // Verblassen: höchstens 2 Nachrichten gleichzeitig sichtbar (Einzel-
+    // zone wie gemeinsamer Verschmelzungs-Container – der frühere
+    // Sonderfall "3 im Raum" aus Zeiten kompakter Blasen entfällt, seit
+    // dort dieselben großen Bühnen-Blasen wie im 1:1-Chat stehen, siehe
+    // .raum-zone--gross .raum-nachricht, CSS). Im gemeinsamen Raum
+    // wird die älteste Nachricht NICHT sofort ausgeblendet ("verschwindet
+    // zu schnell"), sondern erst, nachdem sie mindestens RAUM_MERGE_MIN_
+    // LESEZEIT_MS sichtbar war (siehe raumEintragVerblassenPlanen oben) –
+    // in einer Einzelzone bleibt das bisherige Sofort-Verblassen
+    // unverändert (dort nicht bemängelt).
+    const maxSichtbar = 2;
+    const bestehende = Array.from(stack.children).filter(function (k) { return k !== eintrag; });
+    if (bestehende.length >= maxSichtbar) {
       const aelteste = bestehende[0];
-      aelteste.classList.add('raum-nachricht--verblasst');
-      setTimeout(function () { aelteste.remove(); }, 650); // > 0.6s CSS-Transition
+      if (mergeAktiv) {
+        raumEintragVerblassenPlanen(aelteste);
+      } else {
+        aelteste.classList.add('raum-eintrag--verblasst');
+        setTimeout(function () { aelteste.remove(); }, 650); // > 0.6s CSS-Transition
+      }
     }
 
     return el;
@@ -5453,119 +6343,258 @@
     return kandidaten[Math.floor(Math.random() * kandidaten.length)];
   }
 
-  // Grobe Richtung (-1/0/1 je Achse) von einer Zone zu einer anderen,
-  // aus den tatsächlichen Bildschirm-Positionen bestimmt – funktioniert
-  // dadurch unabhängig von Personenzahl/Grid-Größe, ohne die
-  // Grid-Platzierung in JS nachbauen zu müssen.
-  function raumRichtungBestimmen(vonZone, zuZone) {
-    const a = vonZone.getBoundingClientRect();
-    const b = zuZone.getBoundingClientRect();
-    const dx = (b.left + b.width / 2) - (a.left + a.width / 2);
-    const dy = (b.top + b.height / 2) - (a.top + a.height / 2);
-    return {
-      x: dx > 4 ? 1 : dx < -4 ? -1 : 0,
-      y: dy > 4 ? 1 : dy < -4 ? -1 : 0
-    };
-  }
-
-  // Kurzlebige Verbindungslinie zwischen Sender- und Ziel-Zone – Länge/
-  // Winkel/Position einmalig über getBoundingClientRect bestimmt, dann
-  // per CSS-Transition ausgeblendet und entfernt.
-  function raumVerbindungZeichnen(vonZone, zuZone) {
-    const raumRect = gruppenRaum.getBoundingClientRect();
-    const a = vonZone.getBoundingClientRect();
-    const b = zuZone.getBoundingClientRect();
-    const ax = a.left + a.width / 2 - raumRect.left;
-    const ay = a.top + a.height / 2 - raumRect.top;
-    const bx = b.left + b.width / 2 - raumRect.left;
-    const by = b.top + b.height / 2 - raumRect.top;
-    const laenge = Math.hypot(bx - ax, by - ay);
-    const winkel = Math.atan2(by - ay, bx - ax) * (180 / Math.PI);
-
-    const linie = document.createElement('div');
-    linie.className = 'raum-verbindung';
-    linie.style.left      = ax + 'px';
-    linie.style.top       = ay + 'px';
-    linie.style.width     = laenge + 'px';
-    linie.style.transform = 'rotate(' + winkel + 'deg)';
-    gruppenRaum.appendChild(linie);
-
-    setTimeout(function () {
-      linie.classList.add('raum-verbindung--ausblendend');
-      setTimeout(function () { linie.remove(); }, 1050); // > 1s CSS-Transition
-    }, 600);
-  }
-
-  // Kurzer Glüh-Puls auf der aktuell letzten Nachricht einer Zone
-  // (bewusst kein Farbwechsel, siehe CSS-Kommentar bei @keyframes
-  // raum-echo-puls – monochromes Prinzip der App bleibt gewahrt).
-  function raumEchoPuls(zone) {
-    const stack = zone.querySelector('.raum-zone-nachrichten');
-    const letzte = stack ? stack.lastElementChild : null;
-    if (!letzte) return;
-    letzte.classList.remove('raum-nachricht--echo');
-    void letzte.offsetWidth; // Reflow erzwingen, damit @keyframes bei erneutem Treffer neu startet
-    letzte.classList.add('raum-nachricht--echo');
-    // Timer statt animationend (siehe Kommentar bei raum-nachricht--
-    // verblasst weiter oben zum selben Robustheits-Grund).
-    setTimeout(function () { letzte.classList.remove('raum-nachricht--echo'); }, 1250);
+  // Kurzer Glüh-Puls auf einer Nachricht (bewusst kein Farbwechsel,
+  // siehe CSS-Kommentar bei @keyframes raum-echo-puls – monochromes
+  // Prinzip der App bleibt gewahrt).
+  function raumEchoPuls(el) {
+    if (!el) return;
+    el.classList.remove('raum-nachricht--echo');
+    void el.offsetWidth; // Reflow erzwingen, damit @keyframes bei erneutem Treffer neu startet
+    el.classList.add('raum-nachricht--echo');
+    // Timer statt animationend (siehe Kommentar bei raum-eintrag--
+    // verblasst, CSS, zum selben Robustheits-Grund).
+    setTimeout(function () { el.classList.remove('raum-nachricht--echo'); }, 1250);
   }
 
   // Löst das tatsächliche Gesprächs-Ziel dieser Nachricht auf UND
-  // pflegt raumAktivesPaar entsprechend fort (Punkte 10/7 der
-  // Anforderung):
-  //  1) @name im Text (≠ Absender) → eröffnet/verschiebt das Gespräch,
-  //     neues Paar {senderName, ziel}.
-  //  2) kein @, aber Absender ist Teil des laufenden Paars → Gespräch
-  //     läuft implizit weiter, Ziel = die jeweils andere Person, Paar
-  //     bleibt bestehen (kein erneutes @ nötig).
-  //  3) kein @, Absender außerhalb jedes laufenden Paars (dritte/neue
-  //     Person meldet sich) → Konstellation löst sich auf, kein Ziel.
+  // pflegt raumAktiveGruppe entsprechend fort:
+  //  1) @name im Text (≠ Absender) → eröffnet die Konversation (falls
+  //     noch keine läuft) oder erweitert eine laufende um diese beiden
+  //     Namen (Punkt 6 der Anforderung: dritte Person dockt an, sobald
+  //     sie oder jemand aus dem Raum sie per @ anspricht).
+  //  2) kein @, aber Absender ist Teil der laufenden Runde → Gespräch
+  //     läuft implizit weiter (kein erneutes @ nötig); als Ziel gilt
+  //     bevorzugt die zuletzt vor dieser Nachricht sprechende Person.
+  //  3) kein @, Absender außerhalb jeder laufenden Runde (dritte/neue
+  //     Person meldet sich unaufgefordert) → Konstellation löst sich
+  //     auf, kein Ziel.
   // Gibt den Namen des Ziels zurück, oder null.
   function raumZielAufloesen(senderName, text) {
     const explizitesZiel = raumZielAusText(text);
     if (explizitesZiel && explizitesZiel !== senderName) {
-      raumAktivesPaar = { a: senderName, b: explizitesZiel };
+      if (!raumAktiveGruppe) raumAktiveGruppe = new Set();
+      raumAktiveGruppe.add(senderName);
+      raumAktiveGruppe.add(explizitesZiel);
       return explizitesZiel;
     }
-    if (raumAktivesPaar && (raumAktivesPaar.a === senderName || raumAktivesPaar.b === senderName)) {
-      return raumAktivesPaar.a === senderName ? raumAktivesPaar.b : raumAktivesPaar.a;
+    if (raumAktiveGruppe && raumAktiveGruppe.has(senderName)) {
+      const uebrige = Array.from(raumAktiveGruppe).filter(function (n) { return n !== senderName; });
+      if (!uebrige.length) return null;
+      const bevorzugt = (raumLetzterSprecher && raumLetzterSprecher !== senderName && raumAktiveGruppe.has(raumLetzterSprecher))
+        ? raumLetzterSprecher
+        : uebrige[0];
+      return bevorzugt;
     }
-    raumAktivesPaar = null;
+    raumAktiveGruppe = null;
     return null;
   }
 
-  // Orchestriert sowohl das optische "Andocken" (Punkte 10–11) als auch
-  // die dynamische Größen-Hervorhebung (Punkte 4–9 der Anforderung):
-  // wird direkt NACH raumNachrichtHinzufuegen für die sendende Person
-  // aufgerufen, mit dem gerade gesendeten Text + dem neuen Element.
-  function raumGerichteteNachrichtVerarbeiten(senderName, text, nachrichtEl) {
-    raumLetzterSprecher = senderName;
+  // Bringt den Raum (Zeilen/Zonen/Verschmelzungs-Container) auf den zu
+  // raumAktiveGruppe passenden Stand. Reine Reflow-Funktion, aufrufbar
+  // nach JEDER Änderung von raumAktiveGruppe (Verschmelzen, weiteres
+  // Mitglied dockt an, Auflösen) – migriert dabei bestehende Zonen-
+  // Elemente samt ihrer Nachrichten, statt bei jedem Aufruf alles neu zu
+  // bauen (siehe raumZonenAufbauen für den echten Erst-Aufbau beim
+  // Öffnen einer Gruppe). WICHTIG: läuft komplett SYNCHRON (kein
+  // verzögerter Um-/Ausblend-Zwischenschritt) – raumNachrichtSenden ruft
+  // diese Funktion bewusst VOR dem eigentlichen Einfügen der Nachricht
+  // auf, damit raumMergeEl zu diesem Zeitpunkt bereits existiert und die
+  // eröffnende Nachricht direkt im entstehenden gemeinsamen Raum landet
+  // (siehe raumNachrichtHinzufuegen); eine Verzögerung hier würde genau
+  // das verhindern. Das weiche Erscheinen NEUER Elemente läuft trotzdem
+  // animiert (siehe .raum-eintretend, CSS, und raumStrukturUmbauen
+  // weiter unten) – nur eine eigene, verzögerte Ausblend-Phase für
+  // VERSCHWINDENDE Elemente entfällt bewusst zugunsten dieser Reihenfolge.
+  function raumRaumNeuAufbauen() {
+    if (!aktuelleGruppe) return;
 
-    const zielName = raumZielAufloesen(senderName, text);
+    const alle = raumDuZuletzt(aktuelleGruppe.mitglieder.concat(['Du']));
+    const aktivNamen = raumAktiveGruppe
+      ? raumDuZuletzt(alle.filter(function (n) { return raumAktiveGruppe.has(n); }))
+      : [];
+    const mergeAktiv = aktivNamen.length >= 2;
+    // Grundregel (kein @ nötig): wer zuletzt geschrieben hat, wird IMMER
+    // groß – solo, ohne gemeinsamen Raum – solange gerade keine echte
+    // @-Verschmelzung läuft (die hat Vorrang, siehe mergeAktiv oben).
+    const soloName = !mergeAktiv ? raumLetzterSprecher : null;
+    const grossNamen = mergeAktiv ? aktivNamen : (soloName ? [soloName] : []);
+    const inaktivNamen = raumDuZuletzt(alle.filter(function (n) { return grossNamen.indexOf(n) === -1; }));
 
-    if (zielName && nachrichtEl) {
-      const senderZone = gruppenRaum.querySelector('.raum-zone[data-name="' + CSS.escape(senderName) + '"]');
-      const zielZone   = gruppenRaum.querySelector('.raum-zone[data-name="' + CSS.escape(zielName) + '"]');
+    const strukturAendertSich =
+      (mergeAktiv && !raumMergeEl) ||
+      (!mergeAktiv && !!raumMergeEl) ||
+      (mergeAktiv && raumMergeEl && (aktivNamen.length !== raumMergeNamen.length || aktivNamen.some(function (n) { return raumMergeNamen.indexOf(n) === -1; }))) ||
+      (!mergeAktiv && soloName !== raumSoloName);
 
-      if (senderZone && zielZone) {
-        // Puls auf der Zielperson-Nachricht VOR dem eigenen Rendern
-        // ausgelöst, damit die zuletzt BESTEHENDE Nachricht der
-        // Zielperson trifft (die eigene, gerichtete Nachricht selbst
-        // wurde ja bereits in der Sender-Zone eingefügt, nicht in der
-        // Zielzone).
-        raumEchoPuls(zielZone);
-
-        const richtung = raumRichtungBestimmen(senderZone, zielZone);
-        nachrichtEl.style.setProperty('--lehn-x', richtung.x);
-        nachrichtEl.style.setProperty('--lehn-y', richtung.y);
-        nachrichtEl.classList.add('raum-nachricht--gerichtet');
-
-        raumVerbindungZeichnen(senderZone, zielZone);
-      }
+    // Eine evtl. noch laufende, verzögerte Auflösung (siehe unten) MUSS
+    // abgebrochen werden, sobald der Raum doch aktiv bleibt/wird – sonst
+    // bliebe raumMergeEl dauerhaft unsichtbar (opacity 0 von der
+    // verworfenen Auflösung), obwohl er strukturell weiter/wieder als
+    // aktiver Verschmelzungs-Container gilt (z. B. jemand spricht die
+    // Gruppe per @ erneut an, während der alte Raum noch am Ausblenden
+    // ist). Rein synchroner Abbruch (Timer + Style-Reset) – verletzt NICHT
+    // die oben dokumentierte Synchron-Anforderung für die
+    // Verschmelzen-Richtung.
+    if (mergeAktiv && raumAufloesenTimer) {
+      clearTimeout(raumAufloesenTimer);
+      raumAufloesenTimer = null;
+      if (raumMergeEl) raumMergeEl.style.opacity = '';
     }
 
-    raumGroesseAktualisieren();
+    if (!strukturAendertSich) {
+      raumZeilenGewichteSetzen(grossNamen.length > 0); // nur Größen bestätigen/auffrischen, s. CSS-transition
+      return;
+    }
+
+    if (!mergeAktiv && raumMergeEl) {
+      // Auflösen ("Nachrichten bleiben ohne Kontext stehen") – der
+      // gemeinsame Raum blendet ERST weich aus (nutzt die bestehende
+      // .raum-zone-Opacity-Transition, siehe CSS), DANN erst läuft der
+      // eigentliche Struktur-Umbau (raumStrukturUmbauen verwirft dabei
+      // die Nachrichten mit, siehe dort) – statt den Raum samt Inhalt
+      // abrupt verschwinden zu lassen. Gilt NUR für diese Richtung: die
+      // Verschmelzen-Richtung muss synchron bleiben (siehe Kommentar
+      // oben an dieser Funktion). Ein evtl. bereits laufender Auflösen-
+      // Timer wird verworfen und neu gestartet (z. B. bei zwei schnell
+      // aufeinanderfolgenden auflösen-auslösenden Nachrichten).
+      clearTimeout(raumAufloesenTimer);
+      raumMergeEl.style.opacity = '0';
+      raumAufloesenTimer = setTimeout(function () {
+        raumAufloesenTimer = null;
+        raumStrukturUmbauen(grossNamen, inaktivNamen, mergeAktiv, soloName);
+      }, 550); // > 0.5s CSS-Transition (.raum-zone) + Sicherheitsabstand
+      return;
+    }
+
+    raumStrukturUmbauen(grossNamen, inaktivNamen, mergeAktiv, soloName);
+  }
+
+  // Führt den eigentlichen DOM-Umbau aus (siehe raumRaumNeuAufbauen):
+  // Nachrichten migrieren zwischen Einzelzonen und Verschmelzungs-
+  // Container, Zeilen werden neu verteilt, danach blenden neu
+  // entstandene Elemente weich ein und die Zeilen-Gewichte wachsen/
+  // schrumpfen weich auf ihren Ziel-Wert.
+  function raumStrukturUmbauen(grossNamen, inaktivNamen, mergeAktiv, soloName) {
+    // .raum-zone--gross (CSS: große, zentrierte Typografie, siehe dort)
+    // sitzt immer nur auf dem AKTUELLEN großen Element – vor dem Umbau
+    // grundsätzlich vom vorherigen Träger entfernen, unten wird sie dem
+    // neuen (falls vorhanden) wieder zugewiesen.
+    if (raumGrossEl) raumGrossEl.classList.remove('raum-zone--gross');
+
+    if (mergeAktiv) {
+      if (!raumMergeEl) raumMergeEl = raumMergeErzeugen();
+      const mergeListe = raumMergeEl.querySelector('.raum-merge-nachrichten');
+
+      // Neu hinzukommende Mitglieder: bestehende Einzel-Zone auflösen,
+      // ihre bisherigen Nachrichten in die gemeinsame Liste übernehmen.
+      // Vereinfachung: zonenweise (nicht global chronologisch über alle
+      // neu hinzukommenden Personen hinweg gemischt) – bei maximal 2
+      // sichtbaren Nachrichten pro bisheriger Einzelzone bleibt der
+      // dadurch mögliche Reihenfolge-Unterschied in der Praxis minimal.
+      grossNamen.forEach(function (name) {
+        if (raumMergeNamen.indexOf(name) !== -1) return; // schon drin
+        const alteZone = raumEinzelZoneVon(name);
+        if (!alteZone) return;
+        const alteListe = alteZone.querySelector('.raum-zone-nachrichten');
+        Array.from(alteListe.children).forEach(function (eintrag) { mergeListe.appendChild(eintrag); });
+      });
+
+      raumMergeEl.querySelector('.raum-merge-name').textContent = raumNamenAufzaehlen(grossNamen);
+      raumMergeNamen = grossNamen.slice();
+
+      const inaktivZonen = inaktivNamen.map(function (name) { return raumEinzelZoneVon(name) || raumZoneErzeugen(name); });
+      raumZeilenAufbauen(inaktivZonen, raumMergeEl);
+      raumGrossEl = raumMergeEl;
+      raumGrossEl.classList.add('raum-zone--gross');
+      raumSoloName = null;
+    } else {
+      // Auflösen ("Nachrichten bleiben ohne Kontext stehen") – die im
+      // Verschmelzungs-Container gesammelten Nachrichten werden NICHT
+      // mehr in frische Einzelzonen migriert (frühere Version, siehe
+      // Kommentar-Historie): sie gehörten zum gemeinsamen Gespräch und
+      // ergeben einzeln, klein und ohne die anderen Redebeiträge daneben
+      // keinen Sinn mehr – der ganze Verschmelzungs-Container samt
+      // Inhalt verschwindet daher einfach mit dem Raum (das eigentliche
+      // Verblassen lief bereits VOR diesem Aufruf über die opacity-
+      // Verzögerung in raumRaumNeuAufbauen). raumEinzelZoneVon(name)
+      // findet für alle vormals verschmolzenen Personen ohnehin keine
+      // Einzelzone mehr (wurde beim Verschmelzen aufgelöst) –
+      // raumZoneErzeugen(name) unten legt dadurch automatisch eine
+      // leere, frische Zone an, ganz ohne eigene Sonderbehandlung.
+      raumMergeEl    = null;
+      raumMergeNamen = [];
+
+      const inaktivZonen = inaktivNamen.map(function (name) {
+        return raumEinzelZoneVon(name) || raumZoneErzeugen(name);
+      });
+      // Grundregel (siehe raumRaumNeuAufbauen): auch ganz ohne @-Ansprache
+      // wird die Zone der zuletzt sprechenden Person (soloName) allein
+      // groß dargestellt – als eigene, erste Zeile wie sonst der
+      // Verschmelzungs-Container, nur eben eine normale Einzelzone ohne
+      // gemeinsamen Raum.
+      const grossZone = soloName ? (raumEinzelZoneVon(soloName) || raumZoneErzeugen(soloName)) : null;
+      raumZeilenAufbauen(inaktivZonen, grossZone);
+      raumGrossEl = grossZone;
+      if (raumGrossEl) raumGrossEl.classList.add('raum-zone--gross');
+      raumSoloName = soloName;
+    }
+
+    // Frisch erzeugte .raum-zeile-Elemente haben noch KEINEN vorherigen
+    // --zeilen-gewicht-Wert, von dem die CSS-transition (siehe .raum-
+    // zeile) aus interpolieren könnte – ohne diesen Zwischenschritt
+    // spränge der Größenunterschied beim Verschmelzen/Auflösen abrupt,
+    // statt weich zu wachsen/schrumpfen. Deshalb ERST der neutrale
+    // Ausgangswert (synchron, keine sichtbare Transition), ERST NACH
+    // zwei verschachtelten requestAnimationFrame (= ein sicher
+    // gerenderter Frame Abstand, robuster als ein einzelnes rAF) der
+    // eigentliche Ziel-Wert – dieser Sprung ist dann eine echte,
+    // animierbare Transition. Dieselben zwei Frames lösen auch das
+    // Einblenden frisch erzeugter Zonen/des Merge-Containers aus (siehe
+    // .raum-eintretend, CSS).
+    raumZeilenGewichteSetzen(false);
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        gruppenRaum.querySelectorAll('.raum-eintretend').forEach(function (z) { z.classList.remove('raum-eintretend'); });
+        raumZeilenGewichteSetzen(grossNamen.length > 0);
+      });
+    });
+  }
+
+  // Entfernt alle Größen-/Struktur-Änderungen (Rückkehr zur neutralen
+  // Standardgröße mit lauter Einzelzonen, siehe raumRaumNeuAufbauen) und
+  // setzt Gruppe/Sprecher zurück – "neutraler Ausgangszustand" nach
+  // längerer Pause bzw. beim frischen Öffnen einer Gruppe.
+  function raumGewichtungZuruecksetzen() {
+    clearTimeout(raumNeutralTimer);
+    raumNeutralTimer = null;
+    raumAktiveGruppe    = null;
+    raumLetzterSprecher = null;
+    raumRaumNeuAufbauen();
+  }
+
+  // Verarbeitet eine neue Gruppen-Nachricht komplett: löst zuerst das
+  // Gesprächs-Ziel auf und bringt den Raum (Verschmelzen/Auflösen) auf
+  // den dazu passenden Stand, BEVOR die Nachricht überhaupt eingefügt
+  // wird – nur so landet auch die ERÖFFNENDE Nachricht direkt im
+  // entstehenden gemeinsamen Raum (raumNachrichtHinzufuegen fragt
+  // raumAktiveGruppe zum Zeitpunkt des Einfügens ab). Gibt den
+  // aufgelösten Ziel-Namen zurück, damit der Aufrufer – siehe Enter-
+  // Handler weiter unten – bei einer echten @-Ansprache durch "Du" eine
+  // automatische Antwort planen kann (raumAutoAntwortPlanen).
+  function raumNachrichtSenden(senderName, text, wortSnapshots) {
+    raumLetzterSprecher = senderName;
+    const zielName = raumZielAufloesen(senderName, text);
+    raumRaumNeuAufbauen();
+
+    const nachrichtEl = raumNachrichtHinzufuegen(senderName, text, wortSnapshots);
+    if (raumAktiveGruppe && raumAktiveGruppe.has(senderName)) {
+      raumEchoPuls(nachrichtEl);
+    }
+
+    clearTimeout(raumNeutralTimer);
+    raumNeutralTimer = setTimeout(raumGewichtungZuruecksetzen, RAUM_PAUSE_MS);
+
+    return { zielName: zielName, nachrichtEl: nachrichtEl };
   }
 
 
@@ -5607,6 +6636,32 @@
       const rohwerte      = raumMitgliedRohwerte(empfaengerName);
       const wortSnapshots = raumWortSnapshotsErzeugen(text, rohwerte);
       nachrichtHinzufuegen(text, false, wortSnapshots, empfaengerName);
+    }, verzoegerung);
+  }
+
+  // Plant eine automatische Antwort der per @name angesprochenen Person
+  // im Gruppenraum – analog zu autoAntwortPlanen oben, nutzt denselben
+  // AUTO_ANTWORT_TEXTE-Pool. Läuft NIE für "Du" (das ist die reale
+  // Person, die tippt). gruppeZumZeitpunkt wird beim Planen eingefroren
+  // und beim Feuern erneut geprüft – nur wenn noch dieselbe Gruppe
+  // offen ist UND die Person noch Mitglied ist, wird tatsächlich
+  // geantwortet, sonst verfällt die geplante Antwort stillschweigend
+  // (identisches Vorsichtsprinzip wie beim 1:1-Pendant).
+  function raumAutoAntwortPlanen(name, gruppeZumZeitpunkt) {
+    if (name === 'Du') return;
+    const verzoegerung = 1500 + Math.random() * 2500; // 1.5–4 s
+    setTimeout(function () {
+      if (!aktuellerChatIstGruppe || aktuelleGruppe !== gruppeZumZeitpunkt) return;
+      if (!aktuelleGruppe.mitglieder.includes(name)) return;
+
+      const text = AUTO_ANTWORT_TEXTE[Math.floor(Math.random() * AUTO_ANTWORT_TEXTE.length)];
+      const rohwerte      = raumMitgliedRohwerte(name);
+      const wortSnapshots = raumWortSnapshotsErzeugen(text, rohwerte);
+      // raumNachrichtSenden löst hier von selbst wieder "Du" als Ziel
+      // auf (Fortsetzung der laufenden Runde, siehe raumZielAufloesen) –
+      // kein erneutes @ nötig, keine Rückkopplung möglich, weil
+      // raumAutoAntwortPlanen für "Du" oben sofort abbricht.
+      raumNachrichtSenden(name, text, wortSnapshots);
     }, verzoegerung);
   }
 
@@ -5663,8 +6718,8 @@
     // Räumlicher Gruppenraum (siehe JS-Abschnitt "GRUPPEN-RAUM" oben)
     // statt des klassischen Verlaufs – 1:1-Zweig (else) unverändert.
     if (aktuellerChatIstGruppe) {
-      const eigeneNachricht = raumNachrichtHinzufuegen('Du', text, wortSnapshots);
-      raumGerichteteNachrichtVerarbeiten('Du', text, eigeneNachricht);
+      const zielName = raumNachrichtSenden('Du', text, wortSnapshots).zielName;
+      if (zielName) raumAutoAntwortPlanen(zielName, aktuelleGruppe);
     } else {
       nachrichtHinzufuegen(text, true, wortSnapshots);
       autoAntwortPlanen(chatPartnerName.textContent);
@@ -5707,7 +6762,7 @@
     letzteLeerzeichenZeit = null;
     ausstehenderPausenZuschlag = 0;
 
-    // Intensität und Tonalität: Slider-Werte bleiben (spiegeln Sensor-Zustand);
+    // Intensität und Temperatur: Slider-Werte bleiben (spiegeln Sensor-Zustand);
     // nichts zurücksetzen – die Regler sind Platzhalter für externe Daten.
 
     // Paste-Flag zurücksetzen: nächste Nachricht beginnt im Tipp-Modus
@@ -5739,30 +6794,43 @@
   antwortBtn.addEventListener('click', function () {
     if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) return;
 
-    // In Gruppen rotiert der Absender durch die Mitgliederliste – jede
-    // simulierte Nachricht "gehört" so einer anderen Person der Gruppe,
-    // exakt wie im 1:1-Chat aber ohne festen Gesprächspartner-Namen.
+    // In Gruppen antwortet BEVORZUGT eine Person, die gerade Teil der
+    // laufenden Runde (raumAktiveGruppe) ist – damit über den Button ein
+    // sichtbares Hin und Her im gemeinsamen Raum entsteht, statt dass
+    // eine unbeteiligte dritte Person "dazwischenfunkt" und die
+    // Konstellation sofort wieder auflöst. Nur ohne laufendes Gespräch
+    // (oder wenn "Du" an der Reihe wäre – dieser Button kann nicht für
+    // "Du" antworten) rotiert der Absender wie bisher durch die
+    // Mitgliederliste.
     let absender;
     if (aktuellerChatIstGruppe && aktuelleGruppe && aktuelleGruppe.mitglieder.length) {
-      absender = aktuelleGruppe.mitglieder[gruppenAntwortIndex % aktuelleGruppe.mitglieder.length];
-      gruppenAntwortIndex++;
-
-      // Räumlicher Gruppenraum: reagierende Typografie pro Person
-      // (MOMENT_DEMO_KONTAKTE) statt unstyled Text. Jede zweite
-      // simulierte Nachricht bekommt zusätzlich eine @-Erwähnung eines
-      // zufälligen anderen Zonen-Mitglieds, damit sich das Andocken
-      // auch über den Antwort-Button zeigen lässt, nicht nur durch
-      // eigenes Tippen.
       let text = vorgegebeneNachrichten[naechsteAntwortIndex];
-      if (naechsteAntwortIndex % 2 === 1) {
-        const ziel = raumZufaelligesZiel(absender);
-        if (ziel) text = '@' + ziel + ' ' + text;
+
+      const gespraechspartner = (raumAktiveGruppe && raumLetzterSprecher && raumAktiveGruppe.has(raumLetzterSprecher))
+        ? Array.from(raumAktiveGruppe).find(function (n) { return n !== raumLetzterSprecher; })
+        : null;
+
+      if (gespraechspartner && aktuelleGruppe.mitglieder.includes(gespraechspartner)) {
+        // Setzt das laufende Gespräch fort – bewusst OHNE erneutes @,
+        // das ist ja gerade der zu testende Fall (siehe
+        // raumZielAufloesen: Fortsetzung ohne wiederholtes @).
+        absender = gespraechspartner;
+      } else {
+        absender = aktuelleGruppe.mitglieder[gruppenAntwortIndex % aktuelleGruppe.mitglieder.length];
+        gruppenAntwortIndex++;
+
+        // Ohne laufendes Gespräch gelegentlich eines per @ eröffnen,
+        // damit sich das Verschmelzen auch über den Button zeigen lässt,
+        // nicht nur durch eigenes Tippen.
+        if (naechsteAntwortIndex % 2 === 1) {
+          const ziel = raumZufaelligesZiel(absender);
+          if (ziel) text = '@' + ziel + ' ' + text;
+        }
       }
 
       const rohwerte      = raumMitgliedRohwerte(absender);
       const wortSnapshots = raumWortSnapshotsErzeugen(text, rohwerte);
-      const nachrichtEl   = raumNachrichtHinzufuegen(absender, text, wortSnapshots);
-      raumGerichteteNachrichtVerarbeiten(absender, text, nachrichtEl);
+      raumNachrichtSenden(absender, text, wortSnapshots);
     } else {
       nachrichtHinzufuegen(vorgegebeneNachrichten[naechsteAntwortIndex], false, null, absender);
     }
@@ -5809,8 +6877,8 @@
   //  Verbindungsaufbau: Heart Rate Service (UUID 0x180D)
   //  Datenquelle:       Heart Rate Measurement (UUID 0x2A37)
   //
-  //  BPM → Intensität:  55 bpm → Rohwert 100 (ruhig, leicht)
-  //                    105 bpm → Rohwert 900 (aktiviert, fett)
+  //  BPM → Intensität:  50 bpm → Rohwert 100 (ruhig, leicht)
+  //                    150 bpm → Rohwert 900 (aktiviert, fett)
   //  Werte außerhalb werden auf 100–900 geklemmt.
   //
   //  WICHTIG: Ab hier ändert sich NUR, WIE die Verbindung aufgebaut wird
@@ -5901,8 +6969,8 @@
     })
   });
 
-  const BAND_BPM_MIN = 75;   // ← nachjustieren: ab diesem Puls dünnste Strichstärke (Minimum)
-  const BAND_BPM_MAX = 110;  // ← nachjustieren: ab diesem Puls fetteste Strichstärke (Maximum)
+  const BAND_BPM_MIN = 50;   // ← nachjustieren: ab diesem Puls dünnste Strichstärke (Minimum)
+  const BAND_BPM_MAX = 150;  // ← nachjustieren: ab diesem Puls fetteste Strichstärke (Maximum)
 
   // ══════════════════════════════════════════════════════════════════
   //  PULS-VARIABILITÄT (Annäherung an HRV) → STABILITÄTS-DIMENSION
@@ -8001,7 +9069,7 @@
     const TESTREGLER_BLUR_MAX        = 5.0;
     const TESTREGLER_TRANSPARENZ_MIN = 0.35;
 
-    // Tonalität (Körpertemperatur, weiterhin nicht angebunden – siehe
+    // Temperatur (Körpertemperatur, weiterhin nicht angebunden – siehe
     // sensorZuSchriftAchse) steuert die Schriftgröße statt Farbe: kühl =
     // klein, warm = groß. Bewusst NUR ±12% um die tatsächlich gerenderte
     // Basisgröße (per getComputedStyle erfasst, VOR jeder Inline-

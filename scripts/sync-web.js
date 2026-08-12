@@ -64,12 +64,31 @@ fs.writeFileSync(
 
 console.log('avatars-manifest.json aktualisiert:', avatarDateien.length, 'Bild(er)', avatarDateien);
 
+// ── Gruppen-Fotos: assets/gruppen/ → Gruppenbilder in chat.html ────
+// Exakt dasselbe Prinzip wie assets/avatars/ oben, nur für Gruppen:
+// Dateiname (ohne Endung) muss dem Gruppennamen entsprechen (z. B.
+// "Wochenende.jpg" für die Gruppe "Wochenende"). Anders als bei
+// Kontakten wird der Name hier NICHT aus dem Dateinamen abgeleitet
+// (Gruppennamen sind freier Text, oft mit Leerzeichen) – stattdessen
+// gleicht chat.html (gruppenBildAusManifestAufloesen) den Dateinamen
+// 1:1 gegen den bereits vorhandenen Gruppennamen ab.
+const gruppenOrdner = path.join(root, 'assets', 'gruppen');
+
+const gruppenDateien = fs.existsSync(gruppenOrdner)
+  ? fs.readdirSync(gruppenOrdner)
+      .filter(function (datei) { return AVATAR_BILD_ENDUNGEN.includes(path.extname(datei).toLowerCase()); })
+      .sort(function (a, b) { return a.localeCompare(b, 'de'); })
+  : [];
+
+console.log('Gruppenbilder gefunden:', gruppenDateien.length, gruppenDateien);
+
 const dateien = ['index.html', 'chat.html', 'onboarding.html', 'situra-slider.html', 'ble-test.html'];
 const ordner = ['assets', 'vendor'];
 
 fs.mkdirSync(dest, { recursive: true });
 
 const AVATARS_MANIFEST_PLATZHALTER = '/* @AVATARS_MANIFEST@ */ []';
+const GRUPPEN_MANIFEST_PLATZHALTER = '/* @GRUPPEN_MANIFEST@ */ []';
 const chatHtmlQuelle = fs.readFileSync(path.join(root, 'chat.html'), 'utf8');
 if (!chatHtmlQuelle.includes(AVATARS_MANIFEST_PLATZHALTER)) {
   throw new Error(
@@ -77,9 +96,17 @@ if (!chatHtmlQuelle.includes(AVATARS_MANIFEST_PLATZHALTER)) {
     'wurde er umbenannt/entfernt? www/chat.html würde sonst ohne Kontaktfotos gebaut.'
   );
 }
+if (!chatHtmlQuelle.includes(GRUPPEN_MANIFEST_PLATZHALTER)) {
+  throw new Error(
+    'chat.html: Platzhalter "' + GRUPPEN_MANIFEST_PLATZHALTER + '" nicht gefunden – ' +
+    'wurde er umbenannt/entfernt? www/chat.html würde sonst ohne Gruppenbilder gebaut.'
+  );
+}
 fs.writeFileSync(
   path.join(dest, 'chat.html'),
-  chatHtmlQuelle.replace(AVATARS_MANIFEST_PLATZHALTER, '/* @AVATARS_MANIFEST@ */ ' + JSON.stringify(avatarDateien))
+  chatHtmlQuelle
+    .replace(AVATARS_MANIFEST_PLATZHALTER, '/* @AVATARS_MANIFEST@ */ ' + JSON.stringify(avatarDateien))
+    .replace(GRUPPEN_MANIFEST_PLATZHALTER, '/* @GRUPPEN_MANIFEST@ */ ' + JSON.stringify(gruppenDateien))
 );
 fs.copyFileSync(path.join(root, 'avatars-manifest.json'), path.join(dest, 'avatars-manifest.json'));
 

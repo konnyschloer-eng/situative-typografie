@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wahrnehmungstest – Situative Typografie</title>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ══════════════════════════════════════════════════════════════
+       PULS-SCHRIFTSCHNITTE – identische @font-face-Einbindung wie
+       chat.html (dieselben Dateien, dieselben font-family-Namen),
+       bewusst nicht neu erfunden. ══════════════════════════════════ */
+    @font-face {
+      font-family: 'Situra-Thin';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Light';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Regular';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Medium';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-SemiBold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Bold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Black';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg:     #ffffff;
+      --fg:     #000000;
+      --border: #000000;
+      --text-2: #5a5a5a;
+      --text-3: #949494;
+      --karte-tint: #f6f6f4;
+    }
+
+    html { background: var(--bg); }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      padding: 48px 20px 90px;
+    }
+
+    .wrap { width: 100%; max-width: 860px; }
+
+    .eyebrow {
+      display: block;
+      text-align: center;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 48px;
+    }
+
+    h1 {
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: clamp(1.7rem, 4.4vw, 2.3rem);
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin-bottom: 18px;
+    }
+
+    /* ── Start-Bildschirm ─────────────────────────────────────────── */
+    #start-screen { text-align: center; }
+    #start-screen .intro-text {
+      font-size: 1rem;
+      line-height: 1.65;
+      color: var(--text-2);
+      max-width: 56ch;
+      margin: 0 auto 36px;
+    }
+
+    /* ── Buttons ──────────────────────────────────────────────────── */
+    .primaer-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--fg);
+      color: var(--bg);
+      border: 1.5px solid var(--fg);
+      border-radius: 999px;
+      padding: 15px 34px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 15px;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.15s ease;
+    }
+    .primaer-btn:hover:not(:disabled) { opacity: 0.82; }
+    .primaer-btn:active:not(:disabled) { transform: scale(0.98); }
+    .primaer-btn:disabled { opacity: 0.28; cursor: default; }
+
+    .sekundaer-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      color: var(--fg);
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      padding: 13px 28px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .sekundaer-btn:hover { background: var(--fg); color: var(--bg); }
+
+    /* ── Fortschritt ──────────────────────────────────────────────── */
+    .fortschritt { margin-bottom: 36px; }
+    .fortschritt-leiste {
+      height: 3px;
+      background: #e7e7e3;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .fortschritt-fuellung {
+      height: 100%;
+      background: var(--fg);
+      width: 0%;
+      transition: width 0.45s ease;
+    }
+    .fortschritt-text {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    /* ── Frage-Bildschirm ─────────────────────────────────────────── */
+    #frage-screen .frage-titel {
+      text-align: center;
+      max-width: 62ch;
+      margin: 0 auto 40px;
+    }
+
+    .karten {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 720px) {
+      .karten { flex-direction: column; }
+    }
+
+    .karte {
+      flex: 1;
+      min-width: 0;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 22px;
+      padding: 40px 26px;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      cursor: pointer;
+      text-align: center;
+      font-family: inherit;
+      color: inherit;
+      transition: border-color 0.2s ease, background-color 0.2s ease, border-width 0.15s ease;
+    }
+    .karte:hover { border-color: var(--fg); }
+    .karte:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+
+    /* Bewusst KEINE Farbumkehr bei Auswahl (würde Schwarz-auf-Weiß vs.
+       Weiß-auf-Schwarz vermischen und die gerade beurteilte Typografie
+       selbst verfälschen) – nur dezenter Tint + dickerer Rand. */
+    .karte--ausgewaehlt {
+      border-width: 3px;
+      background: var(--karte-tint);
+    }
+
+    .karte-label {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      color: var(--text-3);
+    }
+
+    .karte-inhalt {
+      font-size: clamp(1.35rem, 3.4vw, 1.75rem);
+      line-height: 1.4;
+      overflow-wrap: break-word;
+      max-width: 100%;
+    }
+
+    .wort { display: inline-block; max-width: 100%; overflow-wrap: break-word; }
+    .zitter-buchstabe { display: inline-block; }
+
+    .kein-unterschied-zeile { text-align: center; margin-bottom: 44px; }
+    .kein-unterschied-btn {
+      background: var(--bg);
+      border: 1.5px dashed var(--border);
+      border-radius: 999px;
+      padding: 11px 26px;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: border-style 0.2s ease, color 0.2s ease, background-color 0.2s ease, border-width 0.15s ease;
+    }
+    .kein-unterschied-btn:hover { border-style: solid; color: var(--fg); }
+    .kein-unterschied-btn.karte--ausgewaehlt {
+      border-style: solid;
+      border-width: 2.5px;
+      color: var(--fg);
+    }
+
+    .aktionen { display: flex; justify-content: center; }
+
+    /* ── Ergebnis-Bildschirm ──────────────────────────────────────── */
+    #ergebnis-screen .intro-text {
+      font-size: 0.95rem;
+      color: var(--text-2);
+      margin-bottom: 24px;
+    }
+
+    .ergebnis-zusammenfassung {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 1.05rem;
+      margin-bottom: 28px;
+    }
+
+    .tabelle-wrapper { overflow-x: auto; margin-bottom: 32px; }
+    table {
+      width: 100%;
+      min-width: 520px;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 9px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-2);
+    }
+
+    label.protokoll-label {
+      display: block;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 10px;
+    }
+
+    #protokoll-text {
+      width: 100%;
+      min-height: 150px;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+      font-size: 12.5px;
+      line-height: 1.55;
+      resize: vertical;
+      background: var(--bg);
+      color: var(--fg);
+      margin-bottom: 20px;
+    }
+
+    .ergebnis-aktionen { display: flex; flex-wrap: wrap; gap: 14px; }
+
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+    <span class="eyebrow">Situra · Wahrnehmungstest</span>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         START-BILDSCHIRM
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="start-screen">
+      <h1 style="text-align:center;">Zwei Fassungen, ein Unterschied</h1>
+      <p class="intro-text">
+        Du siehst gleich mehrere Fragen. Zu jeder Frage stehen sich zwei
+        Fassungen derselben Nachricht gegenüber – zwischen ihnen wurde
+        genau eine typografische Eigenschaft verändert, alles andere
+        bleibt identisch. Wähle die Fassung, auf die die jeweilige Frage
+        stärker zutrifft. Erkennst du keinen Unterschied, sag das ruhig
+        auch – es gibt dafür eine eigene Option. Es gibt kein Zeitlimit.
+      </p>
+      <button class="primaer-btn" id="start-btn">Test starten</button>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FRAGE-BILDSCHIRM
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="frage-screen" hidden>
+      <div class="fortschritt">
+        <div class="fortschritt-leiste"><div class="fortschritt-fuellung" id="fortschritt-fuellung"></div></div>
+        <span class="fortschritt-text" id="fortschritt-text">Frage 1 von 1</span>
+      </div>
+
+      <h1 class="frage-titel" id="frage-text">Frage</h1>
+
+      <div class="karten">
+        <button class="karte" id="karte-a" type="button" aria-label="Fassung A auswählen">
+          <span class="karte-label">A</span>
+          <p class="karte-inhalt" id="karte-a-inhalt"></p>
+        </button>
+        <button class="karte" id="karte-b" type="button" aria-label="Fassung B auswählen">
+          <span class="karte-label">B</span>
+          <p class="karte-inhalt" id="karte-b-inhalt"></p>
+        </button>
+      </div>
+
+      <div class="kein-unterschied-zeile">
+        <button class="kein-unterschied-btn" id="kein-unterschied-btn" type="button">Kein Unterschied erkennbar</button>
+      </div>
+
+      <div class="aktionen">
+        <button class="primaer-btn" id="weiter-btn" type="button" disabled>Weiter</button>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ERGEBNIS-BILDSCHIRM
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="ergebnis-screen" hidden>
+      <h1>Protokoll</h1>
+      <p class="intro-text">
+        Danke fürs Mitmachen. Unten steht das Protokoll deiner Auswahl –
+        „Übereinstimmung" bedeutet, dass deine Auswahl auf der Seite des
+        jeweils erwarteten Extremwerts lag. Das ist keine Wissensabfrage,
+        sondern misst, wie gut die typografische Umsetzung wahrnehmbar ist.
+      </p>
+      <p class="ergebnis-zusammenfassung" id="ergebnis-zusammenfassung"></p>
+
+      <div class="tabelle-wrapper">
+        <table id="ergebnis-tabelle"></table>
+      </div>
+
+      <label class="protokoll-label" for="protokoll-text">Zum Kopieren</label>
+      <textarea id="protokoll-text" readonly spellcheck="false"></textarea>
+
+      <div class="ergebnis-aktionen">
+        <button class="primaer-btn" id="kopieren-btn" type="button">In Zwischenablage kopieren</button>
+        <button class="sekundaer-btn" id="neustart-btn" type="button">Test neu starten</button>
+      </div>
+    </section>
+  </div>
+
+<script>
+  // ═══════════════════════════════════════════════════════════════
+  //  VERGLEICHE — hier neue Wahrnehmungsvergleiche ergänzen, ohne den
+  //  Rest der Seite anzufassen. Reihenfolge hier = "logische"
+  //  Reihenfolge; die tatsächliche Anzeige-Reihenfolge wird bei jedem
+  //  Aufruf neu gemischt (siehe mischen() weiter unten).
+  //
+  //  Jeder Eintrag:
+  //    id                 – eindeutiger Schlüssel (nur intern)
+  //    achse              – Anzeigename der getesteten Dimension
+  //    frage              – Frage, die den beiden Fassungen gegenübersteht
+  //    text               – Beispieltext, identisch für Fassung A und B
+  //    rohwertSchluessel  – welcher Schlüssel im rohwerte-Objekt variiert
+  //                         wird (muss ein Feld sein, das
+  //                         sensorZuSchriftAchse() unten kennt:
+  //                         intensitaet | tempo | stabilitaet |
+  //                         schlafqualitaet | atemfrequenz)
+  //    tiefBeschreibung   – Klartext des UNTEREN Extremwerts (Rohwert 100),
+  //                         nur fürs Protokoll/die Doku, keine Anzeige
+  //    hochBeschreibung   – Klartext des OBEREN Extremwerts (Rohwert 900)
+  //    erwarteteAntwort   – 'hoch' oder 'tief': welcher der beiden
+  //                         Extremwerte den in "frage" beschriebenen
+  //                         Zustand darstellt (z. B. "angespannter" =
+  //                         der UNTERE Stabilitäts-Rohwert, weil niedrige
+  //                         Stabilität im System = starkes Zittern).
+  //                         Bestimmt, was im Protokoll als Übereinstimmung
+  //                         zählt.
+  //
+  //  Die Rohwert-Extreme sind IMMER 100 (unten) / 900 (oben) – derselbe
+  //  Wertebereich, den auch echte Sensordaten in chat.html durchlaufen
+  //  (siehe ROHWERT_MIN/ROHWERT_MAX weiter unten). Nicht getestete
+  //  Dimensionen werden auf den in chat.html bereits definierten
+  //  "leblosen" Neutralzustand gesetzt (ACHSEN_NEUTRAL, entspricht
+  //  stilNeutralAnwenden in chat.html) – dadurch ändert sich zwischen
+  //  Fassung A und B garantiert GENAU EIN Merkmal.
+  // ═══════════════════════════════════════════════════════════════
+  const VERGLEICHE = [
+    {
+      id: 'intensitaet',
+      achse: 'Intensität',
+      frage: 'Bei welcher Nachricht wirkt die schreibende Person körperlich aktivierter?',
+      text: 'Ich melde mich gleich nochmal bei dir.',
+      rohwertSchluessel: 'intensitaet',
+      tiefBeschreibung: 'dünnster Situra-Schnitt (Situra-Thin, Rohwert 100)',
+      hochBeschreibung: 'fettester Situra-Schnitt (Situra-Black, Rohwert 900)',
+      erwarteteAntwort: 'hoch'
+    },
+    {
+      id: 'tempo',
+      achse: 'Tempo',
+      frage: 'Welche Nachricht wirkt schneller geschrieben?',
+      text: 'Ich melde mich gleich nochmal bei dir.',
+      rohwertSchluessel: 'tempo',
+      tiefBeschreibung: 'weiteste Laufweite (0.12em, Rohwert 100)',
+      hochBeschreibung: 'engste/leicht überlappende Laufweite (−0.02em, Rohwert 900)',
+      erwarteteAntwort: 'hoch'
+    },
+    {
+      id: 'stabilitaet',
+      achse: 'Stabilität',
+      frage: 'Bei welcher Nachricht wirkt die schreibende Person angespannter?',
+      text: 'Ich melde mich gleich nochmal bei dir.',
+      rohwertSchluessel: 'stabilitaet',
+      tiefBeschreibung: 'maximales Zittern (2.0px Amplitude / 2.5° Rotation, Rohwert 100)',
+      hochBeschreibung: 'völlig ruhig, kein Zittern (Rohwert 900)',
+      erwarteteAntwort: 'tief'
+    },
+    {
+      id: 'wachheit',
+      achse: 'Wachheit',
+      frage: 'Bei welcher Nachricht wirkt die schreibende Person müder?',
+      text: 'Ich melde mich gleich nochmal bei dir.',
+      rohwertSchluessel: 'schlafqualitaet',
+      tiefBeschreibung: 'maximale Unschärfe (1.4px Blur, Rohwert 100)',
+      hochBeschreibung: 'völlig scharf, kein Blur (Rohwert 900)',
+      erwarteteAntwort: 'tief'
+    }
+
+    // Beispiel für eine spätere Ergänzung (auskommentiert, Werte müssten
+    // wie oben aus chat.html übernommen werden – siehe TRANSPARENZ_MIN
+    // in sensorZuSchriftAchse):
+    // {
+    //   id: 'gefasstheit',
+    //   achse: 'Atmung',
+    //   frage: 'Bei welcher Nachricht wirkt die schreibende Person gefasster?',
+    //   text: 'Ich melde mich gleich nochmal bei dir.',
+    //   rohwertSchluessel: 'atemfrequenz',
+    //   tiefBeschreibung: 'maximale Transparenz-Absenkung (Deckkraft 0.35, Rohwert 100)',
+    //   hochBeschreibung: 'volle Deckkraft (Rohwert 900)',
+    //   erwarteteAntwort: 'hoch'
+    // }
+  ];
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  ENGINE — 1:1 aus chat.html übernommen (SITURA_SCHRIFTSCHNITTE,
+  //  intensitaetZuSchriftschnitt, umrechnen, sensorZuSchriftAchse,
+  //  erstelleZitterAnimation, buchstabenAnimieren, stilAnwenden), damit
+  //  diese Seite exakt dieselben Werte zeigt, die das System bei
+  //  echten Nachrichten auch erzeugen würde. Wird chat.html an diesen
+  //  Stellen geändert, bitte hier nachziehen. Absichtlich NICHT als
+  //  gemeinsames Modul ausgelagert, um chat.html unangetastet zu lassen.
+  // ═══════════════════════════════════════════════════════════════
+  const SITURA_SCHRIFTSCHNITTE = [
+    'Situra-Thin', 'Situra-Light', 'Situra-Regular', 'Situra-Medium',
+    'Situra-SemiBold', 'Situra-Bold', 'Situra-Black'
+  ];
+
+  function intensitaetZuSchriftschnitt(intensitaet) {
+    const stufenBreite = 800 / SITURA_SCHRIFTSCHNITTE.length; // (900−100) / 7
+    const index = Math.min(
+      SITURA_SCHRIFTSCHNITTE.length - 1,
+      Math.max(0, Math.floor((intensitaet - 100) / stufenBreite))
+    );
+    return SITURA_SCHRIFTSCHNITTE[index];
+  }
+
+  function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
+    return zuMin + (wert - vonMin) / (vonMax - vonMin) * (zuMax - zuMin);
+  }
+
+  // Dynamisches Stylesheet für die per-Buchstaben-Zitter-Keyframes
+  // (siehe erstelleZitterAnimation) – identisches Prinzip wie
+  // zitterStyleEl in chat.html.
+  const zitterStyleEl = document.createElement('style');
+  document.head.appendChild(zitterStyleEl);
+
+  function erstelleZitterAnimation(amplitude, rotAmplitude) {
+    const name = 'zb' + Math.random().toString(36).slice(2, 9);
+    const schritte = [0];
+    for (let i = 0; i < 5; i++) {
+      schritte.push(Math.round(10 + Math.random() * 78));
+    }
+    schritte.push(100);
+    schritte.sort((a, b) => a - b);
+
+    let css = `@keyframes ${name}{`;
+    schritte.forEach(pct => {
+      const x  = ((Math.random() * 2 - 1) * amplitude).toFixed(2);
+      const y  = ((Math.random() * 2 - 1) * amplitude * 0.8).toFixed(2);
+      const r  = ((Math.random() * 2 - 1) * rotAmplitude).toFixed(2);
+      const sx = (1 + (Math.random() * 2 - 1) * 0.04).toFixed(3);
+      const sy = (1 + (Math.random() * 2 - 1) * 0.04).toFixed(3);
+      css += `${pct}%{transform:translate(${x}px,${y}px) rotate(${r}deg) scale(${sx},${sy});}`;
+    });
+    css += '}';
+
+    zitterStyleEl.sheet.insertRule(css, zitterStyleEl.sheet.cssRules.length);
+    return name;
+  }
+
+  function buchstabenAnimieren(element, achsen) {
+    const text = element.textContent;
+    element.textContent = '';
+
+    for (const buchstabe of text) {
+      const span = document.createElement('span');
+      span.textContent = buchstabe;
+
+      if (buchstabe === ' ' || buchstabe === '\n') {
+        element.appendChild(span);
+        continue;
+      }
+
+      span.classList.add('zitter-buchstabe');
+
+      const animName  = erstelleZitterAnimation(achsen.wobble, achsen.wobbleRot);
+      const dauer     = (0.25 + Math.random() * 0.9).toFixed(2);
+      const verzoeger = (-Math.random() * 1.5).toFixed(2);
+
+      span.style.animationName           = animName;
+      span.style.animationDuration       = `${dauer}s`;
+      span.style.animationTimingFunction = 'ease-in-out';
+      span.style.animationIterationCount = 'infinite';
+      span.style.animationDelay          = `${verzoeger}s`;
+
+      element.appendChild(span);
+    }
+  }
+
+  // Entspricht stilAnwenden() in chat.html (Farbe/Temperatur bewusst
+  // ausgenommen, siehe dortiger Kommentar an sensorZuSchriftAchse –
+  // Temperatur wirkt im echten System nicht auf die Typografie).
+  function stilAnwenden(element, achsen) {
+    element.style.fontFamily = `'${achsen.schriftschnitt}', 'Inter', sans-serif`;
+    element.style.letterSpacing = `${achsen.spacing.toFixed(3)}em`;
+    if (achsen.wobble > 0) {
+      buchstabenAnimieren(element, achsen);
+    }
+    element.style.filter = achsen.blur > 0.05 ? `blur(${achsen.blur.toFixed(2)}px)` : 'none';
+    element.style.opacity = achsen.transparenz.toFixed(2);
+  }
+
+  // Entspricht sensorZuSchriftAchse() in chat.html – dieselben Formeln,
+  // dieselben Konstanten je Dimension (Kommentare mit Originalwerten).
+  function sensorZuSchriftAchse(rohwerte) {
+    const schriftschnitt = intensitaetZuSchriftschnitt(rohwerte.intensitaet);
+
+    // Tempo → letter-spacing (0.12 em … −0.02 em)
+    const spacing = umrechnen(rohwerte.tempo, 100, 900, 0.12, -0.02);
+
+    // Stabilität → Zitter-Amplitude/-Rotation pro Buchstabe
+    const WOBBLE_AMPLITUDE_MAX = 2.0; // px, Maximum bei Stabilität 100
+    const WOBBLE_TOTZONE_PX    = 0.4; // px, darunter = kein Zittern
+    const wobbleRoh = umrechnen(rohwerte.stabilitaet, 100, 900, WOBBLE_AMPLITUDE_MAX, 0);
+    const wobble    = wobbleRoh < WOBBLE_TOTZONE_PX ? 0 : wobbleRoh;
+
+    const WOBBLE_ROT_MAX     = 2.5; // Grad, Maximum
+    const WOBBLE_ROT_TOTZONE = 0.5; // Grad, Totzone
+    const wobbleRotRoh = umrechnen(rohwerte.stabilitaet, 100, 900, WOBBLE_ROT_MAX, 0);
+    const wobbleRot    = wobbleRotRoh < WOBBLE_ROT_TOTZONE ? 0 : wobbleRotRoh;
+
+    // Schlafqualität ("Wachheit") → Unschärfe (filter: blur)
+    const BLUR_MAX = 1.4; // px, Maximum bei Schlafqualität 100
+    const blur = umrechnen(rohwerte.schlafqualitaet, 100, 900, BLUR_MAX, 0);
+
+    // Atemfrequenz ("Atmung") → Transparenz (opacity)
+    const TRANSPARENZ_MIN = 0.35; // Minimum bei Atemfrequenz 100
+    const transparenz = umrechnen(rohwerte.atemfrequenz, 100, 900, TRANSPARENZ_MIN, 1);
+
+    return { schriftschnitt, spacing, wobble, wobbleRot, blur, transparenz };
+  }
+
+
+  // ═══════════════════════════════════════════════════════════════
+  //  APP-LOGIK
+  // ═══════════════════════════════════════════════════════════════
+
+  // Rohwert-Bereich – identisch zum echten System (z. B. die Regler in
+  // chat.html laufen ebenfalls von 100 bis 900).
+  const ROHWERT_MIN     = 100;
+  const ROHWERT_MAX     = 900;
+  const ROHWERT_NEUTRAL = 500; // nur als Platzhalter für NICHT getestete
+  // Rohwerte übergeben (sensorZuSchriftAchse erwartet für jede Dimension
+  // einen Wert) – sichtbar wird davon aber nichts: für nicht getestete
+  // Dimensionen wird unten gezielt ACHSEN_NEUTRAL statt des berechneten
+  // Werts verwendet.
+
+  // Entspricht stilNeutralAnwenden() in chat.html – der dort bereits
+  // definierte "leblose" Referenzzustand. Wird für alle NICHT getesteten
+  // Dimensionen einer Fassung verwendet, damit "alles andere identisch"
+  // wörtlich bedeutet: identisch UND ohne eigenes Signal.
+  const ACHSEN_NEUTRAL = {
+    schriftschnitt: 'Situra-Regular',
+    spacing: 0,
+    wobble: 0,
+    wobbleRot: 0,
+    blur: 0,
+    transparenz: 1
+  };
+
+  // Welches Feld des sensorZuSchriftAchse()-Ergebnisses zu welchem
+  // rohwertSchluessel gehört.
+  const VERGLEICH_FELD = {
+    intensitaet:     'schriftschnitt',
+    tempo:           'spacing',
+    stabilitaet:      'wobble',       // wobbleRot hängt am selben Rohwert, siehe unten
+    schlafqualitaet: 'blur',
+    atemfrequenz:    'transparenz'
+  };
+
+  // Berechnet die Achsen-Werte einer Fassung: die getestete Dimension auf
+  // ihrem echten System-Extremwert (Rohwert 100 oder 900, über die oben
+  // kopierte sensorZuSchriftAchse), alle übrigen Dimensionen auf
+  // ACHSEN_NEUTRAL.
+  function achsenFuerVergleich(vergleich, extrem) {
+    const rohwert = extrem === 'tief' ? ROHWERT_MIN : ROHWERT_MAX;
+    const rohwerte = {
+      intensitaet: ROHWERT_NEUTRAL,
+      tempo: ROHWERT_NEUTRAL,
+      stabilitaet: ROHWERT_NEUTRAL,
+      schlafqualitaet: ROHWERT_NEUTRAL,
+      atemfrequenz: ROHWERT_NEUTRAL
+    };
+    rohwerte[vergleich.rohwertSchluessel] = rohwert;
+
+    const berechnet = sensorZuSchriftAchse(rohwerte);
+    const feld = VERGLEICH_FELD[vergleich.rohwertSchluessel];
+
+    const achsen = Object.assign({}, ACHSEN_NEUTRAL);
+    achsen[feld] = berechnet[feld];
+    if (feld === 'wobble') achsen.wobbleRot = berechnet.wobbleRot; // teilt sich den Rohwert mit wobble
+    return achsen;
+  }
+
+  // Rendert Text wortweise mit stilAnwenden – jedes Wort bekommt
+  // DIESELBEN Achsen (keine Wort-zu-Wort-Variation wie beim echten
+  // Tippverlauf), damit die Fassung als EIN einheitlicher, eingefrorener
+  // Zustand erscheint statt als simulierte Live-Eingabe.
+  function textRendern(container, text, achsen) {
+    container.innerHTML = '';
+    const woerter = text.split(/\s+/).filter(function (w) { return w.length > 0; });
+    woerter.forEach(function (wort, i) {
+      const span = document.createElement('span');
+      span.className = 'wort';
+      span.textContent = wort;
+      stilAnwenden(span, achsen);
+      container.appendChild(span);
+      if (i < woerter.length - 1) container.appendChild(document.createTextNode(' '));
+    });
+  }
+
+  // Fisher-Yates – neue Reihenfolge bei jedem Aufruf der Seite.
+  function mischen(array) {
+    const kopie = array.slice();
+    for (let i = kopie.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = kopie[i]; kopie[i] = kopie[j]; kopie[j] = tmp;
+    }
+    return kopie;
+  }
+
+  // ── DOM-Referenzen ─────────────────────────────────────────────
+  const startScreen   = document.getElementById('start-screen');
+  const frageScreen   = document.getElementById('frage-screen');
+  const ergebnisScreen = document.getElementById('ergebnis-screen');
+
+  const startBtn = document.getElementById('start-btn');
+
+  const fortschrittFuellung = document.getElementById('fortschritt-fuellung');
+  const fortschrittText     = document.getElementById('fortschritt-text');
+  const frageText           = document.getElementById('frage-text');
+
+  const karteA        = document.getElementById('karte-a');
+  const karteB        = document.getElementById('karte-b');
+  const karteAInhalt   = document.getElementById('karte-a-inhalt');
+  const karteBInhalt   = document.getElementById('karte-b-inhalt');
+  const keinUnterschiedBtn = document.getElementById('kein-unterschied-btn');
+  const weiterBtn      = document.getElementById('weiter-btn');
+
+  const ergebnisZusammenfassung = document.getElementById('ergebnis-zusammenfassung');
+  const ergebnisTabelle = document.getElementById('ergebnis-tabelle');
+  const protokollText   = document.getElementById('protokoll-text');
+  const kopierenBtn     = document.getElementById('kopieren-btn');
+  const neustartBtn     = document.getElementById('neustart-btn');
+
+  // ── Zustand ─────────────────────────────────────────────────────
+  let ablauf = [];            // gemischte Kopie von VERGLEICHE
+  let obenLinks = [];         // pro Ablauf-Index: liegt der OBERE Extremwert links (Fassung A)?
+  let index = 0;
+  let antworten = [];         // Protokoll-Einträge
+  let ausgewaehlt = null;     // 'a' | 'b' | 'kein'
+
+  function testStarten() {
+    ablauf = mischen(VERGLEICHE);
+    obenLinks = ablauf.map(function () { return Math.random() < 0.5; });
+    index = 0;
+    antworten = [];
+
+    startScreen.hidden = true;
+    ergebnisScreen.hidden = true;
+    frageScreen.hidden = false;
+
+    frageRendern();
+  }
+
+  function frageRendern() {
+    const vergleich = ablauf[index];
+    const hochLinks = obenLinks[index];
+
+    const achsenLinks  = achsenFuerVergleich(vergleich, hochLinks ? 'hoch' : 'tief');
+    const achsenRechts = achsenFuerVergleich(vergleich, hochLinks ? 'tief' : 'hoch');
+
+    frageText.textContent = vergleich.frage;
+    fortschrittText.textContent = 'Frage ' + (index + 1) + ' von ' + ablauf.length;
+    fortschrittFuellung.style.width = (index / ablauf.length * 100) + '%';
+
+    textRendern(karteAInhalt, vergleich.text, achsenLinks);
+    textRendern(karteBInhalt, vergleich.text, achsenRechts);
+
+    ausgewaehlt = null;
+    karteA.classList.remove('karte--ausgewaehlt');
+    karteB.classList.remove('karte--ausgewaehlt');
+    keinUnterschiedBtn.classList.remove('karte--ausgewaehlt');
+    weiterBtn.disabled = true;
+  }
+
+  function seiteWaehlen(seite) {
+    ausgewaehlt = seite;
+    karteA.classList.toggle('karte--ausgewaehlt', seite === 'a');
+    karteB.classList.toggle('karte--ausgewaehlt', seite === 'b');
+    keinUnterschiedBtn.classList.toggle('karte--ausgewaehlt', seite === 'kein');
+    weiterBtn.disabled = false;
+  }
+
+  karteA.addEventListener('click', function () { seiteWaehlen('a'); });
+  karteB.addEventListener('click', function () { seiteWaehlen('b'); });
+  keinUnterschiedBtn.addEventListener('click', function () { seiteWaehlen('kein'); });
+
+  weiterBtn.addEventListener('click', function () {
+    if (ausgewaehlt === null) return;
+
+    const vergleich  = ablauf[index];
+    const hochLinks  = obenLinks[index];
+    const obererExtremwertSeite = hochLinks ? 'Links' : 'Rechts';
+
+    let auswahlText;
+    let uebereinstimmung;
+
+    if (ausgewaehlt === 'kein') {
+      auswahlText = 'Kein Unterschied erkennbar';
+      uebereinstimmung = '–';
+    } else {
+      auswahlText = ausgewaehlt === 'a' ? 'Links' : 'Rechts';
+      // Erwartete Seite = die Seite, auf der der laut "erwarteteAntwort"
+      // zutreffende Extremwert liegt (XNOR: "erwartet hoch" stimmt genau
+      // dann mit "links", wenn hoch tatsächlich links liegt).
+      const erwarteHoch = vergleich.erwarteteAntwort === 'hoch';
+      const erwarteteSeiteIstLinks = erwarteHoch === hochLinks;
+      const erwarteteSeite = erwarteteSeiteIstLinks ? 'Links' : 'Rechts';
+      uebereinstimmung = (auswahlText === erwarteteSeite) ? 'Ja' : 'Nein';
+    }
+
+    antworten.push({
+      position: index + 1,
+      achse: vergleich.achse,
+      obererExtremwertSeite: obererExtremwertSeite,
+      auswahl: auswahlText,
+      uebereinstimmung: uebereinstimmung
+    });
+
+    index++;
+    if (index < ablauf.length) {
+      frageRendern();
+    } else {
+      ergebnisAnzeigen();
+    }
+  });
+
+  function ergebnisAnzeigen() {
+    frageScreen.hidden = true;
+    ergebnisScreen.hidden = false;
+    fortschrittFuellung.style.width = '100%';
+
+    const anzahlUebereinstimmung = antworten.filter(function (a) { return a.uebereinstimmung === 'Ja'; }).length;
+    const anzahlBewertbar = antworten.filter(function (a) { return a.uebereinstimmung !== '–'; }).length;
+    ergebnisZusammenfassung.textContent = anzahlBewertbar > 0
+      ? anzahlUebereinstimmung + ' von ' + anzahlBewertbar + ' Fassungen mit Übereinstimmung ausgewählt' +
+        (anzahlBewertbar < antworten.length ? ' (' + (antworten.length - anzahlBewertbar) + '× kein Unterschied erkannt)' : '')
+      : 'Kein Unterschied erkennbar bei allen Fragen ausgewählt';
+
+    const kopf = ['#', 'Achse', 'Oberer Extremwert', 'Auswahl', 'Übereinstimmung'];
+
+    const thead = document.createElement('thead');
+    const kopfZeile = document.createElement('tr');
+    kopf.forEach(function (k) {
+      const th = document.createElement('th');
+      th.textContent = k;
+      kopfZeile.appendChild(th);
+    });
+    thead.appendChild(kopfZeile);
+
+    const tbody = document.createElement('tbody');
+    antworten.forEach(function (a) {
+      const tr = document.createElement('tr');
+      [a.position, a.achse, a.obererExtremwertSeite, a.auswahl, a.uebereinstimmung].forEach(function (wert) {
+        const td = document.createElement('td');
+        td.textContent = wert;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+
+    ergebnisTabelle.innerHTML = '';
+    ergebnisTabelle.appendChild(thead);
+    ergebnisTabelle.appendChild(tbody);
+
+    const zeilen = [kopf.join('\t')];
+    antworten.forEach(function (a) {
+      zeilen.push([a.position, a.achse, a.obererExtremwertSeite, a.auswahl, a.uebereinstimmung].join('\t'));
+    });
+    protokollText.value = zeilen.join('\n');
+  }
+
+  // Race gegen ein kurzes Zeitlimit statt nur try/catch: in manchen
+  // Umgebungen (fehlende Berechtigung, eingeschränkter Kontext) hängt
+  // navigator.clipboard.writeText() auf unbestimmte Zeit, statt sauber
+  // abzulehnen – ohne Zeitlimit bliebe der Button dann scheinbar
+  // reaktionslos, obwohl der Text im Textfeld weiterhin manuell markier-
+  // und kopierbar ist.
+  kopierenBtn.addEventListener('click', function () {
+    function fertig() {
+      const urspruenglich = kopierenBtn.textContent;
+      kopierenBtn.textContent = 'Kopiert!';
+      setTimeout(function () { kopierenBtn.textContent = urspruenglich; }, 1600);
+    }
+    function fallback() {
+      protokollText.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      fertig();
+    }
+    if (!navigator.clipboard || !navigator.clipboard.writeText) {
+      fallback();
+      return;
+    }
+    let erledigt = false;
+    const zeitlimit = setTimeout(function () {
+      if (erledigt) return;
+      erledigt = true;
+      fallback();
+    }, 800);
+    navigator.clipboard.writeText(protokollText.value).then(function () {
+      if (erledigt) return;
+      erledigt = true;
+      clearTimeout(zeitlimit);
+      fertig();
+    }).catch(function () {
+      if (erledigt) return;
+      erledigt = true;
+      clearTimeout(zeitlimit);
+      fallback();
+    });
+  });
+
+  startBtn.addEventListener('click', testStarten);
+  neustartBtn.addEventListener('click', testStarten);
+</script>
+
+</body>
+</html>

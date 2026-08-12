@@ -334,7 +334,7 @@
     <h1>Schrift mit Puls.</h1>
     <p>
       Situra ist eine Schrift, die sich verändert, während du schreibst.
-      Sechs Dimensionen deines Zustands – von Intensität bis Tonalität –
+      Sechs Dimensionen deines Zustands – von Intensität bis Temperatur –
       werden direkt zu Strichstärke, Abstand, Zittern, Schärfe, Deckkraft
       und Farbe. Bewege die Regler unten und sieh, wie es sich anfühlt.
     </p>
@@ -422,14 +422,14 @@
       </div>
     </section>
 
-    <!-- 5 — Gefasstheit → Deckkraft (opacity, stufenlos) -->
+    <!-- 5 — Atmung → Deckkraft (opacity, stufenlos) -->
     <section class="dimension">
       <div class="dimension-kopf">
         <span class="dimension-nr">05</span>
-        <h2>Gefasstheit</h2>
+        <h2>Atmung</h2>
       </div>
       <p class="dimension-text">
-        Als Testwert lässt deine Gefasstheit den Text kräftig oder
+        Als Testwert lässt deine Atmung den Text kräftig oder
         blass wirken.
       </p>
       <div class="dimension-buehne">
@@ -437,26 +437,26 @@
       </div>
       <div class="dimension-regler">
         <input type="range" id="regler-gefasstheit" min="0" max="100" step="1" value="50"
-          aria-label="Gefasstheit">
+          aria-label="Atmung">
         <span class="dimension-wert" id="wert-gefasstheit"></span>
       </div>
     </section>
 
-    <!-- 6 — Tonalität → Schriftgröße kühl↔warm (klein↔groß). -->
+    <!-- 6 — Temperatur → Schriftgröße kühl↔warm (klein↔groß). -->
     <section class="dimension">
       <div class="dimension-kopf">
         <span class="dimension-nr">06</span>
-        <h2>Tonalität</h2>
+        <h2>Temperatur</h2>
       </div>
       <p class="dimension-text">
-        Eine wärmere Tonalität lässt die Schrift von klein zu groß wachsen.
+        Eine wärmere Temperatur lässt die Schrift von klein zu groß wachsen.
       </p>
       <div class="dimension-buehne">
         <div class="dimension-wort" id="wort-tonalitaet">Hallo</div>
       </div>
       <div class="dimension-regler">
         <input type="range" id="regler-tonalitaet" min="0" max="100" step="1" value="50"
-          aria-label="Tonalität">
+          aria-label="Temperatur">
         <span class="dimension-wert" id="wert-tonalitaet"></span>
       </div>
     </section>
@@ -546,30 +546,30 @@
 
         <div class="kombi-achse" id="kombi-achse-gefasstheit">
           <div class="kombi-achse-kopf">
-            <label class="kombi-schalter" title="Gefasstheit ein-/ausschalten">
+            <label class="kombi-schalter" title="Atmung ein-/ausschalten">
               <input type="checkbox" id="schalter-k-gefasstheit" checked>
               <span class="kombi-schalter-visuell"></span>
             </label>
-            <span class="kombi-achse-label">Gefasstheit</span>
+            <span class="kombi-achse-label">Atmung</span>
           </div>
           <div class="dimension-regler">
             <input type="range" id="regler-k-gefasstheit" min="0" max="100" step="1" value="50"
-              aria-label="Gefasstheit">
+              aria-label="Atmung">
             <span class="dimension-wert" id="wert-k-gefasstheit"></span>
           </div>
         </div>
 
         <div class="kombi-achse" id="kombi-achse-tonalitaet">
           <div class="kombi-achse-kopf">
-            <label class="kombi-schalter" title="Tonalität ein-/ausschalten">
+            <label class="kombi-schalter" title="Temperatur ein-/ausschalten">
               <input type="checkbox" id="schalter-k-tonalitaet" checked>
               <span class="kombi-schalter-visuell"></span>
             </label>
-            <span class="kombi-achse-label">Tonalität</span>
+            <span class="kombi-achse-label">Temperatur</span>
           </div>
           <div class="dimension-regler">
             <input type="range" id="regler-k-tonalitaet" min="0" max="100" step="1" value="50"
-              aria-label="Tonalität">
+              aria-label="Temperatur">
             <span class="dimension-wert" id="wert-k-tonalitaet"></span>
           </div>
         </div>
@@ -708,7 +708,7 @@
     wachheitAktualisieren();
 
     // ═══════════════════════════════════════════════════════════
-    // 5 — GEFASSTHEIT: Deckkraft (opacity), stufenlos –
+    // 5 — ATMUNG: Deckkraft (opacity), stufenlos –
     // 0 = aufgewühlt/blass (0.35), 100 = gefasst/kräftig (1).
     // ═══════════════════════════════════════════════════════════
     const reglerGefasstheit = document.getElementById('regler-gefasstheit');
@@ -726,7 +726,7 @@
     gefasstheitAktualisieren();
 
     // ═══════════════════════════════════════════════════════════
-    // 6 — TONALITÄT: Schriftgröße kühl → warm, stufenlos.
+    // 6 — TEMPERATUR: Schriftgröße kühl → warm, stufenlos.
     // kühl = klein, warm = groß. Bewusst NUR ±12% um die tatsächlich
     // gerenderte Basisgröße (per getComputedStyle erfasst, VOR jeder
     // Inline-Überschreibung, da .dimension-wort eine responsive
@@ -753,7 +753,7 @@
     // ═══════════════════════════════════════════════════════════
     // 7 — KOMBINIERT: alle sechs Achsen auf EIN gemeinsames Wort.
     // Jede Achse bleibt technisch unabhängig – Intensität/Tempo/
-    // Wachheit/Gefasstheit/Tonalität setzen je eine eigene CSS-
+    // Wachheit/Atmung/Temperatur setzen je eine eigene CSS-
     // Eigenschaft auf dem Wort-Container (fontFamily/letterSpacing/
     // filter/opacity/color), Stabilität wirkt wie in Abschnitt 3 auf
     // die einzeln zerlegten Buchstaben-Spans darin – sie überschreiben

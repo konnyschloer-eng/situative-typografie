@@ -242,7 +242,18 @@
     .karte--test .schritt-titel,
     .karte--test .schritt-text--test { text-align: center; }
 
-    .schritt-text--test { max-width: none; margin-bottom: 6px; }
+    /* KORREKTUR – Kopfbereich (Eyebrow/Titel/Text) wirkte gedrängt: die
+       Basis-Regeln (.schritt-eyebrow/.schritt-titel/.schritt-text) sehen
+       KEINEN Abstand zwischen Eyebrow und Titel vor (0 Marge auf beiden
+       Seiten) und auf diesem Schritt zusätzlich nur 6px zwischen Text und
+       Test-Bühne – auf den übrigen (kürzeren) Schritten fällt das nicht
+       auf, hier mit Bühne + 6 Reglern darunter schon. Eigene, großzügigere
+       Abstände NUR für diesen Schritt (Basis-Regeln bleiben für die
+       anderen 7 Schritte unverändert) – staffelt die drei Ebenen klarer
+       gegeneinander ab, ohne die Schriftgrößen selbst anzufassen. */
+    .karte--test .schritt-eyebrow { margin-bottom: 10px; }
+    .karte--test .schritt-titel   { margin-bottom: 22px; }
+    .schritt-text--test { max-width: none; margin-bottom: 22px; }
 
     .test-buehne {
       min-height: clamp(80px, 18vw, 120px);
@@ -383,7 +394,7 @@
        Jedes Wort zeigt beim Erscheinen genau die typografische
        Eigenschaft, die der Satz ihm zuschreibt – durchgängig in
        echten Situra-Schriftschnitten (nicht Inter/Fallback). Für
-       Tempo/Tonalität/Wachheit/Gefasstheit/Stabilität reichen
+       Tempo/Temperatur/Wachheit/Atmung/Stabilität reichen
        letter-spacing/color/filter/opacity/transform – die
        funktionieren unabhängig vom Font. Für Intensität ("wght") und
        den Form-Effekt auf der Willkommen-Seite gibt es dagegen keine
@@ -443,9 +454,9 @@
       to   { letter-spacing: -0.02em; }
     }
 
-    /* Tonalität (Körpertemperatur) → Schriftgröße – kühl = klein, warm =
+    /* Temperatur (Körpertemperatur) → Schriftgröße – kühl = klein, warm =
        groß. Rein illustrativ NUR hier im Onboarding: in der eigentlichen
-       App (chat.html) wirkt Tonalität bewusst NICHT auf die Typografie
+       App (chat.html) wirkt Temperatur bewusst NICHT auf die Typografie
        (Testwert, nicht real gemessen, siehe Kommentar an
        sensorZuSchriftAchse in chat.html). Skaliert per transform:scale()
        statt fester px-Werte, damit dieselbe ±12%-Spanne unabhängig von
@@ -1132,10 +1143,10 @@
 
     <section class="schritt" data-schritt="5">
       <div class="karte">
-        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">5 / 6 · Gefasstheit · Testwert</span>
-        <h1 class="schritt-titel demo-wort demo-wort--titel demo-transparenz" data-demo="transparenz" data-einblenden style="--verz:.1s">Gefasstheit</h1>
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">5 / 6 · Atmung · Testwert</span>
+        <h1 class="schritt-titel demo-wort demo-wort--titel demo-transparenz" data-demo="transparenz" data-einblenden style="--verz:.1s">Atmung</h1>
         <p class="schritt-text" data-einblenden style="--verz:.24s">
-          Als Testwert lässt deine Gefasstheit den Text kräftig oder
+          Als Testwert lässt deine Atmung den Text kräftig oder
           <span class="demo-wort demo-transparenz" data-demo="transparenz">blass</span> wirken.
         </p>
       </div>
@@ -1143,8 +1154,8 @@
 
     <section class="schritt" data-schritt="6">
       <div class="karte">
-        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">6 / 6 · Tonalität · Testwert</span>
-        <h1 class="schritt-titel demo-wort demo-wort--titel demo-groesse" data-demo="groesse" data-einblenden style="--verz:.1s">Tonalität</h1>
+        <span class="schritt-eyebrow" data-einblenden style="--verz:0s">6 / 6 · Temperatur · Testwert</span>
+        <h1 class="schritt-titel demo-wort demo-wort--titel demo-groesse" data-demo="groesse" data-einblenden style="--verz:.1s">Temperatur</h1>
         <p class="schritt-text" data-einblenden style="--verz:.24s">
           Als Testwert verändert deine Körpertemperatur die Schriftgröße von klein zu
           <span class="demo-wort demo-groesse" data-demo="groesse">groß</span>.
@@ -1239,30 +1250,30 @@
 
           <div class="test-achse" id="test-achse-gefasstheit">
             <div class="test-achse-kopf">
-              <label class="test-schalter" title="Gefasstheit ein-/ausschalten">
+              <label class="test-schalter" title="Atmung ein-/ausschalten">
                 <input type="checkbox" id="test-schalter-gefasstheit" checked>
                 <span class="test-schalter-visuell"></span>
               </label>
-              <span class="test-achse-label">Gefasstheit</span>
+              <span class="test-achse-label">Atmung</span>
             </div>
             <div class="test-regler-zeile">
               <input type="range" id="test-regler-gefasstheit" min="0" max="100" step="1" value="50"
-                aria-label="Gefasstheit">
+                aria-label="Atmung">
               <span class="test-wert" id="test-wert-gefasstheit"></span>
             </div>
           </div>
 
           <div class="test-achse" id="test-achse-tonalitaet">
             <div class="test-achse-kopf">
-              <label class="test-schalter" title="Tonalität ein-/ausschalten">
+              <label class="test-schalter" title="Temperatur ein-/ausschalten">
                 <input type="checkbox" id="test-schalter-tonalitaet" checked>
                 <span class="test-schalter-visuell"></span>
               </label>
-              <span class="test-achse-label">Tonalität</span>
+              <span class="test-achse-label">Temperatur</span>
             </div>
             <div class="test-regler-zeile">
               <input type="range" id="test-regler-tonalitaet" min="0" max="100" step="1" value="50"
-                aria-label="Tonalität">
+                aria-label="Temperatur">
               <span class="test-wert" id="test-wert-tonalitaet"></span>
             </div>
           </div>
@@ -1436,7 +1447,7 @@
     const TEST_BLUR_MAX         = 5.0;
     const TEST_TRANSPARENZ_MIN  = 0.35;
 
-    // Tonalität (Körpertemperatur, weiterhin nicht angebunden) steuert
+    // Temperatur (Körpertemperatur, weiterhin nicht angebunden) steuert
     // die Schriftgröße statt Farbe: kühl = klein, warm = groß. Bewusst
     // NUR ±12% um die tatsächlich gerenderte Basisgröße (per
     // getComputedStyle erfasst, VOR jeder Inline-Überschreibung, da
