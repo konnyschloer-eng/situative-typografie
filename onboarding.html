@@ -17,90 +17,147 @@
        Variable Font), identisch zu chat.html eingebunden, damit die
        ganze App denselben Font-Stack nutzt. Hier rein statisch für
        Überschriften/Buttons/Fließtext – keine Puls-Umschaltung auf
-       dieser Seite. ══════════════════════════════════════════════ */
+       dieser Seite.
+
+       KORREKTUR (Browser-Kompatibilität, Safari) – .woff2 zusätzlich
+       zur bisherigen .ttf erzeugt und in src ZUERST gelistet: Server
+       wie GitHub Pages liefern .ttf teils ohne korrekten Font-MIME-Typ
+       (application/octet-stream) aus, was Safari beim @font-face-Laden
+       ablehnt. .woff2 ist praktisch immer korrekt typisiert und wird
+       von jedem aktuellen Browser bevorzugt geladen (erste unterstützte
+       Quelle in src gewinnt) – .ttf bleibt als Fallback für den
+       (unwahrscheinlichen) Fall eines noch älteren Browsers ohne
+       WOFF2-Unterstützung. Nebeneffekt: die .woff2-Dateien sind rund
+       ein Drittel so groß, die Schrift steht also schneller.
+       Identisch in chat.html und situra-slider.html.
+       ══════════════════════════════════════════════════════════════ */
     @font-face {
       font-family: 'Situra-Thin';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Light';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Regular';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Medium';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-SemiBold';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Bold';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Black';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
 
     /* ══════════════════════════════════════════════════════════════
-       FARBWELTEN – reiner Schwarz/Weiß-Kontrast, automatisch nach
-       Systemeinstellung (prefers-color-scheme). Hell: schwarze
-       Schrift auf Weiß. Dunkel: weiße Schrift auf Schwarz.
+       FARBWELTEN – reiner Schwarz/Weiß-Kontrast: weiße Schrift auf
+       Schwarz, FEST eingestellt.
+
+       Vorher folgte das Onboarding der Systemeinstellung
+       (prefers-color-scheme) und war auf hell eingestellten Geräten
+       schwarz auf weiß – also bei den meisten. Beide Paletten gab es
+       bereits; die dunkle ist jetzt die einzige, statt an das System
+       gekoppelt zu sein. Zum Zurückschalten die Werte unten gegen die
+       helle Palette tauschen (#ffffff und #000000 vertauscht).
+
+       body bleibt bewusst hell: das ist die Fläche AUSSERHALB des
+       Rahmens (Desktop-Vorschau), identisch zu chat.html. Auf
+       Handybreite füllt .phone-frame den Bildschirm, siehe unten.
        ══════════════════════════════════════════════════════════════ */
 
     .phone-frame {
-      --bg:          #ffffff;
-      --karte-rand:  rgba(0, 0, 0, 0.10);
-      --text:        #000000;
-      --text-2:      #6b6b6b;
-      --text-3:      #a8a8a8;
-      --punkt:       #d8d8d5;
-      --punkt-aktiv: #000000;
-      --btn-bg:      #000000;
-      --btn-text:    #ffffff;
-      --btn-rand:    #000000;
+      --bg:          #000000;
+      --karte-rand:  rgba(255, 255, 255, 0.12);
+      --text:        #ffffff;
+      --text-2:      #9a9a9a;
+      --text-3:      #5c5c5c;
+      --punkt:       #333333;
+      --punkt-aktiv: #ffffff;
+      --btn-bg:      #ffffff;
+      --btn-text:    #000000;
+      --btn-rand:    #ffffff;
     }
 
-    @media (prefers-color-scheme: dark) {
-      .phone-frame {
-        --bg:          #000000;
-        --karte-rand:  rgba(255, 255, 255, 0.12);
-        --text:        #ffffff;
-        --text-2:      #9a9a9a;
-        --text-3:      #5c5c5c;
-        --punkt:       #333333;
-        --punkt-aktiv: #ffffff;
-        --btn-bg:      #ffffff;
-        --btn-text:    #000000;
-        --btn-rand:    #ffffff;
-      }
+    /* ══════════════════════════════════════════════════════════════
+       FOKUS & ANTIPP-MARKIERUNG – schwarzweiß statt Systemblau
+
+       Zwei verschiedene Dinge: die blaue Fläche beim BERÜHREN
+       (-webkit-tap-highlight-color, rein kosmetisch, folgenlos
+       abschaltbar) und der Fokus-Rahmen, der zeigt, WO man gerade
+       ist. Letzterer wird NICHT entfernt, sondern schwarzweiß neu
+       gezeichnet – ohne ihn wäre die Seite per Tastatur unbedienbar.
+
+       :focus-visible statt :focus: der Rahmen erscheint bei
+       Tastatur/Tab, aber nicht bei Maus- oder Fingertipp.
+       Gleiche Lösung wie in chat.html, siehe Kommentar dort.
+       ══════════════════════════════════════════════════════════════ */
+
+    * { -webkit-tap-highlight-color: transparent; }
+
+    /* Textauswahl: ebenfalls systemblau, wenn man sie nicht setzt.
+       Invertiert statt blau – Vordergrund und Hintergrund tauschen
+       die Rollen, dadurch passt es in beiden Modi. */
+    .phone-frame ::selection { background: var(--text); color: var(--bg); }
+
+    /* (0,2,0) – schlägt damit .test-regler-zeile input[type="range"]
+       (0,1,1), das weiter unten outline:none setzt. */
+    .phone-frame :focus-visible {
+      outline: 2px solid var(--text);
+      outline-offset: 2px;
+      border-radius: 2px;
     }
+
+    /* Regler: Rahmen um den Griff, nicht um die 2px dünne Schiene.
+
+       outline wird hier WIEDERHOLT, nicht nur outline-offset gesetzt:
+       .test-regler-zeile input[type="range"] ist (0,2,1) und schlägt
+       damit .phone-frame :focus-visible (0,2,0). Ohne eigenes outline
+       bliebe dort das outline:none stehen und der Regler wäre per
+       Tastatur unsichtbar. Diese Regel ist (0,3,1) und gewinnt. */
+    .phone-frame input[type="range"]:focus-visible {
+      outline: 2px solid var(--text);
+      outline-offset: 6px;
+    }
+
 
     body {
       background: #e8e6e1;
@@ -647,8 +704,12 @@
          sobald die Bewegung aus Schritt 3 sichtbar zur Ruhe gekommen
             ist: weiche rechte Fade-Kante aktivieren, dann kurze Pause
             im fertigen Lockup, dann Übergang weiter
-       Weiß auf Schwarz – reiner Marken-Moment, unabhängig von den
-       hellen Farbwelten des restlichen Onboardings.
+       Weiß auf Schwarz – reiner Marken-Moment. Bewusst fest
+       verdrahtet (nicht über --bg/--text), damit das Logo seine
+       Farbigkeit behält, falls die Palette oben je wieder auf hell
+       umgestellt wird. Seit der Umstellung auf eine feste dunkle
+       Palette fügt es sich nahtlos in den Rest ein, statt sich
+       davon abzusetzen.
        ══════════════════════════════════════════════════════════════ */
     .logo-view {
       position: relative;

@@ -1,0 +1,15 @@
+{
+  "name": "momentum-server",
+  "version": "1.0.0",
+  "description": "Chat-Server für die Momentum-App – 1:1-Nachrichten inkl. Wort-Rohwerten",
+  "main": "server.js",
+  "type": "commonjs",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "ws": "^8.18.0"
+  }
+}

@@ -12,52 +12,68 @@
        Schnitt ein eigener font-family-Name, bewusst mit font-weight:
        400 registriert, damit kein Browser zusätzlich synthetisch
        fett/kursiv rendert – der Schnitt selbst trägt die Strichstärke.
+       KORREKTUR (Browser-Kompatibilität, Safari) – .woff2 zusätzlich
+       zur bisherigen .ttf erzeugt und in src ZUERST gelistet: Server
+       wie GitHub Pages liefern .ttf teils ohne korrekten Font-MIME-Typ
+       (application/octet-stream) aus, was Safari beim @font-face-Laden
+       ablehnt. .woff2 ist praktisch immer korrekt typisiert und wird
+       von jedem aktuellen Browser bevorzugt geladen (erste unterstützte
+       Quelle in src gewinnt) – .ttf bleibt als Fallback für den
+       (unwahrscheinlichen) Fall eines noch älteren Browsers ohne
+       WOFF2-Unterstützung.
        ══════════════════════════════════════════════════════════════ */
     @font-face {
       font-family: 'Situra-Thin';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Light';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Regular';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Medium';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-SemiBold';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Bold';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Black';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -72,6 +88,42 @@
       --grau-2: #4a4a4a;
       --linie:  #2a2a2a;
     }
+
+    /* ══════════════════════════════════════════════════════════════
+       FOKUS & ANTIPP-MARKIERUNG – schwarzweiß statt Systemblau
+
+       Zwei verschiedene Dinge: die blaue Fläche beim BERÜHREN
+       (-webkit-tap-highlight-color, rein kosmetisch, folgenlos
+       abschaltbar) und der Fokus-Rahmen, der zeigt, WO man gerade
+       ist. Letzterer wird NICHT entfernt, sondern schwarzweiß neu
+       gezeichnet – ohne ihn wäre die Seite per Tastatur unbedienbar.
+
+       :focus-visible statt :focus: der Rahmen erscheint bei
+       Tastatur/Tab, aber nicht bei Maus- oder Fingertipp.
+       Gleiche Lösung wie in chat.html, siehe Kommentar dort.
+       ══════════════════════════════════════════════════════════════ */
+
+    * { -webkit-tap-highlight-color: transparent; }
+
+    /* Textauswahl: ebenfalls systemblau, wenn man sie nicht setzt.
+       Invertiert statt blau – Vordergrund und Hintergrund tauschen
+       die Rollen, dadurch passt es in beiden Modi. */
+    ::selection { background: var(--fg); color: var(--bg); }
+
+    body :focus-visible {
+      outline: 2px solid var(--fg);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    /* Eigene Regel statt nur body :focus-visible (0,1,0): die
+       Regler-Regel .dimension-regler input[type="range"] ist (0,1,1)
+       und würde sonst mit ihrem outline:none gewinnen. */
+    .dimension-regler input[type="range"]:focus-visible {
+      outline: 2px solid var(--fg);
+      outline-offset: 6px;
+    }
+
 
     html { background: var(--bg); }
 
@@ -334,9 +386,9 @@
     <h1>Schrift mit Puls.</h1>
     <p>
       Situra ist eine Schrift, die sich verändert, während du schreibst.
-      Sechs Dimensionen deines Zustands – von Intensität bis Temperatur –
+      Sechs Dimensionen deines Zustands, von Intensität bis Temperatur,
       werden direkt zu Strichstärke, Abstand, Zittern, Schärfe, Deckkraft
-      und Farbe. Bewege die Regler unten und sieh, wie es sich anfühlt.
+      und Größe. Bewege die Regler unten und sieh, wie es sich anfühlt.
     </p>
   </header>
 
@@ -369,8 +421,8 @@
         <h2>Tempo</h2>
       </div>
       <p class="dimension-text">
-        Dein Schreibtempo verändert den Zeichenabstand – schnelles
-        Tippen zieht die Buchstaben auseinander.
+        Dein Schreibtempo verändert den Zeichenabstand. Schnelles Tippen
+        rückt die Buchstaben zusammen, langsames lässt sie auseinandertreten.
       </p>
       <div class="dimension-buehne">
         <div class="dimension-wort" id="wort-tempo">Hallo</div>
@@ -409,8 +461,7 @@
         <h2>Wachheit</h2>
       </div>
       <p class="dimension-text">
-        Als Testwert zeigt deine Wachheit, ob der Text scharf oder
-        leicht unscharf wirkt.
+        Deine Wachheit bestimmt, ob der Text scharf oder unscharf wirkt.
       </p>
       <div class="dimension-buehne">
         <div class="dimension-wort" id="wort-wachheit">Hallo</div>
@@ -429,8 +480,8 @@
         <h2>Atmung</h2>
       </div>
       <p class="dimension-text">
-        Als Testwert lässt deine Atmung den Text kräftig oder
-        blass wirken.
+        Als Testwert bestimmt deine Atmung, wie deckend der Text
+        erscheint. Flache Atmung lässt ihn blass werden, tiefe deckend.
       </p>
       <div class="dimension-buehne">
         <div class="dimension-wort" id="wort-gefasstheit">Hallo</div>
@@ -621,8 +672,13 @@
     intensitaetAktualisieren();
 
     // ═══════════════════════════════════════════════════════════
-    // 2 — TEMPO: letter-spacing, stufenlos (−0.04em … 0.12em),
-    // identischer Wertebereich/Mapping wie in chat.html.
+    // 2 — TEMPO: letter-spacing, stufenlos (0.12em … −0.04em).
+    // KORREKTUR – Richtung war invertiert: hoher Tempo-Wert (schnelles
+    // Tippen) muss zu KLEINEREM letter-spacing führen (Buchstaben rücken
+    // zusammen), niedriger Wert (langsames Tippen) zu größerem (Buch-
+    // staben treten auseinander) – siehe auch Text oben. Endpunkte
+    // bewusst unverändert gelassen (nur ihre Reihenfolge getauscht), nur
+    // die Richtung war zu korrigieren.
     // ═══════════════════════════════════════════════════════════
     const reglerTempo = document.getElementById('regler-tempo');
     const wortTempo    = document.getElementById('wort-tempo');
@@ -630,7 +686,7 @@
 
     function tempoAktualisieren() {
       const wert    = Number(reglerTempo.value);
-      const spacing = umrechnen(wert, 100, 900, -0.04, 0.12);
+      const spacing = umrechnen(wert, 100, 900, 0.12, -0.04);
       wortTempo.style.letterSpacing = `${spacing.toFixed(3)}em`;
       wertTempo.innerHTML = `<strong>${spacing.toFixed(3)}em</strong> · ${wert}`;
     }
@@ -701,7 +757,13 @@
     function wachheitAktualisieren() {
       const wert = Number(reglerWachheit.value);
       const blur = umrechnen(wert, 0, 100, BLUR_MAX, 0);
-      wortWachheit.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
+      const filterWert = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
+      // -webkit-Variante zusätzlich zur Standard-Eigenschaft (Browser-
+      // Kompatibilität, ältere Safari-Versionen kennen filter nur
+      // vorangestellt) – siehe @font-face weiter oben für denselben
+      // Kompatibilitäts-Anlass.
+      wortWachheit.style.webkitFilter = filterWert;
+      wortWachheit.style.filter = filterWert;
       wertWachheit.innerHTML = `<strong>${blur.toFixed(2)}px</strong> · ${wert}`;
     }
     reglerWachheit.addEventListener('input', wachheitAktualisieren);
@@ -709,7 +771,7 @@
 
     // ═══════════════════════════════════════════════════════════
     // 5 — ATMUNG: Deckkraft (opacity), stufenlos –
-    // 0 = aufgewühlt/blass (0.35), 100 = gefasst/kräftig (1).
+    // 0 = flach/blass (0.35), 100 = tief/deckend (1).
     // ═══════════════════════════════════════════════════════════
     const reglerGefasstheit = document.getElementById('regler-gefasstheit');
     const wortGefasstheit    = document.getElementById('wort-gefasstheit');
@@ -828,7 +890,9 @@
 
     kombiAchseEinrichten('tempo', {
       anwenden(wert, wertEl) {
-        const spacing = umrechnen(wert, 100, 900, -0.04, 0.12);
+        // KORREKTUR – Richtung wie bei Abschnitt 2 (siehe dort): hoher
+        // Tempo-Wert muss zu kleinerem letter-spacing führen.
+        const spacing = umrechnen(wert, 100, 900, 0.12, -0.04);
         wortKombiniert.style.letterSpacing = `${spacing.toFixed(3)}em`;
         wertEl.innerHTML = `<strong>${spacing.toFixed(3)}em</strong> · ${wert}`;
       },

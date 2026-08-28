@@ -1,0 +1,47 @@
+# Caddy-Konfiguration für den Momentum-Chat-Server.
+# Ziel: /etc/caddy/Caddyfile   (danach: sudo systemctl reload caddy)
+#
+# ── Warum diese Adresse? ─────────────────────────────────────────
+# Der VPS hat keine eigene Domain. "sslip.io" ist ein kostenloser
+# Wildcard-DNS-Dienst: 212-227-70-31.sslip.io löst immer auf
+# 212.227.70.31 auf. Damit kann Caddy ein echtes Let's-Encrypt-
+# Zertifikat ausstellen lassen – ohne dass eine Domain gekauft
+# werden muss.
+#
+# Das ist kein Schönheitsdetail, sondern Voraussetzung: Android
+# blockiert seit Version 9 unverschlüsseltes HTTP standardmäßig.
+# Ohne gültiges TLS käme die App gar nicht erst durch (die
+# AndroidManifest.xml hat bewusst KEINE Klartext-Ausnahme).
+#
+# Sobald eine echte Domain existiert: hier eintauschen, neu laden,
+# fertig – Caddy holt das Zertifikat automatisch.
+
+212-227-70-31.sslip.io {
+	encode zstd gzip
+
+	# Der WebSocket selbst. Caddy erkennt den Upgrade-Handshake
+	# automatisch, es braucht keine Sonderkonfiguration.
+	handle /ws* {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	# Gesundheitsprüfung – praktisch zum Testen per Browser/curl.
+	handle /gesundheit {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	# Alles andere bekommt eine schlichte Antwort, damit der Server
+	# nicht versehentlich als offener Webserver auftritt.
+	handle {
+		respond "Momentum" 200
+	}
+}
+
+# Hinweis zu den Protokollen: Caddy schreibt ohne "log"-Block nach
+# stdout und damit in journald. Das ist hier bewusst so – eine eigene
+# Logdatei bräuchte Schreibrechte im Mount-Namespace des Dienstes und
+# eine eigene Rotation. journald rotiert selbst und begrenzt den Platz:
+#
+#   journalctl -u caddy -f        (Zugriffe live mitlesen)
+#   journalctl -u momentum -f     (Chat-Server live mitlesen)
+

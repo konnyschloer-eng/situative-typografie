@@ -8,6 +8,17 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* Blaue Antipp-Fläche der WebView/mobiler Browser abschalten –
+       passt nicht zum Schwarzweiß-Konzept. Die Fokusanzeige für
+       Tastaturbedienung bleibt davon unberührt: siehe
+       .karte:focus-visible weiter unten. */
+    * { -webkit-tap-highlight-color: transparent; }
+
+    /* Textauswahl: ebenfalls systemblau, wenn man sie nicht setzt.
+       Invertiert statt blau – Vordergrund und Hintergrund tauschen
+       die Rollen, dadurch passt es in beiden Modi. */
+    ::selection { background: var(--fg); color: var(--bg); }
+
     /* ══════════════════════════════════════════════════════════════
        PULS-SCHRIFTSCHNITTE – identische @font-face-Einbindung wie
        chat.html (dieselben Dateien, dieselben font-family-Namen),

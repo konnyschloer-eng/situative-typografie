@@ -1,0 +1,55 @@
+# systemd-Unit für den Momentum-Chat-Server.
+# Ziel: /etc/systemd/system/momentum.service
+#
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now momentum
+#   sudo systemctl status momentum
+#   journalctl -u momentum -f      (Live-Protokoll)
+
+[Unit]
+Description=Momentum Chat-Server (1:1-Nachrichten mit Wort-Rohwerten)
+Documentation=https://github.com/konnyschloer-eng/situative-typografie
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=momentum
+Group=momentum
+WorkingDirectory=/opt/momentum
+
+Environment=NODE_ENV=production
+Environment=PORT=8080
+Environment=DB_PFAD=/var/lib/momentum/momentum.db
+
+ExecStart=/usr/bin/node /opt/momentum/server.js
+
+# Neustart bei Absturz – die App soll auch nach einem Fehler wieder
+# erreichbar sein, ohne dass jemand sich per SSH einloggt.
+Restart=always
+RestartSec=3
+
+# ── Härtung ───────────────────────────────────────────────────────
+# Der Dienst lauscht nur auf 127.0.0.1 und wird von Caddy angesprochen;
+# er braucht daher fast keine Rechte. ProtectSystem=strict macht das
+# gesamte Dateisystem schreibgeschützt – einzige Ausnahme ist das
+# Datenbankverzeichnis (ReadWritePaths).
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictNamespaces=true
+LockPersonality=true
+ReadWritePaths=/var/lib/momentum
+
+# Reißleine auf dem kleinen VPS (1,8 GB, kein Swap): lieber wird der
+# Dienst neu gestartet, als dass der OOM-Killer SSH oder Caddy trifft.
+MemoryMax=512M
+
+[Install]
+WantedBy=multi-user.target

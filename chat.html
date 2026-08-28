@@ -20,52 +20,71 @@
        rendern – der jeweilige Schnitt selbst trägt die Strichstärke.
        Reihenfolge dünn → fett, siehe intensitaetZuSchriftschnitt()
        weiter unten im Script.
+
+       KORREKTUR (Browser-Kompatibilität, Safari) – .woff2 zusätzlich
+       zur bisherigen .ttf erzeugt und in src ZUERST gelistet: Server
+       wie GitHub Pages liefern .ttf teils ohne korrekten Font-MIME-Typ
+       (application/octet-stream) aus, was Safari beim @font-face-Laden
+       ablehnt. .woff2 ist praktisch immer korrekt typisiert und wird
+       von jedem aktuellen Browser bevorzugt geladen (erste unterstützte
+       Quelle in src gewinnt) – .ttf bleibt als Fallback für den
+       (unwahrscheinlichen) Fall eines noch älteren Browsers ohne
+       WOFF2-Unterstützung. Nebeneffekt: die .woff2-Dateien sind rund
+       ein Drittel so groß, die Schrift steht also schneller.
+       Identisch in onboarding.html und situra-slider.html.
        ══════════════════════════════════════════════════════════════ */
     @font-face {
       font-family: 'Situra-Thin';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Light';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Regular';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Medium';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-SemiBold';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Bold';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Situra-Black';
-      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -104,6 +123,7 @@
          weil die Karte dort in BEIDEN Modi dunkel ist. */
       --schalter-fuellung:           #000000;
       --schalter-fuellung-kontrast:  #ffffff;
+      --fokus:        #000000;   /* Tastatur-Fokusrahmen, siehe FOKUS-Abschnitt */
     }
 
     .phone-frame.emotion-an {
@@ -124,6 +144,76 @@
       --ring-ungesehen: #ffffff; /* "Ungesehen"-Ring um Moment-Kreise, dunkler Modus */
       --schalter-fuellung:           #ffffff;
       --schalter-fuellung-kontrast:  #000000;
+      --fokus:        #ffffff;   /* Tastatur-Fokusrahmen, siehe FOKUS-Abschnitt */
+    }
+
+
+    /* ══════════════════════════════════════════════════════════════
+       FOKUS & ANTIPP-MARKIERUNG – schwarzweiß statt Systemblau
+
+       Zwei verschiedene Dinge, die oft verwechselt werden:
+
+       1. TAP-HIGHLIGHT: Die blaue Fläche, die Android/iOS beim
+          Berühren über ein Element legen. Rein kosmetisch, gehört
+          weder zum Fokus noch zum Klick – lässt sich folgenlos
+          abschalten.
+
+       2. FOKUS-OUTLINE: Der Rahmen, der zeigt, WO man gerade ist.
+          Für Tastaturbedienung unverzichtbar. Deshalb wird er hier
+          NICHT entfernt, sondern in Schwarz/Weiß neu gezeichnet.
+
+       :focus-visible statt :focus ist der Kern der Lösung: der
+       Browser zeigt den Rahmen damit bei Tastatur/Tab, aber NICHT
+       bei Maus- oder Fingertipp. Genau das, was gewünscht ist –
+       beim Antippen nichts, beim Tabben ein klarer Rahmen.
+
+       Spezifität bewusst (0,2,0) über den Nachfahren-Selektor:
+       damit gewinnt die Regel gegen die acht outline:none-Regeln
+       weiter unten (je (0,1,0)) – unabhängig von der Reihenfolge im
+       Stylesheet und auch dann noch, wenn dort später etwas
+       dazukommt. Vier dieser acht hatten bisher gar keinen Ersatz
+       (.profil-name-eingabe, .tagebuch-eingabe und die beiden
+       Regler) – die waren per Tastatur schlicht unauffindbar.
+
+       outline-offset hält den Rahmen AUSSERHALB des Elements. Das
+       ist wichtig, weil manche Flächen selbst schwarz sind (Senden-
+       Knopf): ein schwarzer Rahmen direkt darauf wäre unsichtbar,
+       zwei Pixel daneben auf dem hellen Grund dagegen deutlich.
+       ══════════════════════════════════════════════════════════════ */
+
+    * { -webkit-tap-highlight-color: transparent; }
+
+    /* Textauswahl: ebenfalls systemblau, wenn man sie nicht setzt.
+       Invertiert statt blau – Vordergrund und Hintergrund tauschen
+       die Rollen, dadurch passt es in beiden Modi. */
+    .phone-frame ::selection { background: var(--fokus); color: var(--bg); }
+
+    .phone-frame :focus-visible {
+      outline: 2px solid var(--fokus);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    /* Regler: der Rahmen soll den Griff umfassen, nicht die 2px dünne
+       Schiene – sonst sieht er aus wie ein verrutschter Strich.
+
+       outline wird hier WIEDERHOLT, nicht nur outline-offset gesetzt:
+       .testregler-regler-zeile input[type="range"] ist (0,2,1) und
+       schlägt damit .phone-frame :focus-visible (0,2,0). Ohne eigenes
+       outline bliebe dort das outline:none stehen und der Regler wäre
+       per Tastatur unsichtbar. Diese Regel ist (0,3,1) und gewinnt. */
+    .phone-frame input[type="range"]:focus-visible {
+      outline: 2px solid var(--fokus);
+      outline-offset: 6px;
+    }
+
+    /* #eingabe (Chat-Eingabefeld) setzt outline:none über eine ID –
+       (1,0,0) schlägt jede Klassenregel. Deshalb hier ebenfalls über
+       die ID, sonst bliebe ausgerechnet das meistgenutzte Feld der
+       App ohne sichtbaren Tastaturfokus. */
+    #eingabe:focus-visible {
+      outline: 2px solid var(--fokus);
+      outline-offset: 2px;
     }
 
 
@@ -537,7 +627,12 @@
       cursor: pointer;
     }
 
-    .overlay-btn:hover { border-color: var(--text-2); }
+    .overlay-btn:hover:not(:disabled) { border-color: var(--text-2); }
+
+    /* Gesperrt, solange die Anmeldung beim Server nicht bestätigt ist
+       (siehe overlayKnoepfeAktualisieren im Abschnitt VERBINDUNG).
+       Dieselbe Darstellung wie bei #antwort-btn weiter unten. */
+    .overlay-btn:disabled { opacity: 0.3; cursor: default; }
 
     /* Destruktive Aktion (z. B. "Gruppe löschen"): dünne rote Outline
        statt schwarz/weiß, signalisiert Endgültigkeit – bewusst die
@@ -594,6 +689,95 @@
     .einstellung-hinweis {
       font-size: 11px;
       color: var(--text-3);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       KOPPLUNG – Overlay zum Verbinden zweier Handys (siehe Abschnitt
+       VERBINDUNG im Script). Baut bewusst auf denselben Bausteinen auf
+       wie Menü und Einstellungen (.overlay/.overlay-karte/
+       .einstellung-zeile/.overlay-btn) – deren Farben liegen auf
+       --bg/--border/--text-2/--text-3 und schalten damit im
+       Emotion-Modus von selbst mit. Eigene Regeln braucht es nur für
+       die zwei Elemente, die es sonst nirgends gibt.
+
+       WICHTIG: Das Overlay MUSS innerhalb von .phone-frame hängen –
+       sämtliche CSS-Variablen sind dort definiert. An document.body
+       gehängt fiele jedes var(--…) aus, und die emotion-an-Regeln
+       unten griffen nie (der Fehler, an dem die erste Fassung scheiterte).
+
+       Primärtext wird wie überall in dieser Datei als #000000 gesetzt
+       und per .phone-frame.emotion-an auf #ffffff gedreht – es gibt
+       bewusst KEINE --text-Variable, siehe .gespraechs-name.
+       ══════════════════════════════════════════════════════════════ */
+    /* "Kontakt hinzufügen" – steht dauerhaft ganz oben in der Liste
+       und ist kein Mensch: gestrichelter Kreis statt der durchgezogenen
+       Avatar-Kontur, damit er sich auf einen Blick von den Kontakten
+       darunter abhebt, ohne eine neue Farbe einzuführen. */
+    .gespraechs-eintrag--hinzufuegen .avatar {
+      border-style: dashed;
+      font-size: 22px;
+    }
+
+    .gespraechs-eintrag--hinzufuegen .gespraechs-name {
+      color: var(--text-2);
+    }
+
+    .kopplung-code {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 26px;
+      letter-spacing: 0.22em;
+      line-height: 1.2;
+      color: #000000;
+    }
+
+    /* Kopplungscode vom globalen Farbübergang ausnehmen.
+       ".phone-frame *" (MODUSWECHSEL-TRANSITION weiter unten) blendet
+       color über 0,4 s. Beim Wechsel aus dem "noch nicht erzeugt"-
+       Zustand blieb dieser Übergang hängen – die Ziffern standen
+       dauerhaft im Grau des Hinweistextes statt in Vordergrundfarbe.
+       Ein Kopplungscode soll ohnehin sofort dastehen, nicht einblenden.
+
+       Der Vorsatz ".phone-frame " ist notwendig, nicht Zierde: Die
+       globale Regel steht bewusst als LETZTE im Stylesheet (siehe
+       Kommentar dort) und hat mit (0,1,0) dieselbe Spezifität wie
+       ".kopplung-code" allein – bei Gleichstand gewinnt die spätere.
+       Mit (0,2,0) gewinnt diese hier unabhängig von der Reihenfolge. */
+    .phone-frame .kopplung-code {
+      transition: none;
+    }
+
+    .phone-frame.emotion-an .kopplung-code { color: #ffffff; }
+
+    /* Zustand "noch kein Code erzeugt": liest sich als Hinweis, nicht
+       als Zahl – deshalb zurück auf die Hinweis-Typografie. */
+    .kopplung-code--leer {
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: normal;
+      color: var(--text-3);
+    }
+
+    .phone-frame.emotion-an .kopplung-code--leer { color: var(--text-3); }
+
+    .kopplung-eingabe {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: #000000;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 20px;
+      letter-spacing: 0.25em;
+      text-align: center;
+    }
+
+    .phone-frame.emotion-an .kopplung-eingabe { color: #ffffff; }
+
+    .kopplung-eingabe::placeholder {
+      color: var(--placeholder);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 13px;
+      letter-spacing: normal;
     }
 
     .infos-text {
@@ -2357,42 +2541,48 @@
        siehe dort) NICHT erfasst (der Universalselektor "*" matcht nur
        echte Elemente) – ohne diese eigene Zeile würde die Konturfarbe
        beim Emotion-Moduswechsel abrupt statt weich umspringen. */
-    .nachricht-andere .text::before,
-    .nachricht-andere .text::after,
-    .nachricht-ich .text::before,
-    .nachricht-ich .text::after {
-      content: '';
+    /* ══════════════════════════════════════════════════════════════
+       SPRECHBLASEN-KONTUR – ein einziger gestrichener SVG-Pfad.
+
+       Erzeugt in blasenKonturAktualisieren (JS, siehe dort für die
+       ausführliche Begründung). Ersetzt die frühere Konstruktion aus
+       zwei clip-path-Ebenen, bei der die Unterkante rechnerisch 0px
+       statt 1px breit war.
+
+       fill übernimmt die Aufgabe der früheren inneren Ebene (Blasen-
+       Hintergrund), stroke die der äußeren (Kontur) – EIN Element
+       statt zwei Pseudoelementen.
+
+       overflow: visible, weil der Strich mittig auf der Kurve liegt
+       und damit ein halbes Pixel über die viewBox hinausragt.
+       ══════════════════════════════════════════════════════════════ */
+    .phone-frame { --blase-strich: rgba(0, 0, 0, 0.7); }
+    .phone-frame.emotion-an { --blase-strich: rgba(255, 255, 255, 0.7); }
+
+    .blase-kontur {
       position: absolute;
-      left: 0; right: 0; top: 0;
-      transition: background-color 0.4s ease;
-    }
-
-    /* Äußere Ebene (Kontur-Farbe) – ihre eigene Box reicht um --blase-
-       spitze über die Blase hinaus, wodurch die volle Höhe im eigenen
-       Pfad automatisch die Spitzenlänge mit einschließt – funktioniert
-       dadurch unabhängig von der tatsächlichen (erst zur Laufzeit
-       bekannten) Blasengröße. Fallback-Pfad ("M0,0Z", ein leerer Punkt)
-       nur für den einen Frame vor dem ersten JS-Lauf relevant. */
-    .nachricht-andere .text::before,
-    .nachricht-ich .text::before {
-      bottom: calc(-1 * var(--blase-spitze));
-      background: rgba(0, 0, 0, 0.7);
-      z-index: -2;
-      clip-path: path(var(--blase-aussen, 'M0,0Z'));
-    }
-
-    /* Innere Ebene (Hintergrundfarbe) – 1px ringsum kleiner (rechts/
-       links/oben je 1px eingerückt, unten 1px weniger verlängert) –
-       "stanzt" das Loch, das zusammen mit der äußeren Ebene den
-       1px-Strich ergibt. */
-    .nachricht-andere .text::after,
-    .nachricht-ich .text::after {
-      left: 1px; right: 1px; top: 1px;
-      bottom: calc(-1 * (var(--blase-spitze) - 1px));
-      background: var(--bg);
+      left: 0; top: 0;
+      overflow: visible;
+      pointer-events: none;
       z-index: -1;
-      clip-path: path(var(--blase-innen, 'M0,0Z'));
     }
+
+    .blase-kontur path {
+      fill: var(--bg);
+      stroke: var(--blase-strich);
+      stroke-width: 1;
+      /* Hält die Strichstärke unabhängig von einer etwaigen Skalierung
+         der viewBox exakt bei 1px – hier ist die Abbildung zwar 1:1,
+         aber die Blase wird bei Moduswechseln in Gruppen-Zonen per
+         font-size-Transition umgerechnet. */
+      vector-effect: non-scaling-stroke;
+      /* Runde Ecke an der Spitze: Ein spitzer Winkel würde mit dem
+         Standard-Verbinder (miter) einen langen Dorn erzeugen. */
+      stroke-linejoin: round;
+      transition: fill 0.4s ease, stroke 0.4s ease;
+    }
+
+
 
     /* Zeilenumbruch + große zentrale Darstellung.
        KORREKTUR ("Hallo" bricht mitten im Wort um, obwohl reichlich Platz
@@ -2839,49 +3029,9 @@
 
     .phone-frame.emotion-an .raum-nachricht { color: #ffffff; }
 
-    /* Gemeinsamer Ebenen-Reset für beide Konturen – siehe .nachricht-
-       andere/.nachricht-ich .text weiter oben für die ausführliche
-       Begründung der eigenen transition-Zeile hier (Pseudoelemente
-       erben keine transition ihres Elternelements und werden von der
-       globalen ".phone-frame *"-Regel nicht erfasst). */
-    .raum-nachricht--andere::before,
-    .raum-nachricht--andere::after,
-    .raum-nachricht--ich::before,
-    .raum-nachricht--ich::after {
-      content: '';
-      position: absolute;
-      left: 0; right: 0; top: 0;
-      transition: background-color 0.4s ease;
-    }
 
-    /* Äußere Ebene (Kontur-Farbe) – reicht um --blase-spitze über die
-       Blase hinaus, wodurch die volle Höhe im eigenen Pfad automatisch
-       die Spitzenlänge mit einschließt (siehe 1:1-Chat-Pendant weiter
-       oben für die vollständige Begründung dieses Musters UND von
-       clip-path: path(...) statt polygon() für echte Bézier-Rundungen). */
-    .raum-nachricht--andere::before,
-    .raum-nachricht--ich::before {
-      bottom: calc(-1 * var(--blase-spitze));
-      background: rgba(0, 0, 0, 0.7);
-      z-index: -2;
-      clip-path: path(var(--blase-aussen, 'M0,0Z'));
-    }
 
-    /* Innere Ebene (Hintergrundfarbe) – 1px ringsum kleiner, "stanzt" das
-       Loch, das zusammen mit der äußeren Ebene den 1px-Strich ergibt. */
-    .raum-nachricht--andere::after,
-    .raum-nachricht--ich::after {
-      left: 1px; right: 1px; top: 1px;
-      bottom: calc(-1 * (var(--blase-spitze) - 1px));
-      background: var(--bg);
-      z-index: -1;
-      clip-path: path(var(--blase-innen, 'M0,0Z'));
-    }
 
-    .phone-frame.emotion-an .raum-nachricht--andere::before,
-    .phone-frame.emotion-an .raum-nachricht--ich::before {
-      background: rgba(255, 255, 255, 0.7);
-    }
 
     /* ── Große Zone (Solo ODER gemeinsamer Verschmelzungs-Raum): große,
        mittige Bühnen-Darstellung ──────────────────────────────────────
@@ -2927,46 +3077,9 @@
       z-index: 0;
     }
 
-    .raum-zone--gross .raum-nachricht--andere::before,
-    .raum-zone--gross .raum-nachricht--andere::after,
-    .raum-zone--gross .raum-nachricht--ich::before,
-    .raum-zone--gross .raum-nachricht--ich::after {
-      content: '';
-      position: absolute;
-      left: 0; right: 0; top: 0;
-      transition: background-color 0.4s ease; /* siehe Begründung bei .nachricht-andere/.nachricht-ich .text::before weiter oben */
-    }
 
-    /* Äußere Ebene (Kontur-Farbe) – ihre eigene Box reicht um --blase-
-       spitze über die Blase hinaus, wodurch die volle Höhe im eigenen
-       Pfad automatisch die Spitzenlänge mit einschließt – funktioniert
-       dadurch unabhängig von der tatsächlichen (erst zur Laufzeit
-       bekannten) Blasenhöhe. */
-    .raum-zone--gross .raum-nachricht--andere::before,
-    .raum-zone--gross .raum-nachricht--ich::before {
-      bottom: calc(-1 * var(--blase-spitze));
-      background: rgba(0, 0, 0, 0.7);
-      z-index: -2;
-      clip-path: path(var(--blase-aussen, 'M0,0Z'));
-    }
 
-    /* Innere Ebene (Hintergrundfarbe) – 1px ringsum kleiner (rechts/
-       links/oben je 1px eingerückt, unten 1px weniger verlängert) –
-       "stanzt" das Loch, das zusammen mit der äußeren Ebene den
-       1px-Strich ergibt. */
-    .raum-zone--gross .raum-nachricht--andere::after,
-    .raum-zone--gross .raum-nachricht--ich::after {
-      left: 1px; right: 1px; top: 1px;
-      bottom: calc(-1 * (var(--blase-spitze) - 1px));
-      background: var(--bg);
-      z-index: -1;
-      clip-path: path(var(--blase-innen, 'M0,0Z'));
-    }
 
-    .phone-frame.emotion-an .raum-zone--gross .raum-nachricht--andere::before,
-    .phone-frame.emotion-an .raum-zone--gross .raum-nachricht--ich::before {
-      background: rgba(255, 255, 255, 0.7);
-    }
 
     /* Verblassen: max. 2 gleichzeitig sichtbare Nachrichten pro Liste,
        einheitlich Einzelzone wie gemeinsamer Verschmelzungs-Container
@@ -3228,8 +3341,6 @@
     .phone-frame.emotion-an .gespraechs-name       { color: #ffffff; }
     .phone-frame.emotion-an .nachricht-andere .text          { color: #ffffff; }
     .phone-frame.emotion-an .nachricht-ich .text             { color: #ffffff; }
-    .phone-frame.emotion-an .nachricht-andere .text::before,
-    .phone-frame.emotion-an .nachricht-ich .text::before     { background: rgba(255,255,255,0.7); }
     .phone-frame.emotion-an #eingabe                { color: #ffffff; }
     .phone-frame.emotion-an .suche-eingabe          { color: #ffffff; }
     .phone-frame.emotion-an .moment-eingabe         { color: #ffffff; }
@@ -3848,10 +3959,18 @@
                     <div class="sensor-dimension">
                       <div class="dimension-header">
                         <span class="dimension-label">Atemfrequenz<em class="test-badge">Testwert</em></span>
-                        <span class="dimension-wert" id="wert-atemfrequenz">500</span>
+                        <span class="dimension-wert" id="wert-atemfrequenz">900</span>
                       </div>
+                      <!-- Ausgangswert 900 (nahezu volle Deckkraft): Die
+                           Atemfrequenz wird NICHT real gemessen. Ein
+                           mittlerer Startwert (vorher 500) hätte jeden
+                           Text dauerhaft bei ~68 % Deckkraft gehalten,
+                           obwohl dafür keine Messung vorliegt. Der
+                           Regler bleibt als Testwert bestehen – nur der
+                           Ausgangspunkt ist jetzt "unauffällig lesbar"
+                           statt "halb transparent ohne Anlass". -->
                       <input class="dimension-slider" type="range"
-                        id="slider-atemfrequenz" min="100" max="900" value="500" step="1">
+                        id="slider-atemfrequenz" min="100" max="900" value="900" step="1">
                       <div class="dimension-endpunkte"><span>aufgewühlt</span><span>gefasst</span></div>
                     </div>
 
@@ -3980,6 +4099,17 @@
     chat.hidden        = false;
     gruppenRaum.hidden = true;
     chatVerlaufAnzeigen(name); // NUR der eigene, gespeicherte Verlauf dieses Kontakts (siehe Bugfix oben)
+
+    // Der Antwort-Knopf bleibt IMMER ausgeblendet (siehe #antwort-btn im
+    // Markup, das bereits "hidden" trägt). Gesendet wird ausschließlich
+    // mit der Enter-Taste – in allen Ansichten gleich: Demo-Kontakte,
+    // echte Kontakte, Gruppenraum.
+    //
+    // Hier stand zwischenzeitlich eine Zuweisung, die ihn nur für echte
+    // Kontakte ausblendete – und ihn dadurch bei Demo-Kontakten wieder
+    // SICHTBAR machte. Bewusst ersatzlos entfernt statt auf "immer
+    // hidden" gesetzt: Es gibt keine Stelle mehr, die ihn einblendet,
+    // also braucht es auch keine, die ihn ausblendet.
     ansichtUebersicht.classList.add('ansicht--versteckt');
     ansichtChat.classList.remove('ansicht--versteckt');
     // Höhe anpassen, sobald die Ansicht sichtbar ist (scrollHeight = 0 wenn unsichtbar)
@@ -4663,89 +4793,116 @@
   const DEMO_KONTAKTE_STATISCH = ['Anna', 'Ben', 'Clara', 'David', 'Elena', 'Felix', 'Luca', 'Mia', 'Noah', 'Sophie'];
   let DEMO_KONTAKTE = DEMO_KONTAKTE_STATISCH.slice();
 
-  const DEMO_AVATAR_SCHNITT_SPEICHER_KEY = 'situativeTypografie_demoAvatarSchnitte';
+  // ═══════════════════════════════════════════════════════════════
+  //  DEMO-KONTAKTE: FESTE typografische Merkmale
+  //
+  //  Früher wurden Schriftschnitt, Unschärfe, Zittern und Transparenz
+  //  pro Kontakt EINMALIG ausgewürfelt und in localStorage abgelegt.
+  //  Das hielt sie zwar auf einem Gerät stabil – aber jedes Gerät
+  //  würfelte eigene Werte. Dieselbe Person sah auf zwei Handys
+  //  unterschiedlich aus, was bei einer Vorführung mit zwei Geräten
+  //  sofort auffällt und den Eindruck erweckt, die Typografie sei
+  //  beliebig statt bedeutungstragend.
+  //
+  //  Jetzt stehen die Werte fest im Code. Gestalterisch bewusst
+  //  gestreut, damit die ganze Bandbreite jeder Achse sichtbar wird:
+  //  alle sieben Schnitte kommen vor, Unschärfe reicht von 0 bis zum
+  //  Maximum, Zittern von völliger Ruhe bis zur Obergrenze.
+  //
+  //  Eine Regel dabei: Kein Name kombiniert zwei Extreme. Blur nahe
+  //  Maximum UND Transparenz nahe Minimum ergäbe zusammen einen
+  //  unlesbaren Namen – siehe die Begründung der Obergrenzen unten.
+  //  Noelle steht deshalb auf maximaler Unschärfe bei voller
+  //  Deckkraft, Marie auf minimaler Deckkraft bei null Unschärfe.
+  //
+  //  NICHT betroffen: das eigene Profil. Dessen Schriftschnitt kommt
+  //  weiterhin aus dem echten, aus Pulsdaten berechneten Mittelwert
+  //  (siehe eigenerMittelwert/avatarMittelwertVon weiter unten) – hier
+  //  geht es ausschließlich um die simulierten Kontakte.
+  // ═══════════════════════════════════════════════════════════════
 
-  function demoAvatarSchnitteLaden() {
-    try {
-      return JSON.parse(localStorage.getItem(DEMO_AVATAR_SCHNITT_SPEICHER_KEY)) || {};
-    } catch (e) {
-      return {};
-    }
-  }
-
-  let demoAvatarSchnitte = demoAvatarSchnitteLaden();
-
-  // Würfelt beim ersten Aufruf EINMALIG einen der 7 Situra-Schnitte
-  // für diese Person aus und persistiert ihn – bei jedem weiteren
-  // Aufruf (auch nach Neuladen) bleibt derselbe Schnitt bestehen,
-  // statt bei jedem Laden neu zufällig bestimmt zu werden.
-  function demoAvatarSchnittVon(name) {
-    if (!demoAvatarSchnitte[name]) {
-      demoAvatarSchnitte[name] = SITURA_SCHRIFTSCHNITTE[Math.floor(Math.random() * SITURA_SCHRIFTSCHNITTE.length)];
-      localStorage.setItem(DEMO_AVATAR_SCHNITT_SPEICHER_KEY, JSON.stringify(demoAvatarSchnitte));
-    }
-    return demoAvatarSchnitte[name];
-  }
-
-  // ── Demo-Kontakte: weitere Dimensionen neben der Strichstärke ───
-  // Unschärfe, Zittern (Buchstaben-Wobble inkl. Rotation) und
-  // Transparenz – dieselben CSS-Mechanismen wie die reagierende
-  // Nachrichten-Typografie (filter:blur, buchstabenAnimieren, opacity),
-  // aber unabhängig davon: einmalig zufällig gewürfelt und danach fest
-  // pro Kontakt (exakt wie demoAvatarSchnittVon oben), NICHT live aus
-  // Pulsdaten berechnet. Deutlich weiter gefasste Bandbreiten als bei
-  // sensorZuSchriftAchse weiter unten (dort extra dezent gehalten für
-  // lesbares Live-Tipp-Feedback) – hier sollen auch spürbar extreme
-  // Werte vorkommen. ABER: Kernprinzip der App ist "wahrnehmbar, aber
-  // lesbar" – darum bleiben die Obergrenzen bewusst UNTER dem Punkt,
-  // an dem Buchstaben ineinander verlaufen/sich überlappen. Per
-  // Screenshot geprüft (echtes Rendering, nicht nur Code gelesen):
-  // Der Buchstaben-Zitter-Effekt (wobble/wobbleRot) ist bei dieser
-  // Schriftgröße (14px, viel kleiner als der 26–30px Chat-Text, für
-  // den der Live-Effekt weiter unten kalibriert ist) der eigentlich
-  // kritische Faktor – schon ~2,7px Amplitude ließ einzelne
-  // Buchstaben spürbar in ihre Nachbarn hineinlaufen, obwohl Blur und
-  // Transparenz für denselben Namen fast neutral waren. Deshalb hier
-  // deutlich kleinere Zitter-Obergrenzen als ursprünglich angesetzt.
-  // Blur und Transparenz werden UNABHÄNGIG voneinander gewürfelt (siehe
-  // demoNameDimensionenVon unten) – jede Kombination ist also möglich,
-  // auch "beides gleichzeitig eher hoch/niedrig". Einzeln betrachtet
-  // war das noch lesbar, in Kombination (z. B. Blur nahe Maximum UND
-  // Opacity nahe Minimum am selben Namen) zu blass/verwaschen für den
-  // dunklen Modus. Deshalb hier beide Obergrenzen enger als früher.
-  const DEMO_BLUR_MAX        = 1.0;  // px    – ← nachjustieren: "unscharf", aber noch lesbar (auch kombiniert mit Transparenz)
-  const DEMO_WOBBLE_MAX      = 1.2;  // px    – ← nachjustieren: "zitternd", ohne Buchstaben zu überlappen
+  // Obergrenzen – gelten jetzt nur noch als Bezugsrahmen für die
+  // Tabelle unten und für den Rückfall bei unbekannten Namen.
+  //
+  // Per Screenshot ermittelt (echtes Rendering, nicht nur Code
+  // gelesen): Der Buchstaben-Zitter-Effekt ist bei der Namensgröße
+  // (14px, viel kleiner als der 26–30px Chat-Text, für den der
+  // Live-Effekt kalibriert ist) der kritische Faktor – schon ~2,7px
+  // Amplitude ließ Buchstaben in ihre Nachbarn laufen. Blur und
+  // Transparenz sind einzeln unkritisch, in Kombination aber schnell
+  // zu verwaschen für den dunklen Modus.
+  const DEMO_BLUR_MAX        = 1.0;  // px    – ← nachjustieren: "unscharf", aber noch lesbar
+  const DEMO_WOBBLE_MAX      = 1.2;  // px    – ← nachjustieren: "zitternd", ohne Überlappung
   const DEMO_WOBBLE_ROT_MAX  = 2;    // Grad  – ← nachjustieren
-  const DEMO_TRANSPARENZ_MIN = 0.6;  // ← nachjustieren: "blass", noch ausreichend Kontrast (auch kombiniert mit Blur)
+  const DEMO_TRANSPARENZ_MIN = 0.6;  // ← nachjustieren: "blass", noch genug Kontrast
 
-  // "_v4": Key bewusst umbenannt, als die Obergrenzen oben (Blur +
-  // Transparenz) nachträglich verschärft wurden – sonst würden bereits
-  // gespeicherte, zu extreme Alt-Werte unter altem Key weiterbestehen
-  // und stumm die neuen, sicheren Grenzen umgehen (siehe historischer
-  // Sprung v2 → v3 oben in der Git-Historie, gleicher Grund).
-  const DEMO_NAME_DIMENSIONEN_SPEICHER_KEY = 'situativeTypografie_demoNameDimensionen_v4';
+  // Charakter jeder Demo-Person. Die Kurzbeschreibung dahinter sagt,
+  // welche Achse den Namen prägt – hilfreich beim Nachjustieren.
+  const DEMO_TYPOGRAFIE = {
+    // ── feste Grundliste ───────────────────────────────────────
+    Anna:    { schnitt: 'Situra-Thin',     blur: 0.00, wobble: 0.00, wobbleRot: 0.0, transparenz: 1.00 }, // sehr dünn, völlig ruhig
+    Ben:     { schnitt: 'Situra-Black',    blur: 0.00, wobble: 0.00, wobbleRot: 0.0, transparenz: 1.00 }, // sehr fett, völlig ruhig
+    Clara:   { schnitt: 'Situra-Regular',  blur: 0.90, wobble: 0.10, wobbleRot: 0.2, transparenz: 0.95 }, // deutlich unscharf
+    David:   { schnitt: 'Situra-Medium',   blur: 0.00, wobble: 1.10, wobbleRot: 1.8, transparenz: 1.00 }, // stark zittrig
+    Elena:   { schnitt: 'Situra-SemiBold', blur: 0.15, wobble: 0.20, wobbleRot: 0.3, transparenz: 0.62 }, // blass
+    Felix:   { schnitt: 'Situra-Light',    blur: 0.50, wobble: 0.60, wobbleRot: 1.0, transparenz: 0.85 }, // überall mittig
+    Luca:    { schnitt: 'Situra-Thin',     blur: 0.20, wobble: 0.90, wobbleRot: 1.5, transparenz: 0.90 }, // dünn und unruhig
+    Mia:     { schnitt: 'Situra-Bold',     blur: 0.70, wobble: 0.00, wobbleRot: 0.0, transparenz: 0.95 }, // fett, weich gezeichnet
+    Noah:    { schnitt: 'Situra-Regular',  blur: 0.00, wobble: 0.30, wobbleRot: 0.5, transparenz: 0.70 }, // leicht blass, leicht bewegt
+    Sophie:  { schnitt: 'Situra-Black',    blur: 0.10, wobble: 0.50, wobbleRot: 0.8, transparenz: 1.00 }, // fett mit Bewegung
 
-  function demoNameDimensionenLaden() {
-    try {
-      return JSON.parse(localStorage.getItem(DEMO_NAME_DIMENSIONEN_SPEICHER_KEY)) || {};
-    } catch (e) {
-      return {};
+    // ── aus assets/avatars/ abgeleitete Kontakte ───────────────
+    Elias:   { schnitt: 'Situra-SemiBold', blur: 0.00, wobble: 0.00, wobbleRot: 0.0, transparenz: 1.00 }, // klar und ruhig
+    Jonas:   { schnitt: 'Situra-Light',    blur: 0.80, wobble: 0.15, wobbleRot: 0.25, transparenz: 0.90 }, // dünn und unscharf
+    Jovan:   { schnitt: 'Situra-Bold',     blur: 0.00, wobble: 1.20, wobbleRot: 2.0, transparenz: 1.00 }, // maximal zittrig
+    Lina:    { schnitt: 'Situra-Thin',     blur: 0.35, wobble: 0.40, wobbleRot: 0.7, transparenz: 0.75 }, // zart, zurückgenommen
+    Marie:   { schnitt: 'Situra-Medium',   blur: 0.00, wobble: 0.00, wobbleRot: 0.0, transparenz: 0.65 }, // sehr blass, sonst klar
+    Marius:  { schnitt: 'Situra-Black',    blur: 0.45, wobble: 0.70, wobbleRot: 1.2, transparenz: 0.90 }, // fett und bewegt
+    Noelle:  { schnitt: 'Situra-Regular',  blur: 1.00, wobble: 0.00, wobbleRot: 0.0, transparenz: 1.00 }, // maximal unscharf
+    Paul:    { schnitt: 'Situra-SemiBold', blur: 0.25, wobble: 1.00, wobbleRot: 1.6, transparenz: 0.95 }, // unruhig
+    Theresa: { schnitt: 'Situra-Light',    blur: 0.00, wobble: 0.25, wobbleRot: 0.4, transparenz: 0.80 }, // ruhig, leicht blass
+    Tim:     { schnitt: 'Situra-Bold',     blur: 0.60, wobble: 0.35, wobbleRot: 0.6, transparenz: 0.70 }  // weich und blass
+  };
+
+  // Rückfall für Namen, die nicht in der Tabelle stehen – etwa wenn
+  // später ein Foto nach assets/avatars/ gelegt wird.
+  //
+  // Bewusst KEIN Math.random(): Der Wert wird aus dem Namen selbst
+  // abgeleitet und ist damit auf jedem Gerät identisch – genau das
+  // Problem, das diese Umstellung beheben soll, würde sonst durch die
+  // Hintertür zurückkommen. Gleicher Name, gleiches Erscheinungsbild,
+  // ohne dass jemand die Tabelle pflegen muss.
+  function demoTypografieHash(name) {
+    let h = 2166136261;                       // FNV-1a, 32 Bit
+    for (let i = 0; i < name.length; i++) {
+      h ^= name.charCodeAt(i);
+      h = Math.imul(h, 16777619);
     }
+    return h >>> 0;
   }
 
-  let demoNameDimensionen = demoNameDimensionenLaden();
+  function demoTypografieVon(name) {
+    const fest = DEMO_TYPOGRAFIE[name];
+    if (fest) return fest;
+
+    // Vier voneinander unabhängige Anteile aus je 8 Bit des Hashes.
+    const h = demoTypografieHash(name);
+    const anteil = (bitVersatz) => ((h >>> bitVersatz) & 0xff) / 255;
+    return {
+      schnitt:     SITURA_SCHRIFTSCHNITTE[h % SITURA_SCHRIFTSCHNITTE.length],
+      blur:        anteil(0)  * DEMO_BLUR_MAX,
+      wobble:      anteil(8)  * DEMO_WOBBLE_MAX,
+      wobbleRot:   anteil(16) * DEMO_WOBBLE_ROT_MAX,
+      transparenz: DEMO_TRANSPARENZ_MIN + anteil(24) * (1 - DEMO_TRANSPARENZ_MIN)
+    };
+  }
+
+  function demoAvatarSchnittVon(name) {
+    return demoTypografieVon(name).schnitt;
+  }
 
   function demoNameDimensionenVon(name) {
-    if (!demoNameDimensionen[name]) {
-      demoNameDimensionen[name] = {
-        blur:        Math.random() * DEMO_BLUR_MAX,
-        wobble:      Math.random() * DEMO_WOBBLE_MAX,
-        wobbleRot:   Math.random() * DEMO_WOBBLE_ROT_MAX,
-        transparenz: DEMO_TRANSPARENZ_MIN + Math.random() * (1 - DEMO_TRANSPARENZ_MIN)
-      };
-      localStorage.setItem(DEMO_NAME_DIMENSIONEN_SPEICHER_KEY, JSON.stringify(demoNameDimensionen));
-    }
-    return demoNameDimensionen[name];
+    return demoTypografieVon(name);
   }
 
   // Wendet Unschärfe/Zittern/Transparenz auf den Namens-Text einer
@@ -4849,6 +5006,21 @@
   // Ohne dateiname (kein Foto für diese Person bekannt) bleibt sofort
   // der Buchstaben-Kreis stehen.
   function avatarFotoAktualisieren(name, dateiname) {
+    // ── Vorrang für echte, gekoppelte Kontakte ──────────────────
+    // Die bringen ihr Foto als Data-URL mit (vom anderen Handy
+    // übertragen, siehe Abschnitt VERBINDUNG). KONTAKT_DATEIEN kennt
+    // dagegen nur Dateien aus assets/avatars/ und liefert für sie
+    // undefined – ohne diesen Vorrang würde JEDER Aufruf mit
+    // KONTAKT_DATEIEN[name] das bereits gesetzte Foto wieder
+    // entfernen. Genau das passierte beim Öffnen des Chats über
+    // zeigeChat: Der Kontakt verlor sein Bild und fiel auf den
+    // Buchstaben-Kreis zurück.
+    const echtesBild = window.verbKontaktBild && window.verbKontaktBild(name);
+    if (echtesBild) {
+      avatarFotoAnwenden(name, echtesBild);
+      return;
+    }
+
     if (!dateiname) {
       avatarFotoAnwenden(name, null);
       return;
@@ -5068,14 +5240,21 @@
     // zwischen 7 Dateien statt fließender Gewichts-Verschiebung)
     const schriftschnitt = intensitaetZuSchriftschnitt(rohwerte.intensitaet);
 
-    // BEHELF – Tempo → letter-spacing (0.12 em … −0.02 em)
+    // BEHELF – Tempo → letter-spacing (0.14 em … −0.02 em)
     // RICHTUNG: schnelles Tippen (tempo hoch) = enge Laufweite, langsames
     // Tippen (tempo niedrig) = weite Laufweite – Hast lässt den Text
     // zusammenrücken, Zögern zieht ihn auseinander. Bei sehr schnellem
     // Tippen (tempo nahe 900) wird die Laufweite leicht NEGATIV, sodass
     // Buchstaben sichtbar ineinanderlaufen – bewusst nur dezent negativ,
     // damit es bei den fetteren Situra-Schnitten noch lesbar bleibt.
-    const spacing = umrechnen(rohwerte.tempo, 100, 900, 0.12, -0.02);
+    //
+    // Obere Grenze von 0,12 auf 0,14 em angehoben: Zusammen mit der
+    // Neukalibrierung des Tempo-Bandes (siehe CPS_MINIMUM/CPS_MAXIMUM)
+    // trennt das ein gezögertes Wort deutlicher von einem schnell
+    // getippten. 0,14 em ist bei 26–30 px Schriftgröße rund 4 px
+    // Zusatzabstand – klar erkennbar, ohne das Wort auseinanderfallen
+    // zu lassen. ← nachjustieren, wenn der Unterschied zu stark wirkt.
+    const spacing = umrechnen(rohwerte.tempo, 100, 900, 0.14, -0.02);
 
     // Tempo → Dauer der Einblend-Animation neuer Nachrichten
     // Niedrig (100) = langsam/bedächtig (0.5 s) · hoch (900) = schnell/knapp (0.06 s)
@@ -5294,8 +5473,40 @@
   // Wortgrenzen hinweglief und ein Wort noch mit dem Tempo des
   // vorigen einfärben konnte). Umrechnung cps → tempo (0–8 → 100–900)
   // bleibt unverändert (siehe CPS_MAXIMUM/umrechnen unten).
-  const CPS_MAXIMUM            = 8; // ← nachjustieren: Zeichen/s → Tempo 900
-  const WORT_TEMPO_MIN_ZEICHEN = 4; // ← nachjustieren: darunter ist die wortinterne Messung zu instabil (ein einzelner Tastendruck ergibt rechnerisch extreme cps) – der zuletzt stabil gemessene Tempo-Rohwert wird stattdessen übernommen
+  // ══════════════════════════════════════════════════════════════
+  //  TIPP-TEMPO → LAUFWEITE, kalibriert auf echtes Tippen
+  //
+  //  Die Messung selbst war bereits pro Wort korrekt (siehe
+  //  wortTempoAbschliessen: Zeichen ÷ Zeit vom ersten Zeichen bis zur
+  //  Leertaste, Pausen INNERHALB des Wortes eingerechnet). Dass
+  //  trotzdem alle Wörter ähnlich aussahen, lag an der Skalierung:
+  //  0 bis 8 Zeichen/s auf die volle Achse 100–900.
+  //
+  //  Reales Tippen auf einem Handy liegt etwa zwischen 1 Zeichen/s
+  //  (zögernd, mit Nachdenkpausen) und 5 Zeichen/s (flüssig). Das
+  //  belegte in der alten Skala nur den Bereich 200–600 – gut die
+  //  Hälfte der Achse blieb ungenutzt, und der Unterschied zwischen
+  //  einem gezögerten und einem schnellen Wort fiel entsprechend
+  //  klein aus.
+  //
+  //  Jetzt wird genau dieses Band auf die volle Achse abgebildet:
+  //
+  //    Zeichen/s │ Tempo │ Laufweite  │ Eindruck
+  //    ──────────┼───────┼────────────┼──────────────────────
+  //      1,0     │  100  │  0,140 em  │ weit, zögernd
+  //      2,0     │  300  │  0,100 em  │ bedächtig
+  //      3,0     │  500  │  0,060 em  │ normal
+  //      4,0     │  700  │  0,020 em  │ zügig
+  //      5,0     │  900  │ −0,020 em  │ eng, gehetzt
+  //
+  //  Zum Nachjustieren: CPS_MINIMUM/CPS_MAXIMUM verschieben das Band
+  //  (bei schnellerem Tippen beide erhöhen), die Laufweiten-Grenzen in
+  //  sensorZuSchriftAchse bestimmen, wie stark der Effekt ausfällt.
+  // ══════════════════════════════════════════════════════════════
+  const CPS_MINIMUM            = 1; // ← nachjustieren: Zeichen/s → Tempo 100 (weiteste Laufweite). Alles darunter wird gekappt
+  const CPS_MAXIMUM            = 5; // ← nachjustieren: Zeichen/s → Tempo 900 (engste Laufweite)
+  const WORT_TEMPO_MIN_ZEICHEN = 2; // ← nachjustieren: darunter ist die wortinterne Messung zu instabil (ein einzelner Tastendruck ergibt rechnerisch extreme cps). Von 4 auf 2 gesenkt – bei 4 reagierte die Anzeige bei kurzen Wörtern ("ok", "ja") überhaupt nie, siehe wortTempoLiveSchaetzen
+  let letzteAnschlagZeit = null;    // Zeitpunkt des vorigen Tastendrucks – Grundlage der groben Live-Schätzung unterhalb der Schwelle
 
   let wortStartZeit        = null; // Date.now() beim ERSTEN Zeichen des aktuell offenen Worts, null = kein Wort offen
   let wortZeichenAnzahl    = 0;    // Anzahl "echter" Zeichen (kein Leerzeichen/Backspace/Delete) seit wortStartZeit
@@ -5397,7 +5608,17 @@
     // ★★★ BESIEGELUNG: für jedes neu abgeschlossene Wort jetzt   ★★★
     // ★★★ den aktuellen Zustand einfrieren – danach unangetastet. ★★★
     while (wortZustaende.length < anzahl) {
-      wortZustaende.push({ achsen: { ...aktuelleAchsen, pausenZuschlag: pausenZuschlagVerbrauchen(leblos) }, leblos });
+      wortZustaende.push({
+        achsen: { ...aktuelleAchsen, pausenZuschlag: pausenZuschlagVerbrauchen(leblos) },
+        // Die ROHWERTE werden hier mit eingefroren, obwohl die Anzeige
+        // sie nicht braucht (die rechnet mit achsen). Sie sind das, was
+        // beim Senden an das andere Handy geht – siehe Abschnitt
+        // VERBINDUNG: übertragen werden Rohwerte, nicht fertige Achsen,
+        // damit spätere Änderungen am Mapping (überall mit
+        // "← nachjustieren" markiert) auch alte Nachrichten erfassen.
+        roh: { ...aktuelleRohwerte },
+        leblos
+      });
     }
     // Wortgrenze per Backspace wieder aufgehoben → zugehörigen
     // eingefrorenen Zustand verwerfen (Wort ist wieder "in Arbeit",
@@ -5465,13 +5686,22 @@
     if (wortStartZeit == null) return letzterStabilerTempo; // kein offenes Wort (z. B. Senden direkt nach einem Leerzeichen)
 
     let tempo;
+    const dauerMs = jetzt - wortStartZeit;
     if (wortZeichenAnzahl < WORT_TEMPO_MIN_ZEICHEN) {
       tempo = letzterStabilerTempo;
+      console.log('[Tempo] ' + new Date().toLocaleTimeString('de-DE') +
+        ' · Wort zu kurz (' + wortZeichenAnzahl + ' Zeichen) → übernehme ' + tempo);
     } else {
-      const sekunden = Math.max((jetzt - wortStartZeit) / 1000, 0.001); // gegen Division durch 0
+      const sekunden = Math.max(dauerMs / 1000, 0.001); // gegen Division durch 0
       const cps      = wortZeichenAnzahl / sekunden;
-      tempo = Math.min(900, Math.max(100, Math.round(umrechnen(cps, 0, CPS_MAXIMUM, 100, 900))));
+      tempo = Math.min(900, Math.max(100, Math.round(umrechnen(cps, CPS_MINIMUM, CPS_MAXIMUM, 100, 900))));
       letzterStabilerTempo = tempo;
+      // Laufweite hier nur zur Kontrolle mitgerechnet – die maßgebliche
+      // Berechnung steht in sensorZuSchriftAchse.
+      console.log('[Tempo] ' + new Date().toLocaleTimeString('de-DE') +
+        ' · ' + wortZeichenAnzahl + ' Zeichen in ' + Math.round(dauerMs) + ' ms' +
+        ' · ' + cps.toFixed(2) + ' Z/s → Tempo ' + tempo +
+        ' · Laufweite ' + umrechnen(tempo, 100, 900, 0.14, -0.02).toFixed(3) + ' em');
     }
 
     wortStartZeit     = null;
@@ -5486,12 +5716,32 @@
   // Tippens; der tatsächlich eingefrorene Wert für das Wort-Snapshot
   // entsteht erst in wortTempoAbschliessen bei Wortende.
   function wortTempoLiveSchaetzen(jetzt) {
-    if (wortStartZeit == null || wortZeichenAnzahl < WORT_TEMPO_MIN_ZEICHEN) {
-      return letzterStabilerTempo;
+    if (wortStartZeit == null) return letzterStabilerTempo;
+
+    // ── Anschlagstakt als Zwischenschritt ────────────────────────
+    // Unterhalb von WORT_TEMPO_MIN_ZEICHEN wurde früher stumpf
+    // letzterStabilerTempo zurückgegeben. In der Praxis hieß das: Nach
+    // jedem Senden steht der Wert auf 100 (siehe Rücksetzung im
+    // Enter-Handler), und die ersten Zeichen jedes Wortes ändern nichts –
+    // bei kurzen Wörtern ("ok", "ja") passierte NIE etwas. Die Anzeige
+    // wirkte tot, obwohl die Messung an sich stimmte.
+    //
+    // Ab dem zweiten Anschlag gibt es aber bereits einen belastbaren
+    // Abstand zwischen zwei Tastendrücken. Der ist für sich genommen
+    // gröber als die wortinterne Messung, reicht aber völlig, um die
+    // Anzeige mitlaufen zu lassen. Der eingefrorene Wert für das
+    // Wort-Snapshot entsteht weiterhin ausschließlich in
+    // wortTempoAbschliessen – hier wird nichts überschrieben.
+    if (wortZeichenAnzahl < WORT_TEMPO_MIN_ZEICHEN) {
+      if (letzteAnschlagZeit == null || wortZeichenAnzahl < 2) return letzterStabilerTempo;
+      const abstandSek = Math.max((jetzt - letzteAnschlagZeit) / 1000, 0.001);
+      const cpsGrob    = 1 / abstandSek;
+      return Math.min(900, Math.max(100, Math.round(umrechnen(cpsGrob, CPS_MINIMUM, CPS_MAXIMUM, 100, 900))));
     }
+
     const sekunden = Math.max((jetzt - wortStartZeit) / 1000, 0.001);
     const cps      = wortZeichenAnzahl / sekunden;
-    return Math.min(900, Math.max(100, Math.round(umrechnen(cps, 0, CPS_MAXIMUM, 100, 900))));
+    return Math.min(900, Math.max(100, Math.round(umrechnen(cps, CPS_MINIMUM, CPS_MAXIMUM, 100, 900))));
   }
 
   function tippAnalysieren(event) {
@@ -5559,6 +5809,10 @@
     }
     aktuelleRohwerte.tempo = tempo;
 
+    // ERST JETZT merken, nachdem wortTempoLiveSchaetzen den vorigen
+    // Anschlag noch lesen konnte – sonst wäre der Abstand immer 0.
+    if (istEchtesZeichen) letzteAnschlagZeit = jetzt;
+
     wertTempoAnzeige.textContent = tempo;
     balkenTempo.style.width = `${(tempo - 100) / 800 * 100}%`;
 
@@ -5609,15 +5863,22 @@
 
   // ── Startzustand ──────────────────────────────────────────────
   // schlafqualitaet: kein Test-Regler mehr (siehe Nacht-Auswertung weiter
-  // unten, nachtAuswertungPruefen/schlafStufeAnwenden) – Startwert 500
-  // entspricht dem bisherigen Slider-Default, bis eine echte/gespeicherte
-  // Nacht ausgewertet wurde.
+  // unten, nachtAuswertungPruefen/schlafStufeAnwenden).
+  //
+  // Startwert 900 = "wach", NICHT 500. Grund: sensorZuSchriftAchse fällt
+  // bei fehlendem Wert bewusst auf 900 zurück ("Falls für die aktuelle
+  // Sitzung keine Schlafqualität gemessen wurde …", siehe dort) – mit
+  // einem Startwert von 500 kam dieser Rückfall aber nie zum Zug, weil
+  // das Feld ja belegt war. Ergebnis: Ohne jede Messung war der Text
+  // dauerhaft um 0,7 px unscharf, obwohl gar keine Nacht vorlag.
+  // Dieselbe Überlegung wie bei atemfrequenz (siehe Regler-Markup oben):
+  // ohne Messung keine sichtbare Beeinträchtigung.
   let aktuelleRohwerte = {
     intensitaet:     Number(sliderIntensitaet.value),
     tempo:           100,
     stabilitaet:     500,
     tonalitaet:      Number(sliderTonalitaet.value),
-    schlafqualitaet: 500,
+    schlafqualitaet: 900,
     atemfrequenz:    Number(sliderAtemfrequenz.value)
   };
 
@@ -5732,10 +5993,6 @@
     const versatz = parseFloat(cs.getPropertyValue('--blase-versatz')) || 0;
     const rechts = el.classList.contains('raum-nachricht--ich') || !!el.closest('.nachricht-ich');
 
-    const aussen = blasenPfad(breite, hoeheKoerper + spitze, radius, spitze, versatz, rechts);
-    const innen  = blasenPfad(breite - 2, hoeheKoerper + spitze - 2, radius - 1, spitze - 1, versatz - 1, rechts);
-    el.style.setProperty('--blase-aussen', JSON.stringify(aussen));
-    el.style.setProperty('--blase-innen', JSON.stringify(innen));
 
     const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
     // +0.5px Sicherheitsspanne: rundet den ohnehin schon subpixelgenauen
@@ -5747,6 +6004,75 @@
     woerter.forEach(function (wort) {
       wort.style.maxWidth = inhaltsBreite + 'px';
     });
+
+    // ══════════════════════════════════════════════════════════════
+    //  ERNEUT MESSEN – nach dem Setzen der Wort-Breiten
+    //
+    //  Die Messung ganz oben passiert bei maxWidth:none, also im
+    //  UNBESCHRÄNKTEN Layout. Erst die Zeile darüber legt die
+    //  tatsächliche Wortbreite fest, wodurch der Text neu umbricht und
+    //  die Blase in der Regel höher wird. Die erste Messung taugt
+    //  deshalb nur zur Berechnung von inhaltsBreite – für die Kontur
+    //  wäre sie zu klein.
+    //
+    //  Früher fiel das nicht auf: Die Kontur lag in Pseudoelementen,
+    //  die per CSS (left/right/top/bottom) automatisch die ECHTE
+    //  Elementgröße hatten. Das SVG bekommt seine Maße dagegen aus
+    //  dieser Funktion – misst sie zu früh, bleibt die Blase zu klein
+    //  und der Text steht oben heraus.
+    // ══════════════════════════════════════════════════════════════
+    const endBox    = el.getBoundingClientRect();
+    const breiteEnd = endBox.width;
+    const hoeheEnd  = endBox.height;
+    if (!breiteEnd || !hoeheEnd) return;
+    // ══════════════════════════════════════════════════════════════
+    //  KONTUR ALS ECHTER STRICH (SVG) – ersetzt die frühere Lösung aus
+    //  zwei übereinanderliegenden clip-path-Ebenen.
+    //
+    //  Warum der Wechsel: Die alte Fassung erzeugte die sichtbare Linie
+    //  als Zwischenraum zweier Flächen – außen die Konturfarbe, innen
+    //  1px kleiner die Hintergrundfarbe. Rechnet man die Unterkante des
+    //  Blasenkörpers nach, hoben sich dort die "-2" in der Höhe und die
+    //  "-1" in der Spitze gegen den 1px-Versatz der inneren Ebene exakt
+    //  auf: Abstand 0 statt 1px. Oben, links und rechts stimmte es –
+    //  nur unten fehlte die Linie ganz. Genau das war als "unten dünner"
+    //  sichtbar.
+    //
+    //  Ein Strich hat dieses Problem prinzipiell nicht: Seine Breite
+    //  wird senkrecht zur Kurve gemessen, an jeder Stelle gleich – auch
+    //  an der schrägen Flanke der Spitze, wo ein Koordinaten-Versatz
+    //  systematisch zu dünn ausfällt (dort wirkt er nicht senkrecht,
+    //  sondern nur waagerecht/senkrecht zur Achse).
+    //
+    //  Der Pfad wird um 0,5px eingerückt gezeichnet und um denselben
+    //  Betrag verschoben. Da der Strich mittig auf der Kurve liegt,
+    //  bedeckt er dadurch exakt das äußerste Pixel – die Blase behält
+    //  ihre bisherigen Außenmaße.
+    // ══════════════════════════════════════════════════════════════
+    const hoeheGesamt = hoeheEnd + spitze;
+    const pfad = blasenPfad(
+      breiteEnd - 1, hoeheGesamt - 1, radius - 0.5, spitze - 0.5, versatz - 0.5, rechts
+    );
+
+    let svg = el.querySelector(':scope > .blase-kontur');
+    if (!svg) {
+      const NS = 'http://www.w3.org/2000/svg';
+      svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('class', 'blase-kontur');
+      svg.setAttribute('aria-hidden', 'true');   // reine Dekoration
+      svg.appendChild(document.createElementNS(NS, 'path'));
+      // Als ERSTES Kind: liegt hinter dem Text (z-index im CSS), und
+      // position:absolute hält es aus dem Textfluss heraus.
+      el.insertBefore(svg, el.firstChild);
+    }
+
+    svg.setAttribute('viewBox', '0 0 ' + breiteEnd + ' ' + hoeheGesamt);
+    svg.setAttribute('width', breiteEnd);
+    svg.setAttribute('height', hoeheGesamt);
+
+    const pfadEl = svg.firstChild;
+    pfadEl.setAttribute('d', pfad);
+    pfadEl.setAttribute('transform', 'translate(0.5,0.5)');
   }
 
   const blasenKonturBeobachter = new ResizeObserver(function (entries) {
@@ -5822,6 +6148,12 @@
   // vorherige), exakt dasselbe "nur die letzten zwei sichtbar"-Prinzip
   // wie zuvor, nur jetzt je Kontakt statt global gedeckelt.
   let chatVerlaeufe = {};
+
+  // Wie viele Nachrichten pro Kontakt sichtbar bleiben (siehe
+  // ausführliche Begründung in nachrichtHinzufuegen weiter unten).
+  // EINZIGE Stelle, an der sich das ändern lässt – zum Testen mit zwei
+  // echten Handys hochsetzen, für die Vorführung wieder auf 2.
+  const CHAT_VERLAUF_MAX = 2;
 
   // Baut EIN Nachrichten-Element aus einem gespeicherten Verlaufs-
   // Eintrag – reine DOM-Erzeugung (unverändert gegenüber der früheren
@@ -5945,7 +6277,18 @@
 
     // Höchstens zwei Nachrichten gespeichert (aktuelle + vorherige) –
     // exakt dasselbe Prinzip wie zuvor, jetzt pro Kontakt statt global.
-    while (chatVerlaeufe[kontaktName].length > 2) {
+    //
+    // Bewusste Gestaltungsentscheidung, kein technisches Limit: sichtbar
+    // bleiben nur die aktuelle und die vorherige Nachricht, damit die
+    // Typografie im Vordergrund steht statt eines gewöhnlichen
+    // Messenger-Verlaufs. Der gekoppelte Chat bekommt vom Server zwar
+    // die letzten 100 Nachrichten (siehe Abschnitt VERBINDUNG), zeigt
+    // davon aber bewusst nur die letzten CHAT_VERLAUF_MAX an.
+    //
+    // Zum Entwickeln/Testen mit zwei echten Handys lohnt es sich, den
+    // Wert hier vorübergehend hochzusetzen – dann sieht man, ob wirklich
+    // alles ankommt. Für die Vorführung wieder auf 2 zurück.
+    while (chatVerlaeufe[kontaktName].length > CHAT_VERLAUF_MAX) {
       chatVerlaeufe[kontaktName].shift();
     }
 
@@ -6712,7 +7055,11 @@
       const leblos = !emotionAktiv || istEingefuegt;
       aktuelleRohwerte.tempo = wortTempoAbschliessen(Date.now());
       aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
-      wortSnapshots.push({ achsen: { ...aktuelleAchsen, pausenZuschlag: pausenZuschlagVerbrauchen(leblos) }, leblos });
+      wortSnapshots.push({
+        achsen: { ...aktuelleAchsen, pausenZuschlag: pausenZuschlagVerbrauchen(leblos) },
+        roh: { ...aktuelleRohwerte },   // fürs Senden, siehe Abschnitt VERBINDUNG
+        leblos
+      });
     }
 
     // Räumlicher Gruppenraum (siehe JS-Abschnitt "GRUPPEN-RAUM" oben)
@@ -6720,6 +7067,13 @@
     if (aktuellerChatIstGruppe) {
       const zielName = raumNachrichtSenden('Du', text, wortSnapshots).zielName;
       if (zielName) raumAutoAntwortPlanen(zielName, aktuelleGruppe);
+    } else if (window.verbIstEchterKontakt && window.verbIstEchterKontakt(chatPartnerName.textContent)) {
+      // Echter, gekoppelter Kontakt (Abschnitt VERBINDUNG, ganz unten):
+      // die Nachricht geht an das andere Handy. Bewusst KEIN
+      // autoAntwortPlanen – hier antwortet ein echter Mensch, keine
+      // vorgegebene Zeile.
+      nachrichtHinzufuegen(text, true, wortSnapshots);
+      window.verbNachrichtSenden(chatPartnerName.textContent, text, wortSnapshots);
     } else {
       nachrichtHinzufuegen(text, true, wortSnapshots);
       autoAntwortPlanen(chatPartnerName.textContent);
@@ -6753,6 +7107,7 @@
     wortZeichenAnzahl     = 0;
     letzterStabilerTempo  = 100;
     aktuelleRohwerte.tempo = 100;
+    letzteAnschlagZeit    = null;   // Anschlagstakt der neuen Nachricht beginnt bei null
     wertTempoAnzeige.textContent = 100;
     balkenTempo.style.width      = '0%';
 
@@ -7004,8 +7359,39 @@
   const PULS_VAR_FENSTER_MS     = 45000; // ← nachjustieren: gleitendes Fenster, 30–60s laut Auftrag
   const PULS_VAR_MIN_MESSPUNKTE = 5;     // ← nachjustieren: mind. 4 Differenzen, bevor der Wert genutzt wird
   const PULS_VAR_EMA_ALPHA      = 0.08;  // ← nachjustieren: sehr träge, "persönlicher Normalwert" entwickelt sich über viele Minuten
-  const STAB_PULS_BASIS         = 500;   // Stabilität bei exakt durchschnittlicher (persönlich normaler) Variabilität
-  const STAB_PULS_SKALIERUNG    = 150;   // ← nachjustieren nach ersten echten Messungen: Stabilitäts-Punkte pro bpm Abweichung vom Normalwert
+  // ══════════════════════════════════════════════════════════════
+  //  STABILITÄT AUS DER PULS-VARIABILITÄT
+  //
+  //  Früher: stabilitaet = 500 + (variabilitaet − normalwert) × 150.
+  //  Der Ruhezustand lag damit auf 500 — mitten in der Skala. Daraus
+  //  ergaben sich 1,0 px Zittern (WOBBLE_AMPLITUDE_MAX 2,0 px bei
+  //  Stabilität 100), also deutlich über der Totzone von 0,4 px. Die
+  //  Schrift zitterte folglich AUCH ohne jede Abweichung, und jede
+  //  Schwankung um ±1 bpm verschob den Wert um 150 Punkte.
+  //
+  //  Jetzt: Ruhe ist der Ausgangspunkt (STAB_MAX = 900), und Zittern
+  //  wächst NUR nach unten, wenn die Variabilität spürbar unter den
+  //  persönlichen Normalwert fällt. Über dem Normalwert bleibt es ruhig
+  //  — mehr Variabilität heißt entspannter, nicht unruhiger.
+  //
+  //  Zusammenspiel der drei Größen (mit WOBBLE_TOTZONE_PX = 0,4 px):
+  //
+  //    Abweichung unter Normalwert │ Stabilität │ Zittern │ sichtbar?
+  //    ────────────────────────────┼────────────┼─────────┼──────────
+  //     bis 1,0 bpm (Toleranz)     │    900     │ 0,00 px │ nein
+  //     2,0 bpm                    │    780     │ 0,30 px │ nein (Totzone)
+  //     3,0 bpm                    │    660     │ 0,60 px │ ja, dezent
+  //     5,0 bpm                    │    420     │ 1,20 px │ ja, deutlich
+  //     ab 7,7 bpm                 │    100     │ 2,00 px │ Maximum
+  //
+  //  Praktisch heißt das: sichtbares Zittern beginnt erst ab etwa
+  //  2,7 bpm unter dem Normalwert. Zum Nachjustieren nach eigenen
+  //  Messungen: TOLERANZ verschiebt den Einsatzpunkt, SKALIERUNG die
+  //  Steilheit danach.
+  // ══════════════════════════════════════════════════════════════
+  const STAB_TOLERANZ           = 1.0;   // ← nachjustieren (bpm): Abweichung ohne jede Reaktion. Größer = später einsetzend
+  const STAB_PULS_SKALIERUNG    = 120;   // ← nachjustieren: Stabilitäts-Punkte pro bpm OBERHALB der Toleranz (vorher 150 ab Mittelwert). Kleiner = träger
+  const STAB_GLAETTUNG_ALPHA    = 0.2;   // ← nachjustieren: Glättung des angezeigten Werts. Bei ~1 Messung/s sind 0,2 rund 5 s bis 63 % einer Änderung
 
   const PULS_VAR_NORMALWERT_KEY = 'situativeTypografie_pulsVariabilitaetNormalwert';
 
@@ -7019,6 +7405,7 @@
   }
 
   let pulsFenster = []; // { bpm, zeit }-Einträge der letzten PULS_VAR_FENSTER_MS
+  let stabilitaetGeglaettet = null; // EMA über den abgeleiteten Stabilitätswert, siehe STAB_GLAETTUNG_ALPHA
   let pulsVariabilitaetNormalwert = pulsVariabilitaetNormalwertLaden(); // EMA, null bis genug Messpunkte da sind
 
   // Nimmt einen neuen BPM-Wert entgegen, pflegt das gleitende Fenster und
@@ -7352,8 +7739,23 @@
       const gespeichert = JSON.parse(localStorage.getItem(NACHT_STUFE_KEY) || 'null');
       if (gespeichert && gespeichert.datum === heute) {
         schlafStufeAnwenden(gespeichert.stufe);
+        console.log('[Schlaf] Keine neuen Nacht-Daten – gespeicherte Stufe von heute erneut angewendet: "'
+          + gespeichert.stufe + '" → Rohwert ' + NACHT_STUFE_ZU_ROHWERT[gespeichert.stufe]);
+      } else {
+        // Der bisher stumme Fall: Service hat 0 Messpunkte geliefert UND
+        // es liegt kein Ergebnis von heute vor. Ohne diese Ausgabe war im
+        // Logcat nicht zu unterscheiden, ob der Foreground Service gar
+        // nicht lief, das Band nachts getrennt war oder die Auswertung
+        // schlicht schon erfolgt und zurückgesetzt war.
+        console.log('[Schlaf] Keine Nacht-Daten und kein gespeichertes Ergebnis von heute – '
+          + 'Schlafqualität bleibt auf dem Startwert ' + aktuelleRohwerte.schlafqualitaet
+          + ' ("wach", keine Unschärfe). Mögliche Gründe: Foreground Service lief nicht, '
+          + 'Band war nachts getrennt, oder es war noch keine Nacht im Fenster 22:00–08:00.'
+          + (gespeichert ? ' Letztes bekanntes Ergebnis stammt vom ' + gespeichert.datum + '.' : ''));
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error('[Schlaf] Gespeicherte Nacht-Stufe nicht lesbar:', e);
+    }
   }
 
   nachtAuswertungPruefen();
@@ -7418,12 +7820,38 @@
     // (variabilitaet − Normalwert), NICHT umgekehrt.
     const variabilitaet = pulsVariabilitaetMessen(bpm);
     if (variabilitaet != null) {
+      // Nur eine Variabilität UNTER dem Normalwert gilt als Anspannung.
+      // Liegt sie darüber, ist die Person entspannter als sonst – dann
+      // bleibt die Schrift ruhig, statt in die andere Richtung
+      // auszuschlagen (früher wirkte jede Abweichung, beidseitig).
+      const abweichung  = pulsVariabilitaetNormalwert - variabilitaet;
+      const ueberschuss = Math.max(0, abweichung - STAB_TOLERANZ);
       const stabilitaetRoh = Math.round(Math.min(STAB_MAX, Math.max(STAB_MIN,
-        STAB_PULS_BASIS + (variabilitaet - pulsVariabilitaetNormalwert) * STAB_PULS_SKALIERUNG
+        STAB_MAX - ueberschuss * STAB_PULS_SKALIERUNG
       )));
+
+      // Glättung: Ohne sie springt der Wert bei jeder Messung (~1/s),
+      // weil schon ein einzelner ungewöhnlicher Herzschlag die
+      // Variabilität im 45-s-Fenster merklich verschiebt. Die Schrift
+      // soll einem Zustand folgen, nicht einzelnen Schlägen.
+      stabilitaetGeglaettet = stabilitaetGeglaettet == null
+        ? stabilitaetRoh
+        : stabilitaetGeglaettet + (stabilitaetRoh - stabilitaetGeglaettet) * STAB_GLAETTUNG_ALPHA;
+
+      const stabilitaetAnzeige = Math.round(stabilitaetGeglaettet);
+
+      console.log('[Puls] ' + new Date().toLocaleTimeString('de-DE') +
+        ' · bpm=' + bpm +
+        ' · Variabilität=' + variabilitaet.toFixed(2) +
+        ' · Normalwert=' + pulsVariabilitaetNormalwert.toFixed(2) +
+        ' · Abweichung=' + abweichung.toFixed(2) +
+        ' · Stabilität roh=' + stabilitaetRoh + ' geglättet=' + stabilitaetAnzeige +
+        ' · Zittern=' + (stabilitaetAnzeige >= STAB_MAX ? '0.00' :
+            Math.max(0, 2.0 * (STAB_MAX - stabilitaetAnzeige) / 800).toFixed(2)) + 'px');
+
       // Setzt aktuelleRohwerte.stabilitaet + aktuelleAchsen (+ Anzeige,
       // falls sichtbar) – siehe stabilitaetAnzeigenUndUebernehmen oben.
-      stabilitaetAnzeigenUndUebernehmen(stabilitaetRoh);
+      stabilitaetAnzeigenUndUebernehmen(stabilitaetAnzeige);
     } else {
       // Noch nicht genug Messpunkte im gleitenden Fenster – Achsen trotzdem
       // mit der neuen Intensität neu berechnen, Stabilität bleibt vorerst
@@ -8295,6 +8723,7 @@
     wortZeichenAnzahl = 0;
     letzterStabilerTempo = 100;
     aktuelleRohwerte.tempo = 100;
+    letzteAnschlagZeit    = null;   // Anschlagstakt der neuen Nachricht beginnt bei null
     wertTempoAnzeige.textContent = 100;
     balkenTempo.style.width = '0%';
     letzteLeerzeichenZeit = null;
@@ -8392,6 +8821,9 @@
     if (!profilAvatar.classList.contains('avatar--foto')) {
       profilAvatar.textContent = wert.charAt(0).toUpperCase();
     }
+    // Gekoppeltes Handy sofort über den neuen Namen informieren, damit
+    // es dort nicht bei 'Partner' bleibt (siehe Abschnitt VERBINDUNG).
+    if (window.verbProfilNachmelden) window.verbProfilNachmelden();
   });
 
   // ── Eigenes Profilbild: einfacher Datei-Upload (Grundgerüst) – rein
@@ -8422,17 +8854,61 @@
 
   profilFotoUploadBtn.addEventListener('click', function () { profilFotoInput.click(); });
 
+  // ── Bilder verkleinern ──────────────────────────────────────────
+  //  Rechnet eine Data-URL auf eine maximale Kantenlänge herunter und
+  //  schneidet sie mittig quadratisch zu (Avatare sind immer rund).
+  //
+  //  Warum überhaupt: Ein heutiges Handyfoto ergibt als Data-URL
+  //  mehrere Megabyte. Vorher landete genau das in localStorage – der
+  //  Code fing den Überlauf zwar ab, das Bild war dann aber schlicht
+  //  weg. Und für die Übertragung an gekoppelte Kontakte (siehe
+  //  Abschnitt VERBINDUNG) wäre es ohnehin unbrauchbar: Der Server
+  //  nimmt höchstens 256 KB pro Nachricht an.
+  //
+  //  Zwei Größen, ein Verfahren:
+  //    512 px  – eigenes Profil, groß dargestellt
+  //    128 px  – Versandkopie, im Chat nur 42 px groß angezeigt
+  function bildVerkleinern(datenUrl, maxKante) {
+    return new Promise(function (aufloesen, ablehnen) {
+      const bild = new Image();
+      bild.onerror = function () { ablehnen(new Error('Bild nicht lesbar')); };
+      bild.onload = function () {
+        // Mittiger quadratischer Ausschnitt – sonst würde ein
+        // Hochformat-Foto im runden Avatar verzerrt.
+        const kante  = Math.min(bild.width, bild.height);
+        const links  = (bild.width  - kante) / 2;
+        const oben   = (bild.height - kante) / 2;
+        const ziel   = Math.min(kante, maxKante);
+
+        const flaeche = document.createElement('canvas');
+        flaeche.width = flaeche.height = ziel;
+        const stift = flaeche.getContext('2d');
+        stift.drawImage(bild, links, oben, kante, kante, 0, 0, ziel, ziel);
+
+        // JPEG statt PNG: bei Fotos um ein Vielfaches kleiner.
+        aufloesen(flaeche.toDataURL('image/jpeg', 0.8));
+      };
+      bild.src = datenUrl;
+    });
+  }
+
   profilFotoInput.addEventListener('change', function () {
     const datei = profilFotoInput.files[0];
     if (!datei) return;
     const leser = new FileReader();
     leser.onload = function () {
-      eigenesProfilbildAnwenden(leser.result);
-      try {
-        localStorage.setItem(EIGENES_PROFILBILD_KEY, leser.result);
-      } catch (e) {
-        console.error('[Profil] Profilbild konnte nicht gespeichert werden (evtl. zu groß für localStorage):', e);
-      }
+      bildVerkleinern(leser.result, 512).then(function (klein) {
+        eigenesProfilbildAnwenden(klein);
+        try {
+          localStorage.setItem(EIGENES_PROFILBILD_KEY, klein);
+        } catch (e) {
+          console.error('[Profil] Profilbild konnte nicht gespeichert werden:', e);
+        }
+        // Gekoppelte Kontakte sofort mit dem neuen Bild versorgen.
+        if (window.verbProfilNachmelden) window.verbProfilNachmelden();
+      }).catch(function (e) {
+        console.error('[Profil] Bild konnte nicht verarbeitet werden:', e);
+      });
     };
     leser.readAsDataURL(datei);
   });
@@ -8837,6 +9313,7 @@
     wortZeichenAnzahl = 0;
     letzterStabilerTempo = 100;
     aktuelleRohwerte.tempo = 100;
+    letzteAnschlagZeit    = null;   // Anschlagstakt der neuen Nachricht beginnt bei null
     wertTempoAnzeige.textContent = 100;
     balkenTempo.style.width = '0%';
     letzteLeerzeichenZeit = null;
@@ -9180,6 +9657,787 @@
         testreglerWort.style.fontSize = '';
       }
     });
+
+  // ═══════════════════════════════════════════════════════════════
+  //  VERBINDUNG – echte Kontakte neben den Demo-Kontakten
+  //
+  //  Die Kopplung per Raum-Code ist kein einmaliger Vorgang, sondern
+  //  das "Kontakt hinzufügen" dieser App: Jede Kopplung legt eine
+  //  weitere Person dauerhaft in der Liste ab. Der "+"-Eintrag bleibt
+  //  deshalb IMMER ganz oben stehen, auch nach der ersten Kopplung.
+  //
+  //  Reihenfolge in der Liste: "+" · echte Kontakte · Demo-Kontakte.
+  //  Unterschieden werden beide Arten an der rechten Spalte – echte
+  //  Kontakte zeigen dort ihren Live-Zustand ("online"), Demo-
+  //  Kontakte feste Uhrzeiten. Ein zusätzliches Abzeichen wäre im
+  //  Schwarzweiß-Konzept ein Fremdkörper.
+  //
+  //  ── Was gespeichert wird ─────────────────────────────────────
+  //  Nur Kontaktdaten (ID, Name, Miniaturbild) in localStorage –
+  //  bewusst KEINE Nachrichten. Auch der Server führt keinen
+  //  Verlauf: Er reicht durch, was er durchreichen kann, und lagert
+  //  nur für abwesende Geräte zwischen, bis diese es abholen.
+  //
+  //  ── Was übertragen wird ──────────────────────────────────────
+  //  Pro Wort die ROHWERTE (je 100–900), nicht die daraus berechnete
+  //  Typografie: sensorZuSchriftAchse() ist eine reine Funktion
+  //  dieser Werte, das Empfänger-Handy rechnet selbst. Dadurch
+  //  ziehen spätere Änderungen am Mapping (überall mit
+  //  "← nachjustieren" markiert) auch bei alten Nachrichten mit.
+  //  Deshalb friert wortZustaendeSynchronisieren zusätzlich "roh" ein.
+  //
+  //  ── Profilbilder ─────────────────────────────────────────────
+  //  Übertragen wird eine auf 128 px heruntergerechnete Kopie
+  //  (~4–8 KB, siehe bildVerkleinern weiter oben) – nicht das
+  //  Original mit mehreren Megabyte, das der Server ablehnen würde.
+  //  Der Avatar wird ohnehin nur 42 px groß dargestellt.
+  // ═══════════════════════════════════════════════════════════════
+  (function () {
+
+    const SERVER_WS = 'wss://212-227-70-31.sslip.io/ws';
+
+    const VERB_ID_KEY       = 'situativeTypografie_verbindungGeraetId';
+    const VERB_GEHEIM_KEY   = 'situativeTypografie_verbindungGeheim';
+    const VERB_KONTAKTE_KEY = 'situativeTypografie_kontakte';
+
+    const HINZUFUEGEN_TEXT  = 'Kontakt hinzufügen';
+    const BILD_KANTE_SENDEN = 128;   // Versandkopie, siehe Kopfkommentar
+
+    let ws       = null;
+    let geraetId = lesen(VERB_ID_KEY);
+    let geheim   = lesen(VERB_GEHEIM_KEY);
+
+    // [{ id, name, bild }] – "online" kommt vom Server und wird
+    // absichtlich NICHT mitgespeichert (wäre nach einem Neustart
+    // sofort falsch).
+    let kontakte = lesenJson(VERB_KONTAKTE_KEY) || [];
+    const online = Object.create(null);   // id → bool, nur zur Laufzeit
+
+    let namen    = {};   // id → Anzeigename (kollisionsfrei, siehe unten)
+    let versuch  = 0;
+    let neuVerbindenUhr = null;
+    let zuletztGesendetesProfil = null;   // gegen unnötige Rundmails
+
+    // ── Angemeldet ist NICHT dasselbe wie verbunden ─────────────
+    // Ein offener Socket sagt nur, dass der Server erreichbar ist. Ob er
+    // dieses Gerät auch kennt, steht erst nach der Antwort 'willkommen'
+    // fest. Genau diese Unterscheidung fehlte: Die App meldete "bereit",
+    // während der Server jede Aktion mit "Nicht angemeldet" abwies.
+    let angemeldet = false;
+
+    // Schleifenschutz für die Selbstheilung (siehe case 'fehler'):
+    // Scheitert auch die frische Anmeldung, wird nicht endlos neu
+    // versucht. Wird bei jedem Verbindungsaufbau zurückgesetzt.
+    let neuanmeldungVersucht = false;
+
+    // Zeigt in der "+"-Zeile "neu koppeln" an, bis wieder ein Kontakt
+    // besteht – damit die verschwundene Kontaktliste erklärt ist und
+    // nicht als Fehler wirkt.
+    let zuruecksetzungGemeldet = false;
+
+    function lesen(schluessel) {
+      try { return localStorage.getItem(schluessel) || null; } catch (e) { return null; }
+    }
+    function schreiben(schluessel, wert) {
+      try { localStorage.setItem(schluessel, wert); } catch (e) {}
+    }
+    function entfernen(schluessel) {
+      try { localStorage.removeItem(schluessel); } catch (e) {}
+    }
+    function lesenJson(schluessel) {
+      try { return JSON.parse(localStorage.getItem(schluessel)) || null; } catch (e) { return null; }
+    }
+
+    function kontakteSpeichern() {
+      schreiben(VERB_KONTAKTE_KEY, JSON.stringify(kontakte.map(function (k) {
+        return { id: k.id, name: k.name, bild: k.bild };
+      })));
+    }
+
+    function kontaktNachId(id) {
+      return kontakte.find(function (k) { return k.id === id; }) || null;
+    }
+    function kontaktNachAnzeigename(name) {
+      const id = Object.keys(namen).find(function (i) { return namen[i] === name; });
+      return id ? kontaktNachId(id) : null;
+    }
+
+    // ── Anzeigenamen ───────────────────────────────────────────
+    // Der Verlauf liegt in chatVerlaeufe unter dem ANZEIGENAMEN, nicht
+    // unter der Geräte-ID. Zwei Kontakte mit demselben Profilnamen –
+    // oder einer, der wie ein Demo-Kontakt heißt – würden sich sonst
+    // denselben Chat teilen. Deshalb hier einmal zentral eindeutig
+    // machen; bei Änderungen wird der Verlauf mitgenommen (siehe
+    // listeAufbauen).
+    function anzeigenamenBerechnen() {
+      const belegt = new Set(Array.isArray(DEMO_KONTAKTE) ? DEMO_KONTAKTE : []);
+      const neu = {};
+      kontakte.forEach(function (k) {
+        let basis = (k.name || '').trim();
+        // 'Du' ist der Standardwert des Profilfelds und beschreibt den
+        // Absender aus DESSEN Sicht – in MEINER Liste irreführend.
+        if (!basis || basis === 'Du') basis = 'Kontakt';
+        let kandidat = basis;
+        let n = 2;
+        while (belegt.has(kandidat)) { kandidat = basis + ' (' + n + ')'; n++; }
+        belegt.add(kandidat);
+        neu[k.id] = kandidat;
+      });
+      return neu;
+    }
+
+    // ── Listeneinträge ─────────────────────────────────────────
+    // Alles per JavaScript erzeugt: kontaktlisteAusManifestErsetzen
+    // baut die Liste mit innerHTML = '' komplett neu auf, fest im HTML
+    // stehende Einträge wären dabei verschwunden.
+    let plusEl = null;
+    const kontaktEls = Object.create(null);   // id → Element
+
+    function plusEintrag() {
+      if (plusEl) return plusEl;
+      plusEl = document.createElement('div');
+      plusEl.className = 'gespraechs-eintrag gespraechs-eintrag--hinzufuegen';
+      plusEl.dataset.name = HINZUFUEGEN_TEXT;
+      plusEl.addEventListener('click', overlayOeffnen);
+
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.textContent = '+';
+      plusEl.appendChild(avatar);
+
+      const info = document.createElement('div');
+      info.className = 'gespraechs-info';
+      const nameEl = document.createElement('span');
+      nameEl.className = 'gespraechs-name';
+      nameEl.textContent = HINZUFUEGEN_TEXT;
+      info.appendChild(nameEl);
+      plusEl.appendChild(info);
+
+      const meta = document.createElement('div');
+      meta.className = 'gespraechs-meta';
+      const zeitEl = document.createElement('span');
+      zeitEl.className = 'gespraechs-zeit';
+      meta.appendChild(zeitEl);
+      plusEl.appendChild(meta);
+
+      return plusEl;
+    }
+
+    function kontaktEintrag(kontakt) {
+      let el = kontaktEls[kontakt.id];
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'gespraechs-eintrag';
+        el.dataset.echt = '';          // Unterscheidung von Demo-Kontakten
+        el.addEventListener('click', function () {
+          zeigeChat(namen[kontakt.id]);
+        });
+
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        el.appendChild(avatar);
+
+        const info = document.createElement('div');
+        info.className = 'gespraechs-info';
+        const nameEl = document.createElement('span');
+        nameEl.className = 'gespraechs-name';
+        info.appendChild(nameEl);
+        el.appendChild(info);
+
+        const meta = document.createElement('div');
+        meta.className = 'gespraechs-meta';
+        const zeitEl = document.createElement('span');
+        zeitEl.className = 'gespraechs-zeit';
+        meta.appendChild(zeitEl);
+        el.appendChild(meta);
+
+        kontaktEls[kontakt.id] = el;
+      }
+
+      const name   = namen[kontakt.id];
+      const avatar = el.querySelector('.avatar');
+      const nameEl = el.querySelector('.gespraechs-name');
+      const zeitEl = el.querySelector('.gespraechs-zeit');
+
+      el.dataset.name     = name;
+      avatar.dataset.name = name;
+      nameEl.dataset.name = name;
+      nameEl.textContent  = name;
+      avatar.textContent  = name.charAt(0).toUpperCase();
+      zeitEl.textContent  = online[kontakt.id] ? 'online' : 'offline';
+
+      // Foto und Schriftschnitt werden bewusst NICHT hier gesetzt,
+      // sondern erst nach dem Einhängen – siehe listeAufbauen.
+      return el;
+    }
+
+    // Baut den vorderen Teil der Liste neu: "+" zuerst, dann die
+    // echten Kontakte. Die Demo-Kontakte darunter bleiben unberührt.
+    function listeAufbauen() {
+      if (!gespraechsListe) return;
+
+      const alteNamen = namen;
+      namen = anzeigenamenBerechnen();
+
+      // Verlauf mitnehmen, wenn sich ein Anzeigename geändert hat –
+      // sonst hinge er an einem Namen, den es nicht mehr gibt.
+      Object.keys(namen).forEach(function (id) {
+        const alt = alteNamen[id];
+        const neu = namen[id];
+        if (alt && alt !== neu && chatVerlaeufe[alt]) {
+          chatVerlaeufe[neu] = chatVerlaeufe[alt];
+          delete chatVerlaeufe[alt];
+          if (!aktuellerChatIstGruppe && chatPartnerName.textContent === alt) zeigeChat(neu);
+        }
+      });
+
+      // Entfernte Kontakte aus dem DOM nehmen
+      Object.keys(kontaktEls).forEach(function (id) {
+        if (!kontaktNachId(id)) {
+          const el = kontaktEls[id];
+          if (el.parentNode) el.parentNode.removeChild(el);
+          delete kontaktEls[id];
+        }
+      });
+
+      // Reihenfolge herstellen: jedes Element direkt hinter das
+      // vorherige schieben, beginnend ganz oben.
+      let vorher = null;
+      [plusEintrag()].concat(kontakte.map(kontaktEintrag)).forEach(function (el) {
+        gespraechsListe.insertBefore(el, vorher ? vorher.nextSibling : gespraechsListe.firstChild);
+        vorher = el;
+      });
+
+      // Foto und Schriftschnitt ERST JETZT, nach dem Einhängen:
+      // avatarFotoAnwenden und avatarDarstellungAktualisieren suchen ihre
+      // Ziele per document.querySelectorAll('.avatar[data-name=…]'). Ein
+      // frisch erzeugter Eintrag hängt zu diesem Zeitpunkt noch nicht im
+      // Dokument – die Suche ginge ins Leere und der Avatar bliebe beim
+      // Buchstaben stehen, obwohl ein Bild vorliegt.
+      //
+      // avatarFotoAnwenden statt avatarFotoAktualisieren: letzteres setzt
+      // AVATAR_FOTO_ORDNER vor den Wert und erwartet einen Dateinamen aus
+      // assets/avatars/ – hier ist es eine Data-URL vom anderen Handy.
+      kontakte.forEach(function (k) {
+        const name = namen[k.id];
+        avatarDarstellungAktualisieren(name);
+        avatarFotoAnwenden(name, k.bild || null);
+      });
+
+      statusZeileAktualisieren();
+    }
+
+    // Der "+"-Eintrag zeigt rechts den Verbindungszustand – das ist
+    // die einzige Stelle, an der man sieht, ob der Server erreichbar ist.
+    //
+    // Vier Zustände statt zwei. Vorher stand hier nur verbunden(), also
+    // der reine Socket – die Zeile meldete "bereit", während die
+    // Anmeldung längst abgelehnt worden war.
+    function statusZeileAktualisieren() {
+      if (!plusEl) return;
+      let text;
+      if (!verbunden())              text = 'offline';
+      else if (!angemeldet)          text = 'melde an …';
+      else if (zuruecksetzungGemeldet) text = 'neu koppeln';
+      else                           text = 'bereit';
+      plusEl.querySelector('.gespraechs-zeit').textContent = text;
+    }
+
+    // ── Kopplungs-Overlay ──────────────────────────────────────
+    let overlayEl = null, statusEl = null, codeEl = null, eingabeEl = null;
+    let codeBtn = null, koppelnBtn = null;   // für das Sperren, siehe overlayKnoepfeAktualisieren
+
+    function overlayAufbauen() {
+      if (overlayEl) return;
+
+      overlayEl = document.createElement('div');
+      overlayEl.className = 'overlay';
+      overlayEl.innerHTML =
+        '<div class="overlay-karte">' +
+          '<div class="overlay-kopf">' +
+            '<span class="overlay-titel">Kontakt hinzufügen</span>' +
+            '<button class="overlay-schliessen" aria-label="Schließen">&times;</button>' +
+          '</div>' +
+          '<div class="einstellung-zeile">' +
+            '<div class="einstellung-info">' +
+              '<span class="einstellung-label">Dein Code</span>' +
+              '<span class="kopplung-code kopplung-code--leer" data-rolle="code">noch nicht erzeugt</span>' +
+            '</div>' +
+            '<button class="overlay-btn" data-rolle="code-btn">Code zeigen</button>' +
+          '</div>' +
+          '<div class="einstellung-zeile">' +
+            '<div class="einstellung-info">' +
+              '<span class="einstellung-label">Code des anderen Handys</span>' +
+              '<span class="einstellung-hinweis" data-rolle="status">Nicht verbunden</span>' +
+            '</div>' +
+          '</div>' +
+          '<input type="text" inputmode="numeric" maxlength="6" class="kopplung-eingabe" ' +
+                 'data-rolle="eingabe" placeholder="6-stelliger Code" ' +
+                 'aria-label="Code des anderen Handys">' +
+          '<button class="overlay-btn" data-rolle="koppeln-btn">Hinzufügen</button>' +
+        '</div>';
+
+      // MUSS innerhalb von .phone-frame hängen, nicht am body: dort sind
+      // sämtliche CSS-Variablen definiert (--bg, --border, --text-2 …)
+      // und dort greifen die .phone-frame.emotion-an-Regeln.
+      (phoneFrame || document.body).appendChild(overlayEl);
+
+      statusEl  = overlayEl.querySelector('[data-rolle="status"]');
+      codeEl    = overlayEl.querySelector('[data-rolle="code"]');
+      eingabeEl = overlayEl.querySelector('[data-rolle="eingabe"]');
+
+      overlayEl.querySelector('.overlay-schliessen').addEventListener('click', overlaySchliessen);
+      overlayEl.addEventListener('click', function (e) {
+        if (e.target === overlayEl) overlaySchliessen();
+      });
+
+      codeBtn    = overlayEl.querySelector('[data-rolle="code-btn"]');
+      koppelnBtn = overlayEl.querySelector('[data-rolle="koppeln-btn"]');
+
+      codeBtn.addEventListener('click', function () {
+        if (!bereit()) { melden(warteHinweis()); return; }
+        senden({ typ: 'code-erzeugen' });
+      });
+
+      koppelnBtn.addEventListener('click', function () {
+        const code = (eingabeEl.value || '').replace(/\D/g, '');
+        if (code.length !== 6) { melden('Bitte sechs Ziffern eingeben'); return; }
+        if (!bereit()) { melden(warteHinweis()); return; }
+        senden({ typ: 'koppeln', code: code });
+        melden('Wird hinzugefügt …');
+      });
+
+      overlayKnoepfeAktualisieren();
+    }
+
+    // Beide Knöpfe brauchen eine bestätigte Anmeldung. Sind sie gesperrt,
+    // solange die fehlt, kann der Server-Fehler "Nicht angemeldet" gar
+    // nicht mehr entstehen – das Problem wird verhindert statt gemeldet.
+    function overlayKnoepfeAktualisieren() {
+      const gesperrt = !bereit();
+      if (codeBtn)    codeBtn.disabled    = gesperrt;
+      if (koppelnBtn) koppelnBtn.disabled = gesperrt;
+    }
+
+    function warteHinweis() {
+      return verbunden() ? 'Warte auf Anmeldung …' : 'Keine Verbindung zum Server';
+    }
+
+    function overlayOeffnen() {
+      overlayAufbauen();
+      overlayEl.classList.add('sichtbar');
+      overlayKnoepfeAktualisieren();
+      // Der Zurücksetzungs-Hinweis hat Vorrang: Er erklärt, warum die
+      // Kontaktliste leer ist. Ohne ihn stünde hier "Mit dem Server
+      // verbunden" – zutreffend, aber ratlos machend.
+      melden(!bereit()               ? warteHinweis()
+        : zuruecksetzungGemeldet     ? 'Verbindung wurde zurückgesetzt – bitte neu koppeln'
+        : kontakte.length            ? kontakte.length + ' Kontakt(e) verbunden'
+        :                              'Mit dem Server verbunden');
+    }
+    function overlaySchliessen() {
+      if (overlayEl) overlayEl.classList.remove('sichtbar');
+    }
+
+    // Schreibt IMMER auch ins Log, nicht nur ins Overlay.
+    //
+    // statusEl entsteht erst mit overlayAufbauen(). Wurde das Overlay nie
+    // geöffnet, war melden() ein reiner No-Op – genau deshalb blieb die
+    // Ablehnung "Unbekanntes Gerät" unsichtbar: weder in der App noch im
+    // Logcat war zu sehen, dass die Anmeldung gescheitert war.
+    function melden(text) {
+      if (statusEl) statusEl.textContent = text;
+      console.log('[Verbindung] ' + text);
+    }
+
+    // ── Verbindung ─────────────────────────────────────────────
+    // Socket offen – sagt NICHTS darüber, ob der Server uns kennt.
+    function verbunden() { return ws && ws.readyState === WebSocket.OPEN; }
+
+    // Verbunden UND angemeldet. Alles, was eine Geräte-Identität braucht
+    // (Code erzeugen, koppeln, Profil melden), muss das hier prüfen –
+    // sonst antwortet der Server mit "Nicht angemeldet".
+    function bereit() { return verbunden() && angemeldet; }
+
+    function senden(objekt) {
+      if (!verbunden()) {
+        // Früher stillschweigend verworfen – im Logcat war dann nicht zu
+        // sehen, dass überhaupt etwas verlorenging.
+        console.warn('[Verbindung] Kein offener Socket – "' + objekt.typ + '" nicht gesendet');
+        return;
+      }
+      ws.send(JSON.stringify(objekt));
+    }
+
+    function meinNameOderNichts() {
+      const name = (eigenerNameLaden() || '').trim();
+      return (name && name !== 'Du') ? name : null;
+    }
+
+    // Eigenes Profil zusammenstellen: Name + verkleinertes Bild.
+    // Ohne Bild (oder wenn das Verkleinern scheitert) wird nur der
+    // Name gemeldet – der Kontakt zeigt dann den Buchstaben-Kreis.
+    function meinProfil() {
+      const grundlage = { typ: 'hallo' };
+      const name = meinNameOderNichts();
+      if (name) grundlage.name = name;
+
+      const bild = eigenesProfilbildLaden();
+      if (!bild) return Promise.resolve(grundlage);
+
+      return bildVerkleinern(bild, BILD_KANTE_SENDEN)
+        .then(function (klein) { grundlage.bild = klein; return grundlage; })
+        .catch(function () { return grundlage; });
+    }
+
+    // Kürzt eine Geräte-ID fürs Log. Vollständig protokolliert wäre sie
+    // zusammen mit dem Geheimnis ein Zugangsdatum – acht Zeichen genügen,
+    // um zwei Geräte auseinanderzuhalten.
+    function kurzId(id) { return id ? String(id).slice(0, 8) + '…' : '–'; }
+
+    function verbinden() {
+      if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+
+      angemeldet = false;
+      neuanmeldungVersucht = false;
+
+      try { ws = new WebSocket(SERVER_WS); }
+      catch (e) {
+        console.error('[Verbindung] Socket konnte nicht geöffnet werden:', e);
+        neuVerbindenPlanen();
+        return;
+      }
+
+      ws.addEventListener('open', function () {
+        versuch = 0;
+        statusZeileAktualisieren();
+        overlayKnoepfeAktualisieren();
+        meinProfil().then(function (anmeldung) {
+          if (geraetId && geheim) { anmeldung.geraetId = geraetId; anmeldung.geheim = geheim; }
+          zuletztGesendetesProfil = (anmeldung.name || '') + '|' + (anmeldung.bild || '').length;
+          console.log('[Verbindung] Socket offen → sende hallo (' +
+            (anmeldung.geraetId ? 'bekanntes Gerät ' + kurzId(anmeldung.geraetId) : 'neues Gerät') + ')');
+          senden(anmeldung);
+        });
+      });
+
+      ws.addEventListener('message', function (e) {
+        let nachricht;
+        try {
+          nachricht = JSON.parse(e.data);
+        } catch (fehler) {
+          console.error('[Verbindung] Unlesbare Server-Nachricht verworfen:', e.data);
+          return;
+        }
+        empfangen(nachricht);
+      });
+
+      ws.addEventListener('close', function (e) {
+        angemeldet = false;
+        Object.keys(online).forEach(function (id) { delete online[id]; });
+        listeAufbauen();
+        overlayKnoepfeAktualisieren();
+        const wartenMs = neuVerbindenPlanen();
+        console.log('[Verbindung] Socket geschlossen (Code ' + e.code +
+          (e.reason ? ', ' + e.reason : '') + ')' +
+          (wartenMs != null ? ' → neuer Versuch in ' + Math.round(wartenMs / 1000) + ' s' : ''));
+      });
+
+      ws.addEventListener('error', function () {
+        // Der Browser liefert hier bewusst keine Details (Sicherheit);
+        // die Ursache steht im anschließenden close-Ereignis.
+        console.warn('[Verbindung] Socket-Fehler – Details folgen mit close');
+      });
+    }
+
+    // Wachsende Wartezeit (2s, 4s, 8s … höchstens 30s): ein Handy im
+    // Funkloch soll den Server nicht im Sekundentakt anklopfen.
+    // Gibt die gewählte Wartezeit zurück (oder null, wenn bereits ein
+    // Versuch geplant ist) – damit der close-Handler sie mitprotokollieren
+    // kann, ohne die Berechnung zu wiederholen.
+    function neuVerbindenPlanen() {
+      if (neuVerbindenUhr) return null;
+      const wartenMs = Math.min(30000, 2000 * Math.pow(2, Math.min(versuch, 4)));
+      versuch++;
+      neuVerbindenUhr = setTimeout(function () {
+        neuVerbindenUhr = null;
+        verbinden();
+      }, wartenMs);
+      return wartenMs;
+    }
+
+    // ── Eingehende Server-Nachrichten ──────────────────────────
+    function empfangen(nachricht) {
+      switch (nachricht.typ) {
+
+        case 'willkommen': {
+          geraetId = nachricht.geraetId;
+          schreiben(VERB_ID_KEY, geraetId);
+          // Das Geheimnis kommt nur bei der allerersten Anmeldung mit.
+          if (nachricht.geheim) { geheim = nachricht.geheim; schreiben(VERB_GEHEIM_KEY, geheim); }
+
+          // AB HIER gilt die App als angemeldet – vorher nicht.
+          angemeldet = true;
+          console.log('[Verbindung] angemeldet als ' + kurzId(geraetId) + ' · ' +
+            (nachricht.kontakte || []).length + ' Kontakt(e) · ' +
+            (nachricht.nachrichten || []).length + ' wartende Nachricht(en)');
+
+          // Der Server ist die Wahrheit über die Kontaktliste: Name und
+          // Bild kommen von dort, nicht aus dem lokalen Zwischenstand.
+          if (Array.isArray(nachricht.kontakte)) {
+            kontakte = nachricht.kontakte.map(function (k) {
+              online[k.id] = !!k.online;
+              return { id: k.id, name: k.name, bild: k.bild };
+            });
+            kontakteSpeichern();
+          }
+          listeAufbauen();
+          statusZeileAktualisieren();
+          overlayKnoepfeAktualisieren();
+          melden(kontakte.length ? kontakte.length + ' Kontakt(e) verbunden' : 'Mit dem Server verbunden');
+
+          // Während der Abwesenheit eingegangene Nachrichten.
+          if (Array.isArray(nachricht.nachrichten)) {
+            nachricht.nachrichten.forEach(eingehendeNachricht);
+          }
+          break;
+        }
+
+        case 'code':
+          if (codeEl) {
+            codeEl.textContent = nachricht.code;
+            codeEl.classList.remove('kopplung-code--leer');
+          }
+          melden('Diesen Code am anderen Handy eingeben');
+          break;
+
+        case 'kontakt-neu': {
+          const k = nachricht.kontakt;
+          if (!kontaktNachId(k.id)) {
+            kontakte.push({ id: k.id, name: k.name, bild: k.bild });
+            kontakteSpeichern();
+          }
+          online[k.id] = !!k.online;
+          // Wieder ein Kontakt vorhanden – der Hinweis "neu koppeln" in
+          // der "+"-Zeile hat sich damit erledigt.
+          zuruecksetzungGemeldet = false;
+          listeAufbauen();
+          melden(namen[k.id] + ' hinzugefügt');
+          if (eingabeEl) eingabeEl.value = '';
+          setTimeout(overlaySchliessen, 900);
+          break;
+        }
+
+        // Name und/oder Bild eines Kontakts haben sich geändert.
+        case 'kontakt-profil': {
+          const k = kontaktNachId(nachricht.kontaktId);
+          if (!k) break;
+          if (nachricht.name != null) k.name = nachricht.name;
+          if (nachricht.bild != null) k.bild = nachricht.bild;
+          kontakteSpeichern();
+          listeAufbauen();
+          break;
+        }
+
+        case 'kontakt-status':
+          online[nachricht.kontaktId] = !!nachricht.online;
+          listeAufbauen();
+          break;
+
+        case 'nachricht':
+          eingehendeNachricht(nachricht);
+          break;
+
+        case 'gesendet':
+          break;   // Zustellbestätigung – aktuell ohne eigene Anzeige
+
+        case 'fehler': {
+          const grund = nachricht.grund || 'Unbekannter Fehler';
+          console.error('[Verbindung] Server lehnt ab: ' + grund);
+
+          // ── Selbstheilung ────────────────────────────────────
+          // Der Server kennt dieses Gerät nicht (mehr) – etwa weil seine
+          // Datenbank neu aufgesetzt oder geleert wurde. Vorher behielt
+          // die App ihre ungültigen Zugangsdaten und schickte sie bei
+          // JEDEM Verbindungsaufbau erneut: Socket offen, Anmeldung
+          // abgelehnt, jede Aktion mit "Nicht angemeldet" quittiert –
+          // ohne Aussicht auf Besserung.
+          //
+          // Jetzt werden die Daten verworfen und sofort eine frische
+          // Anmeldung versucht. Die App ist danach wieder benutzbar; es
+          // fehlen nur die Kontakte, weil die an der alten Geräte-ID
+          // hingen.
+          if (/Unbekanntes Gerät/i.test(grund) && !neuanmeldungVersucht) {
+            neuanmeldungVersucht = true;
+
+            geraetId = null;
+            geheim   = null;
+            entfernen(VERB_ID_KEY);
+            entfernen(VERB_GEHEIM_KEY);
+
+            // Die gespeicherten Kontakte zeigen auf eine Geräte-ID, die
+            // es nicht mehr gibt – über sie käme weder eine Nachricht
+            // raus noch rein. Als Karteileichen stehen zu lassen wäre
+            // irreführender als sie zu entfernen.
+            kontakte = [];
+            kontakteSpeichern();
+            Object.keys(online).forEach(function (id) { delete online[id]; });
+            zuruecksetzungGemeldet = true;
+            listeAufbauen();
+
+            console.log('[Verbindung] Zugangsdaten verworfen → melde als neues Gerät an');
+            melden('Verbindung wurde zurückgesetzt – bitte neu koppeln');
+
+            meinProfil().then(function (anmeldung) {
+              zuletztGesendetesProfil = (anmeldung.name || '') + '|' + (anmeldung.bild || '').length;
+              senden(anmeldung);
+            });
+            break;
+          }
+
+          melden(grund);
+          overlayKnoepfeAktualisieren();
+          break;
+        }
+      }
+    }
+
+    // Baut aus den übertragenen Rohwerten wieder das auf, was die
+    // Anzeige erwartet (wortSnapshots mit fertigen Achsen).
+    function schnappschuesseAusWoertern(woerter) {
+      if (!Array.isArray(woerter) || !woerter.length) return null;
+      return woerter.map(function (wort) {
+        const roh = Object.assign({
+          intensitaet: 500, tempo: 500, stabilitaet: 500,
+          tonalitaet: 500, schlafqualitaet: 900, atemfrequenz: 500
+        }, (wort && wort.roh) || {});
+        return {
+          achsen: Object.assign(sensorZuSchriftAchse(roh), {
+            pausenZuschlag: (wort && wort.pausenZuschlag) || 0
+          }),
+          roh: roh,
+          leblos: !!(wort && wort.leblos)
+        };
+      });
+    }
+
+    function eingehendeNachricht(nachricht) {
+      const name = namen[nachricht.von];
+      if (!name) return;   // Kontakt unbekannt – ignorieren
+      nachrichtHinzufuegen(
+        nachricht.text,
+        false,
+        schnappschuesseAusWoertern(nachricht.woerter),
+        name
+      );
+
+      // ── Ungelesen-Optik ──────────────────────────────────────
+      // Dieselbe Mechanik wie bei den Demo-Kontakten: das Attribut
+      // data-ungelesen trägt sowohl den Farbverlauf über die Zeile
+      // (siehe .gespraechs-eintrag[data-ungelesen] im CSS) als auch den
+      // "Ungelesen"-Filter. alsGelesenMarkieren entfernt es beim Öffnen
+      // des Chats – das gilt für echte Kontakte unverändert mit.
+      //
+      // Nicht markieren, wenn der Chat GERADE offen ist: dann hat man
+      // die Nachricht ja vor Augen.
+      const eintrag = kontaktEls[nachricht.von];
+      const chatOffen = !aktuellerChatIstGruppe &&
+                        chatPartnerName.textContent === name &&
+                        !ansichtChat.classList.contains('ansicht--versteckt');
+      if (eintrag && !chatOffen) {
+        eintrag.setAttribute('data-ungelesen', '');
+        kontaktlisteFiltern();   // "Ungelesen"-Filter sofort nachziehen
+      }
+
+      if (!chatOffen) benachrichtigen(name, nachricht.text);
+    }
+
+    // ── Benachrichtigung außerhalb der App ─────────────────────
+    // @capacitor/local-notifications ist NICHT installiert (siehe
+    // package.json) – ohne dieses Plugin kann eine Capacitor-App keine
+    // Systembenachrichtigung erzeugen. Solange es fehlt, wird der
+    // Hinweis nur ins Log geschrieben, damit der Pfad nachvollziehbar
+    // ist und die Stelle beim Nachrüsten sofort auffindbar bleibt.
+    //
+    // Zum Nachrüsten genügt:
+    //   npm i @capacitor/local-notifications && npx cap sync android
+    // Die Berechtigung POST_NOTIFICATIONS steht bereits im Manifest
+    // (wird für den BLE-Foreground-Service ohnehin gebraucht), es käme
+    // also keine neue Berechtigung hinzu.
+    function benachrichtigen(name, text) {
+      const kurz = text.length > 60 ? text.slice(0, 57) + '…' : text;
+      console.log('[Benachrichtigung] ' + name + ' hat geschrieben: ' + kurz);
+
+      const plugin = window.Capacitor && window.Capacitor.Plugins &&
+                     window.Capacitor.Plugins.LocalNotifications;
+      if (!plugin) return;   // Plugin nicht installiert – siehe oben
+
+      plugin.schedule({
+        notifications: [{
+          id: Date.now() % 2147483647,
+          title: name + ' hat geschrieben',
+          body: kurz
+        }]
+      }).catch(function (e) {
+        console.error('[Benachrichtigung] konnte nicht angezeigt werden:', e);
+      });
+    }
+
+    // ── Nach außen, für den Enter-Handler und zeigeChat ────────
+    // Über window, weil dieser Abschnitt in einer eigenen,
+    // verschachtelten IIFE liegt – seine Funktionen wären außerhalb
+    // sonst nicht sichtbar. Umgekehrt kommt er von hier aus an alles
+    // im umgebenden Bereich (zeigeChat, nachrichtHinzufuegen …).
+    window.verbIstEchterKontakt = function (name) {
+      return !!kontaktNachAnzeigename(name);
+    };
+
+    // Foto eines echten Kontakts als Data-URL, sonst null. Wird von
+    // avatarFotoAktualisieren abgefragt, damit die vielen Aufrufe mit
+    // KONTAKT_DATEIEN[name] (die für echte Kontakte undefined liefern)
+    // das übertragene Bild nicht wieder abräumen.
+    window.verbKontaktBild = function (name) {
+      const kontakt = kontaktNachAnzeigename(name);
+      return kontakt && kontakt.bild ? kontakt.bild : null;
+    };
+
+    window.verbNachrichtSenden = function (name, text, wortSnapshots) {
+      const kontakt = kontaktNachAnzeigename(name);
+      if (!kontakt) return;
+      senden({
+        typ: 'nachricht',
+        an: kontakt.id,
+        text: text,
+        woerter: (wortSnapshots || []).map(function (w) {
+          return {
+            roh: w.roh || {},
+            pausenZuschlag: (w.achsen && w.achsen.pausenZuschlag) || 0,
+            leblos: !!w.leblos
+          };
+        })
+      });
+    };
+
+    // Nach einer Änderung an Name oder Profilbild: sofort nachmelden,
+    // statt bis zum nächsten Verbindungsaufbau zu warten – sonst stünde
+    // beim Gegenüber weiter der alte Stand. Der Server verteilt das
+    // dann an alle Kontakte (kontakt-profil).
+    window.verbProfilNachmelden = function () {
+      if (!bereit() || !geraetId || !geheim) return;
+      meinProfil().then(function (profil) {
+        const kennung = (profil.name || '') + '|' + (profil.bild || '').length;
+        if (kennung === zuletztGesendetesProfil) return;   // nichts Neues
+        zuletztGesendetesProfil = kennung;
+        profil.geraetId = geraetId;
+        profil.geheim   = geheim;
+        senden(profil);
+      });
+    };
+
+    listeAufbauen();
+    verbinden();
+  })();
+
   })();
 </script>
 </body>
