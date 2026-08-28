@@ -8195,6 +8195,10 @@
   // ist). Gleicher Zugriffs-Pattern wie kontaktAuswahlAufbauen oben.
   function aktuelleKontaktnamen() {
     return Array.from(document.querySelectorAll('#gespraechs-liste .gespraechs-eintrag'))
+      // Der "Kontakt hinzufügen"-Eintrag steht zwar in derselben Liste,
+      // ist aber keine Person – ohne diesen Filter tauchte er als Kreis
+      // in der Moment-Leiste auf (siehe Abschnitt VERBINDUNG).
+      .filter(function (el) { return !el.classList.contains('gespraechs-eintrag--hinzufuegen'); })
       .map(function (el) { return el.dataset.name; });
   }
 
@@ -8218,6 +8222,15 @@
   function momentePlatzhalterErgaenzen() {
     aktuelleKontaktnamen().forEach(function (name, i) {
       if (momente[name]) return; // schon vorhanden (Demo-Text oder "Du")
+
+      // Echte, gekoppelte Kontakte bekommen KEINEN Platzhalter. Deren
+      // Momente müssten von der Person selbst kommen – ein erfundener
+      // Text würde eine Äußerung vortäuschen, die es nie gab. Ohne
+      // Eintrag in "momente" erscheinen sie folgerichtig auch nicht in
+      // der Leiste (siehe momentLeisteRendern), bis sie wirklich etwas
+      // teilen. Bei Demo-Kontakten sind die Platzhalter dagegen
+      // erwünscht – dort ist ohnehin alles simuliert.
+      if (window.verbIstEchterKontakt && window.verbIstEchterKontakt(name)) return;
       const text    = MOMENT_PLATZHALTER_TEXTE[i % MOMENT_PLATZHALTER_TEXTE.length];
       const woerter = text.split(/\s+/).filter(function (w) { return w.length > 0; });
       momente[name] = {
@@ -8285,7 +8298,16 @@
   function momentLeisteRendern() {
     momentLeiste.innerHTML = '';
 
-    momentNamenErmitteln().forEach(function (name) {
+    // Nur Personen mit tatsächlichem Beitrag – "Du" immer, denn das ist
+    // der Kreis mit dem "+" zum Posten.
+    //
+    // hatMoment wurde bisher nur für den "Ungesehen"-Ring ausgewertet,
+    // nicht fürs Anzeigen: Die Leiste zeigte jeden Kontakt, auch ohne
+    // Beitrag. Feed (namenMitMoment) und Story-Ablauf (momentStoryQueue)
+    // filtern schon immer so – die Leiste zog nur nicht mit.
+    momentNamenErmitteln().filter(function (name) {
+      return name === 'Du' || !!momente[name];
+    }).forEach(function (name) {
       const hatMoment = !!momente[name];
 
       const wrapper = document.createElement('button');
