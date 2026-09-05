@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stresstest – Pulsvariabilität gegen Selbsteinschätzung</title>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * { -webkit-tap-highlight-color: transparent; }
+
+    /* ══════════════════════════════════════════════════════════════
+       SITURA – dieselben sieben Schnitte wie in chat.html, .woff2
+       zuerst (siehe Begründung dort: manche Server liefern .ttf ohne
+       korrekten Font-MIME-Typ aus, was Safari ablehnt).
+       ══════════════════════════════════════════════════════════════ */
+    @font-face {
+      font-family: 'Situra-Light';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Regular';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Medium';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Black';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+
+    :root {
+      --bg:        #000000;
+      --flaeche:   #121212;
+      --linie:     #2a2a2a;
+      --text:      #ffffff;
+      --text-2:    #9a9a9a;
+      --text-3:    #666666;
+      --warn:      #ffffff;
+    }
+
+    html { background: var(--bg); }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100dvh;
+      padding: 28px 20px 60px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .wrap { width: 100%; max-width: 560px; }
+
+    .eyebrow {
+      display: block;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: 26px;
+      line-height: 1.15;
+      margin-bottom: 8px;
+    }
+
+    .untertitel {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-2);
+      margin-bottom: 28px;
+    }
+
+    section { margin-bottom: 32px; }
+
+    h2 {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 12px;
+    }
+
+    button {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      background: none;
+      border: 1px solid var(--linie);
+      color: var(--text);
+      font-size: 13px;
+      padding: 11px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: border-color 0.2s ease, opacity 0.1s ease;
+    }
+    button:hover:not(:disabled) { border-color: var(--text-2); }
+    button:active:not(:disabled) { opacity: 0.7; }
+    button:disabled { opacity: 0.3; cursor: default; }
+    button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+    .band-zeile { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .band-status { font-size: 12px; color: var(--text-3); }
+
+    .hinweis {
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-3);
+      margin-top: 10px;
+      padding-left: 12px;
+      border-left: 1px solid var(--linie);
+    }
+
+    /* ── Messwerte ───────────────────────────────────────────── */
+    .werte {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1px;
+      background: var(--linie);
+      border: 1px solid var(--linie);
+    }
+    .wert-karte { background: var(--flaeche); padding: 14px 16px; }
+    .wert-label {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+    .wert-zahl {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 26px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .wert-einheit { font-size: 12px; color: var(--text-3); margin-left: 3px; }
+    .wert-hinweis { display: block; font-size: 10px; color: var(--text-3); margin-top: 5px; }
+
+    /* Totzone: die einzige Stelle, an der die Seite eine Aussage trifft
+       statt nur Zahlen zu zeigen – deshalb als eigene, breite Karte. */
+    .totzone-karte { grid-column: 1 / -1; }
+    .totzone-aussage {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 15px;
+    }
+
+    /* ── Selbsteinschätzung ──────────────────────────────────── */
+    .skala { display: flex; gap: 8px; margin-bottom: 12px; }
+    .skala button {
+      flex: 1;
+      padding: 16px 0;
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: 20px;
+      border-radius: 10px;
+    }
+    .skala-enden {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 16px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: var(--flaeche);
+      border: 1px solid var(--linie);
+      color: var(--text);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 14px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    input[type="text"]::placeholder { color: var(--text-3); }
+    input[type="text"]:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+    /* ── Aufzeichnung ────────────────────────────────────────── */
+    .liste { border-top: 1px solid var(--linie); }
+    .punkt {
+      display: grid;
+      grid-template-columns: 62px 1fr auto;
+      gap: 10px;
+      align-items: baseline;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--linie);
+      font-size: 12px;
+    }
+    .punkt-zeit { color: var(--text-3); font-variant-numeric: tabular-nums; }
+    .punkt-mitte { color: var(--text-2); line-height: 1.5; }
+    .punkt-notiz { color: var(--text); font-family: 'Situra-Medium', 'Inter', sans-serif; }
+    .punkt-marke {
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: 15px;
+      text-align: right;
+    }
+    /* Automatisch erfasste Punkte treten zurück, von Hand gesetzte
+       Einschätzungen sind das eigentliche Material. */
+    .punkt--auto .punkt-marke { color: var(--text-3); font-size: 11px; font-family: 'Situra-Regular', 'Inter', sans-serif; }
+
+    .leer { color: var(--text-3); font-size: 12px; padding: 14px 0; }
+
+    .fuss { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      background: var(--flaeche);
+      border: 1px solid var(--linie);
+      color: var(--text-2);
+      font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+      white-space: pre;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <span class="eyebrow">Momentum · Messwerkzeug</span>
+  <h1>Pulsvariabilität gegen Selbsteinschätzung</h1>
+  <p class="untertitel">
+    Die App leitet aus der Schwankung des Pulses ab, wie angespannt du bist –
+    daraus entsteht das Zittern der Schrift. Diese Seite zeigt dieselbe
+    Rechnung offen und zeichnet sie neben deiner eigenen Einschätzung auf,
+    damit sich beides vergleichen lässt.
+  </p>
+
+  <section>
+    <h2>Band</h2>
+    <div class="band-zeile">
+      <button id="band-btn">Band verbinden</button>
+      <span class="band-status" id="band-status">nicht verbunden</span>
+    </div>
+    <!-- Ein Band lässt genau eine Verbindung zu. Diese Seite und der
+         Chat laufen in derselben App, halten die Verbindung aber
+         getrennt – hält der Chat sie noch, scheitert es hier. -->
+    <p class="hinweis">
+      Das Band kann nur eine Verbindung gleichzeitig halten. Ist es im Chat
+      verbunden, dort zuerst trennen – sonst schlägt der Verbindungsaufbau
+      hier fehl.
+    </p>
+  </section>
+
+  <section>
+    <h2>Live-Messung</h2>
+    <div class="werte">
+      <div class="wert-karte">
+        <span class="wert-label">Puls</span>
+        <span class="wert-zahl" id="w-puls">—</span><span class="wert-einheit">bpm</span>
+      </div>
+      <div class="wert-karte">
+        <span class="wert-label">Variabilität (MASD)</span>
+        <span class="wert-zahl" id="w-masd">—</span>
+        <span class="wert-hinweis" id="w-masd-hinweis">braucht 5 Messpunkte</span>
+      </div>
+      <div class="wert-karte">
+        <span class="wert-label">Normalwert Variabilität</span>
+        <span class="wert-zahl" id="w-normal">—</span>
+        <span class="wert-hinweis">gleitend, ~4 Minuten</span>
+      </div>
+      <div class="wert-karte">
+        <span class="wert-label">Normalwert Puls</span>
+        <span class="wert-zahl" id="w-puls-normal">—</span><span class="wert-einheit">bpm</span>
+        <span class="wert-hinweis">gleitend, ~4 Minuten</span>
+      </div>
+      <div class="wert-karte">
+        <span class="wert-label">Puls-Anteil <em>p</em></span>
+        <span class="wert-zahl" id="w-p">—</span>
+        <span class="wert-hinweis" id="w-p-hinweis">Abweichung nach oben</span>
+      </div>
+      <div class="wert-karte">
+        <span class="wert-label">Variabilitäts-Anteil <em>h</em></span>
+        <span class="wert-zahl" id="w-h">—</span>
+        <span class="wert-hinweis" id="w-h-hinweis">Abweichung nach unten</span>
+      </div>
+      <div class="wert-karte">
+        <span class="wert-label">Stress-Index</span>
+        <span class="wert-zahl" id="w-index">—</span>
+        <span class="wert-hinweis" id="w-index-hinweis">0 = ruhig, 1 = maximal</span>
+      </div>
+      <div class="wert-karte">
+        <span class="wert-label">Stabilität</span>
+        <span class="wert-zahl" id="w-stabil">—</span>
+        <span class="wert-hinweis">900 = ruhig, 100 = maximal unruhig</span>
+      </div>
+      <div class="wert-karte">
+        <span class="wert-label">Zittern</span>
+        <span class="wert-zahl" id="w-zittern">—</span><span class="wert-einheit">px</span>
+      </div>
+      <div class="wert-karte totzone-karte">
+        <span class="wert-label">Totzone (0,4 px)</span>
+        <span class="totzone-aussage" id="w-totzone">noch keine Messung</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Wie angespannt fühlst du dich gerade?</h2>
+    <div class="skala" id="skala">
+      <button data-stufe="1">1</button>
+      <button data-stufe="2">2</button>
+      <button data-stufe="3">3</button>
+      <button data-stufe="4">4</button>
+      <button data-stufe="5">5</button>
+    </div>
+    <div class="skala-enden"><span>völlig ruhig</span><span>sehr angespannt</span></div>
+    <input type="text" id="notiz" placeholder="Notiz zum Kontext, z. B. „nach Treppe“ oder „vor Präsentation“">
+  </section>
+
+  <section>
+    <h2>Aufzeichnung <span id="anzahl" style="color:var(--text-2)"></span></h2>
+    <div class="liste" id="liste"></div>
+    <div class="fuss">
+      <button id="export-btn">Als Text ausgeben</button>
+      <button id="kopieren-btn">In Zwischenablage</button>
+      <button id="leeren-btn">Aufzeichnung leeren</button>
+      <button id="normal-btn">Normalwerte zurücksetzen</button>
+    </div>
+    <textarea id="export" hidden readonly aria-label="Messpunkte als Text"></textarea>
+  </section>
+
+</div>
+
+<script src="vendor/capacitor.js"></script>
+<script src="vendor/bluetooth-le.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  // ══════════════════════════════════════════════════════════════
+  //  KONSTANTEN – 1:1 aus chat.html übernommen
+  //
+  //  Sie MÜSSEN identisch bleiben, sonst misst diese Seite etwas
+  //  anderes als die App und der Abgleich wäre wertlos. Beim
+  //  Nachjustieren in chat.html also hier mitziehen.
+  //  Stand: kombinierter Index aus Puls UND Variabilität – Spannen
+  //  0,15/0,40, Gewichte 0,4/0,6/0,3, Totzone 0,12, Glättung 0,35.
+  //  Rechenweg und Begründung: großer Kommentarblock bei PULS_SPANNE
+  //  in chat.html.
+  // ══════════════════════════════════════════════════════════════
+  const PULS_VAR_FENSTER_MS     = 45000;
+  const PULS_VAR_MIN_MESSPUNKTE = 5;
+  const PULS_VAR_EMA_ALPHA      = 0.004;
+  const PULS_SPANNE             = 0.15;
+  const HRV_SPANNE              = 0.40;
+  const W_PULS                  = 0.4;
+  const W_HRV                   = 0.6;
+  const W_UEBEREINSTIMMUNG      = 0.3;
+  const W_SUMME                 = W_PULS + W_HRV + W_UEBEREINSTIMMUNG;
+  const STRESS_TOLERANZ         = 0.12;
+  const STRESS_SKALIERUNG       = 900;
+  const STAB_GLAETTUNG_ALPHA    = 0.35;
+  const STAB_MIN                = 100;
+  const STAB_MAX                = 900;
+  const WOBBLE_AMPLITUDE_MAX    = 2.0;
+  const WOBBLE_TOTZONE_PX       = 0.4;
+
+  // Eigene Speicherorte, NICHT die Schlüssel der App.
+  //
+  // Bewusst getrennt: Ein Stresstest enthält absichtlich Anstrengung.
+  // Liefen die Grundlinien auf den Schlüsseln der App, würde diese
+  // Belastung die persönlichen Ruhewerte dauerhaft nach oben ziehen –
+  // die App reagierte danach träger, ohne dass man wüsste, warum. Das
+  // gilt für den Puls sogar noch stärker als für die Variabilität.
+  // Beim ersten Start werden die Werte der App als Startpunkt
+  // übernommen, danach entwickelt sich diese Seite eigenständig.
+  const NORMAL_KEY          = 'situativeTypografie_stresstestNormalwert';
+  const PULS_NORMAL_KEY     = 'situativeTypografie_stresstestPulsNormalwert';
+  const APP_NORMAL_KEY      = 'situativeTypografie_pulsVariabilitaetNormalwert';
+  const APP_PULS_NORMAL_KEY = 'situativeTypografie_pulsNormalwert';
+  const PUNKTE_KEY          = 'situativeTypografie_stresstestPunkte';
+
+  // Reifegrad der Grundlinien – dieselbe Regel wie in chat.html: Ein aus dem
+  // ersten Messwert gesetzter EMA ist keine Grundlinie, und Abweichungen
+  // davon sind Zufall. 250 Messpunkte entsprechen der Zeitkonstante der EMA
+  // (1 / 0,004) und damit rund 4 Minuten bei ~1 Messung/s.
+  const GRUNDLINIE_MIN_MESSPUNKTE = 250;
+  const NORMAL_ANZAHL_KEY      = 'situativeTypografie_stresstestNormalwertAnzahl';
+  const PULS_NORMAL_ANZAHL_KEY = 'situativeTypografie_stresstestPulsNormalwertAnzahl';
+
+  const AUTO_INTERVALL_MS = 5000;   // Hintergrund-Messpunkt alle 5 s
+
+  const BleClient = capacitorCommunityBluetoothLe.BleClient;
+  const HEART_RATE_SERVICE     = capacitorCommunityBluetoothLe.numberToUUID(0x180d);
+  const HEART_RATE_MEASUREMENT = capacitorCommunityBluetoothLe.numberToUUID(0x2a37);
+
+  // ══════════════════════════════════════════════════════════════
+  //  FOREGROUND SERVICE – der Grund für die Verbindungsabbrüche
+  //
+  //  chat.html startet nach dem Verbinden MomentumBleService.start().
+  //  Dieser native Dienst hat exakt einen Zweck (siehe Kommentar in
+  //  AndroidManifest.xml): Er hindert Android daran, den Prozess im
+  //  Hintergrund oder bei gesperrtem Bildschirm zu beenden – und
+  //  damit die BLE-Verbindung zu kappen.
+  //
+  //  Diese Seite startete ihn zunächst NICHT. Ohne ihn beendet
+  //  Android die Verbindung, sobald die Seite in den Hintergrund
+  //  gerät oder der Bildschirm ausgeht. Genau das Verhalten war zu
+  //  beobachten. Registrierung 1:1 wie in chat.html, inklusive der
+  //  Web-Attrappe, damit die Seite im Browser nicht abstürzt.
+  // ══════════════════════════════════════════════════════════════
+  const MomentumBleService = capacitorExports.registerPlugin('MomentumBleService', {
+    web: () => ({
+      async start() {}, async stop() {},
+      async meldeHerzfrequenz() {}, async meldeBewegung() {}, async meldeVariabilitaet() {},
+      async holeNachtDaten() {
+        return { summeHerzfrequenz: 0, summeBewegung: 0, anzahlMesspunkte: 0,
+                 summeVariabilitaet: 0, anzahlVariabilitaetsmesspunkte: 0 };
+      },
+      async nachtDatenZuruecksetzen() {}
+    })
+  });
+
+  // Dieselbe Geräte-ID wie chat.html: Ist das Band dort schon einmal
+  // verbunden gewesen, kann diese Seite ohne Auswahldialog direkt
+  // wieder verbinden – und umgekehrt.
+  const BAND_DEVICE_ID_KEY = 'situativeTypografie_bandDeviceId';
+
+  // ── Zustand ─────────────────────────────────────────────────
+  let bleBereit   = false;
+  let verbunden   = false;
+  let deviceId    = null;
+  let letzterBpm  = null;
+  let pulsFenster = [];              // { bpm, zeit }
+  let normalwert     = laden(NORMAL_KEY, laden(APP_NORMAL_KEY, null));
+  let pulsNormalwert = laden(PULS_NORMAL_KEY, laden(APP_PULS_NORMAL_KEY, null));
+  let normalwertAnzahl     = laden(NORMAL_ANZAHL_KEY, 0);
+  let pulsNormalwertAnzahl = laden(PULS_NORMAL_ANZAHL_KEY, 0);
+  let grundlinieStartZeit   = null;
+  let grundlinieStartAnzahl = 0;
+  let geglaettet  = null;
+  let letzteMessung = null;          // vollständiger Satz für die Aufzeichnung
+  let punkte      = ladenJson(PUNKTE_KEY, []);
+
+  function laden(schluessel, ersatz) {
+    try {
+      const w = JSON.parse(localStorage.getItem(schluessel));
+      return (typeof w === 'number' && isFinite(w)) ? w : ersatz;
+    } catch (e) { return ersatz; }
+  }
+  function ladenJson(schluessel, ersatz) {
+    try { return JSON.parse(localStorage.getItem(schluessel)) || ersatz; } catch (e) { return ersatz; }
+  }
+  function speichern(schluessel, wert) {
+    try { localStorage.setItem(schluessel, JSON.stringify(wert)); } catch (e) {}
+  }
+
+  const $ = (id) => document.getElementById(id);
+
+  // ══════════════════════════════════════════════════════════════
+  //  RECHNUNG – exakt wie pulsVariabilitaetMessen + bpmEmpfangen
+  //  in chat.html, nur ohne die Typografie drumherum.
+  // ══════════════════════════════════════════════════════════════
+  function variabilitaetMessen(bpm) {
+    const jetzt = Date.now();
+    pulsFenster.push({ bpm: bpm, zeit: jetzt });
+    pulsFenster = pulsFenster.filter(function (e) { return e.zeit >= jetzt - PULS_VAR_FENSTER_MS; });
+
+    // Puls-Grundlinie: braucht kein Messfenster, deshalb vor dem frühen
+    // Rücksprung. Gleiche Zeitkonstante wie die Variabilitäts-Grundlinie.
+    pulsNormalwert = pulsNormalwert == null
+      ? bpm
+      : pulsNormalwert + (bpm - pulsNormalwert) * PULS_VAR_EMA_ALPHA;
+    pulsNormalwertAnzahl++;
+    speichern(PULS_NORMAL_KEY, pulsNormalwert);
+    speichern(PULS_NORMAL_ANZAHL_KEY, pulsNormalwertAnzahl);
+
+    if (grundlinieStartZeit == null) {
+      grundlinieStartZeit   = jetzt;
+      grundlinieStartAnzahl = Math.min(pulsNormalwertAnzahl, normalwertAnzahl);
+    }
+
+    if (pulsFenster.length < PULS_VAR_MIN_MESSPUNKTE) return null;
+
+    // MASD: mittlere absolute Differenz aufeinanderfolgender Werte.
+    let summe = 0;
+    for (let i = 1; i < pulsFenster.length; i++) {
+      summe += Math.abs(pulsFenster[i].bpm - pulsFenster[i - 1].bpm);
+    }
+    const masd = summe / (pulsFenster.length - 1);
+
+    normalwert = normalwert == null ? masd : normalwert + (masd - normalwert) * PULS_VAR_EMA_ALPHA;
+    normalwertAnzahl++;
+    speichern(NORMAL_KEY, normalwert);
+    speichern(NORMAL_ANZAHL_KEY, normalwertAnzahl);
+    return masd;
+  }
+
+  // Beide Grundlinien immer gemeinsam betrachten – der Index verrechnet
+  // sie miteinander, eine reife gegen eine frische zu rechnen ergäbe einen
+  // verzerrten Wert.
+  function grundlinieBelastbar() {
+    return pulsNormalwertAnzahl >= GRUNDLINIE_MIN_MESSPUNKTE
+        && normalwertAnzahl >= GRUNDLINIE_MIN_MESSPUNKTE;
+  }
+
+  function grundlinieRestText() {
+    const fehlend = Math.max(GRUNDLINIE_MIN_MESSPUNKTE - pulsNormalwertAnzahl,
+                             GRUNDLINIE_MIN_MESSPUNKTE - normalwertAnzahl);
+    if (fehlend <= 0) return 'Grundlinie steht';
+    if (grundlinieStartZeit == null) return 'Grundlinie entsteht';
+    const vergangen = Date.now() - grundlinieStartZeit;
+    const gemessen  = Math.min(pulsNormalwertAnzahl, normalwertAnzahl) - grundlinieStartAnzahl;
+    if (gemessen < 5 || vergangen < 2000) return 'Grundlinie entsteht';
+    const sekunden = Math.round(fehlend * (vergangen / gemessen) / 1000);
+    return sekunden < 90
+      ? 'Grundlinie entsteht · noch ca. ' + Math.max(10, Math.round(sekunden / 10) * 10) + ' s'
+      : 'Grundlinie entsteht · noch ca. ' + Math.round(sekunden / 60) + ' min';
+  }
+
+  // Wortgleich zu stressIndexBerechnen in chat.html.
+  function stressIndexBerechnen(bpm, masd) {
+    const klemmen = function (x) { return Math.max(0, Math.min(1, x)); };
+
+    const pulsAbweichung = (pulsNormalwert != null && pulsNormalwert > 0)
+      ? (bpm - pulsNormalwert) / pulsNormalwert
+      : 0;
+    const hrvAbweichung = (normalwert != null && normalwert > 0)
+      ? (normalwert - masd) / normalwert
+      : 0;
+
+    const p = klemmen(pulsAbweichung / PULS_SPANNE);
+    const h = klemmen(hrvAbweichung / HRV_SPANNE);
+
+    return {
+      index: (W_PULS * p + W_HRV * h + W_UEBEREINSTIMMUNG * p * h) / W_SUMME,
+      pulsAnteil: p,
+      hrvAnteil: h,
+      pulsAbweichung: pulsAbweichung,
+      hrvAbweichung: hrvAbweichung
+    };
+  }
+
+  let empfangeneNotifications = 0;
+
+  function bpmEmpfangen(daten) {
+    empfangeneNotifications++;
+    const flags    = daten.getUint8(0);
+    const format16 = flags & 0x01;
+    const bpm      = format16 ? daten.getUint16(1, true) : daten.getUint8(1);
+    letzterBpm = bpm;
+
+    // Jede eingehende Notification protokollieren – damit sich am Gerät
+    // unterscheiden lässt, ob gar nichts ankommt (Verbindung/Abo defekt)
+    // oder ob die Werte ankommen und erst später verlorengehen.
+    console.log('[Band] Notification #' + empfangeneNotifications +
+      ' · ' + daten.byteLength + ' Bytes · Flags 0x' + flags.toString(16) +
+      ' · ' + bpm + ' bpm');
+
+    const masd = variabilitaetMessen(bpm);
+    if (masd == null) {
+      letzteMessung = { bpm: bpm, masd: null };
+      anzeigen();
+      return;
+    }
+
+    // Ohne belastbare Grundlinie kein Wert – dieselbe Regel wie in
+    // chat.html. Ein Stabilitätswert, der aus einem Startwert statt aus
+    // einer Grundlinie abgeleitet ist, sieht aus wie eine Messung, ist
+    // aber keine.
+    if (!grundlinieBelastbar()) {
+      letzteMessung = { bpm: bpm, masd: masd, grundlinieUnfertig: true,
+                        messpunkte: pulsFenster.length };
+      anzeigen();
+      return;
+    }
+
+    // Puls über Grundlinie UND Variabilität unter Grundlinie, kombiniert.
+    const stress = stressIndexBerechnen(bpm, masd);
+    const ueberschuss = Math.max(0, stress.index - STRESS_TOLERANZ);
+    const roh = Math.round(Math.min(STAB_MAX, Math.max(STAB_MIN, STAB_MAX - ueberschuss * STRESS_SKALIERUNG)));
+    geglaettet = geglaettet == null ? roh : geglaettet + (roh - geglaettet) * STAB_GLAETTUNG_ALPHA;
+
+    const stabil  = Math.round(geglaettet);
+    const zittern = WOBBLE_AMPLITUDE_MAX * (STAB_MAX - stabil) / (STAB_MAX - STAB_MIN);
+
+    const prozent = function (x) { return (x >= 0 ? '+' : '−') + (Math.abs(x) * 100).toFixed(1) + ' %'; };
+    console.log('[Stress] bpm=' + bpm + ' (Norm ' + pulsNormalwert.toFixed(1) +
+      ' · ' + prozent(stress.pulsAbweichung) + ' → p=' + stress.pulsAnteil.toFixed(2) + ')' +
+      ' · MASD=' + masd.toFixed(2) + ' (Norm ' + normalwert.toFixed(2) +
+      ' · ' + prozent(stress.hrvAbweichung) + ' → h=' + stress.hrvAnteil.toFixed(2) + ')' +
+      ' · Index=' + stress.index.toFixed(3) +
+      (stress.index <= STRESS_TOLERANZ ? ' (in Totzone)' : '') +
+      ' · Stabilität roh=' + roh + ' geglättet=' + stabil +
+      ' · Zittern=' + zittern.toFixed(2) + 'px');
+
+    letzteMessung = {
+      bpm: bpm, masd: masd, normalwert: normalwert, pulsNormalwert: pulsNormalwert,
+      pulsAbweichung: stress.pulsAbweichung, hrvAbweichung: stress.hrvAbweichung,
+      pulsAnteil: stress.pulsAnteil, hrvAnteil: stress.hrvAnteil, index: stress.index,
+      stabilRoh: roh, stabil: stabil, zittern: zittern,
+      messpunkte: pulsFenster.length
+    };
+    anzeigen();
+  }
+
+  // ── Anzeige ─────────────────────────────────────────────────
+  function anzeigen() {
+    const m = letzteMessung;
+    $('w-puls').textContent = m && m.bpm != null ? m.bpm : '—';
+
+    // Die Puls-Grundlinie steht schon vor der ersten Variabilität bereit
+    // (sie braucht kein Messfenster) – deshalb hier und nicht erst unten.
+    $('w-puls-normal').textContent = pulsNormalwert == null ? '—' : pulsNormalwert.toFixed(1);
+
+    if (!m || m.masd == null) {
+      ['w-masd', 'w-normal', 'w-p', 'w-h', 'w-index', 'w-stabil', 'w-zittern'].forEach(function (id) {
+        $(id).textContent = '—';
+      });
+      $('w-masd-hinweis').textContent = pulsFenster.length
+        ? pulsFenster.length + ' von ' + PULS_VAR_MIN_MESSPUNKTE + ' Messpunkten'
+        : 'braucht ' + PULS_VAR_MIN_MESSPUNKTE + ' Messpunkte';
+      $('w-totzone').textContent = 'noch keine Messung';
+      return;
+    }
+
+    // Grundlinie noch im Aufbau: MASD schon zeigen (die Messung läuft ja),
+    // aber alles, was einen Bezug zur Grundlinie braucht, ausdrücklich
+    // aussetzen statt einen Scheinwert anzuzeigen.
+    if (m.grundlinieUnfertig) {
+      $('w-masd').textContent = m.masd.toFixed(2);
+      $('w-masd-hinweis').textContent = m.messpunkte + ' Messpunkte im 45-s-Fenster';
+      $('w-normal').textContent      = normalwert == null ? '—' : normalwert.toFixed(2);
+      ['w-p', 'w-h', 'w-index', 'w-stabil', 'w-zittern'].forEach(function (id) {
+        $(id).textContent = '—';
+      });
+      $('w-p-hinweis').textContent     = 'wartet auf Grundlinie';
+      $('w-h-hinweis').textContent     = 'wartet auf Grundlinie';
+      $('w-index-hinweis').textContent = Math.min(pulsNormalwertAnzahl, normalwertAnzahl)
+        + '/' + GRUNDLINIE_MIN_MESSPUNKTE + ' Messpunkte';
+      $('w-totzone').textContent = grundlinieRestText()
+        + ' – bis dahin wird kein Wert gebildet';
+      return;
+    }
+
+    const prozent = function (x) { return (x >= 0 ? '+' : '−') + (Math.abs(x) * 100).toFixed(1) + ' %'; };
+
+    $('w-masd').textContent       = m.masd.toFixed(2);
+    $('w-masd-hinweis').textContent = m.messpunkte + ' Messpunkte im 45-s-Fenster';
+    $('w-normal').textContent     = m.normalwert.toFixed(2);
+    $('w-p').textContent          = m.pulsAnteil.toFixed(2);
+    $('w-p-hinweis').textContent  = prozent(m.pulsAbweichung) + ' · voll ab +' + (PULS_SPANNE * 100).toFixed(0) + ' %';
+    $('w-h').textContent          = m.hrvAnteil.toFixed(2);
+    $('w-h-hinweis').textContent  = prozent(m.hrvAbweichung) + ' · voll ab −' + (HRV_SPANNE * 100).toFixed(0) + ' %';
+    $('w-index').textContent      = m.index.toFixed(3);
+    $('w-stabil').textContent     = m.stabil;
+    $('w-zittern').textContent    = m.zittern.toFixed(2);
+
+    // Welches Signal trägt gerade? Genau die Frage, die eine einzelne
+    // Indexzahl verschweigt – bei körperlicher Anstrengung schlägt nur
+    // der Puls an, bei echter Anspannung typischerweise beide.
+    if (m.pulsAnteil > 0.05 && m.hrvAnteil > 0.05) {
+      $('w-index-hinweis').textContent = 'beide Signale – Übereinstimmung verstärkt';
+    } else if (m.pulsAnteil > 0.05) {
+      $('w-index-hinweis').textContent = 'nur Puls – kann auch Bewegung sein';
+    } else if (m.hrvAnteil > 0.05) {
+      $('w-index-hinweis').textContent = 'nur Variabilität';
+    } else {
+      $('w-index-hinweis').textContent = 'kein Signal – auf Grundlinie';
+    }
+
+    // Klartext statt Zahlenvergleich: Das ist die Aussage, um die es geht.
+    if (m.zittern >= WOBBLE_TOTZONE_PX) {
+      $('w-totzone').textContent = 'überschritten – die Schrift zittert sichtbar';
+    } else if (m.index <= STRESS_TOLERANZ) {
+      $('w-totzone').textContent = 'nein – Index liegt noch in der Toleranz von ' + STRESS_TOLERANZ.toFixed(2);
+    } else {
+      $('w-totzone').textContent = 'nein – ' + m.zittern.toFixed(2) + ' px, nötig sind ' + WOBBLE_TOTZONE_PX.toFixed(1);
+    }
+  }
+
+  // ── Aufzeichnung ────────────────────────────────────────────
+  function punktErfassen(stufe) {
+    if (!letzteMessung) return;
+    const m = letzteMessung;
+    punkte.push({
+      zeit: Date.now(),
+      stufe: stufe,                                   // null = automatisch
+      notiz: stufe ? ($('notiz').value || '').trim() : '',
+      bpm: m.bpm,
+      masd: m.masd,
+      normalwert: m.normalwert,
+      pulsNormalwert: m.pulsNormalwert,
+      pulsAnteil: m.pulsAnteil,
+      hrvAnteil: m.hrvAnteil,
+      index: m.index,
+      stabil: m.stabil,
+      zittern: m.zittern
+    });
+    speichern(PUNKTE_KEY, punkte);
+    listeRendern();
+    if (stufe) $('notiz').value = '';
+  }
+
+  function zeitKurz(ms) {
+    return new Date(ms).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function listeRendern() {
+    const liste = $('liste');
+    liste.innerHTML = '';
+    $('anzahl').textContent = punkte.length ? '· ' + punkte.length : '';
+
+    if (!punkte.length) {
+      const leer = document.createElement('div');
+      leer.className = 'leer';
+      leer.textContent = 'Noch nichts aufgezeichnet. Sobald das Band verbunden ist, entsteht alle 5 Sekunden automatisch ein Punkt.';
+      liste.appendChild(leer);
+      return;
+    }
+
+    // Neueste zuerst – beim Testen interessiert das Letzte.
+    punkte.slice().reverse().slice(0, 60).forEach(function (p) {
+      const zeile = document.createElement('div');
+      zeile.className = 'punkt' + (p.stufe ? '' : ' punkt--auto');
+
+      const zeit = document.createElement('span');
+      zeit.className = 'punkt-zeit';
+      zeit.textContent = zeitKurz(p.zeit);
+
+      const mitte = document.createElement('span');
+      mitte.className = 'punkt-mitte';
+      const zahlen = p.bpm + ' bpm · MASD ' + (p.masd == null ? '—' : p.masd.toFixed(2)) +
+                     ' · p ' + (p.pulsAnteil == null ? '—' : p.pulsAnteil.toFixed(2)) +
+                     ' · h ' + (p.hrvAnteil == null ? '—' : p.hrvAnteil.toFixed(2)) +
+                     ' · Index ' + (p.index == null ? '—' : p.index.toFixed(2)) +
+                     ' · Stabilität ' + (p.stabil == null ? '—' : p.stabil) +
+                     ' · ' + (p.zittern == null ? '—' : p.zittern.toFixed(2) + ' px');
+      mitte.textContent = zahlen;
+      if (p.notiz) {
+        const notiz = document.createElement('span');
+        notiz.className = 'punkt-notiz';
+        notiz.textContent = ' — ' + p.notiz;
+        mitte.appendChild(notiz);
+      }
+
+      const marke = document.createElement('span');
+      marke.className = 'punkt-marke';
+      marke.textContent = p.stufe ? p.stufe : 'auto';
+
+      zeile.appendChild(zeit); zeile.appendChild(mitte); zeile.appendChild(marke);
+      liste.appendChild(zeile);
+    });
+
+    if (punkte.length > 60) {
+      const hinweis = document.createElement('div');
+      hinweis.className = 'leer';
+      hinweis.textContent = '… ' + (punkte.length - 60) + ' ältere Punkte, vollständig im Textexport.';
+      liste.appendChild(hinweis);
+    }
+  }
+
+  // Tabulator-getrennt: lässt sich direkt in eine Tabelle einfügen.
+  function alsText() {
+    const kopf = ['Zeit', 'Einschaetzung', 'bpm', 'Puls_Normalwert', 'MASD', 'MASD_Normalwert',
+                  'p_Puls_Anteil', 'h_HRV_Anteil', 'Stress_Index', 'Stabilitaet', 'Zittern_px', 'Notiz'].join('\t');
+    const zeilen = punkte.map(function (p) {
+      return [
+        new Date(p.zeit).toISOString(),
+        p.stufe || '',
+        p.bpm,
+        p.pulsNormalwert == null ? '' : p.pulsNormalwert.toFixed(3),
+        p.masd == null ? '' : p.masd.toFixed(3),
+        p.normalwert == null ? '' : p.normalwert.toFixed(3),
+        p.pulsAnteil == null ? '' : p.pulsAnteil.toFixed(3),
+        p.hrvAnteil == null ? '' : p.hrvAnteil.toFixed(3),
+        p.index == null ? '' : p.index.toFixed(3),
+        p.stabil == null ? '' : p.stabil,
+        p.zittern == null ? '' : p.zittern.toFixed(3),
+        (p.notiz || '').replace(/\t/g, ' ')
+      ].join('\t');
+    });
+    return kopf + '\n' + zeilen.join('\n');
+  }
+
+  // ── Band verbinden ──────────────────────────────────────────
+  function statusSetzen(text) { $('band-status').textContent = text; }
+
+  // Nach erfolgreicher Verbindung – exakt die Reihenfolge aus
+  // chat.html (bandNachVerbindungAktivieren), ohne deren UI-Teile.
+  async function nachVerbindung(id) {
+    await BleClient.startNotifications(id, HEART_RATE_SERVICE, HEART_RATE_MEASUREMENT, bpmEmpfangen);
+    deviceId = id;
+    verbunden = true;
+    absichtlichGetrennt = false;
+    try { localStorage.setItem(BAND_DEVICE_ID_KEY, id); } catch (e) {}
+
+    // Ohne diesen Aufruf beendet Android die Verbindung, sobald die
+    // Seite in den Hintergrund gerät – siehe Kommentar oben.
+    MomentumBleService.start()
+      .then(function () { console.log('[Band] Foreground Service gestartet'); })
+      .catch(function (e) { console.error('[Band] Foreground Service konnte nicht gestartet werden:', e); });
+
+    $('band-btn').textContent = 'Band trennen';
+    statusSetzen('verbunden');
+    console.log('[Band] verbunden mit ' + id + ' · Notifications abonniert');
+  }
+
+  async function verbinden_() {
+    try {
+      if (!bleBereit) { await BleClient.initialize(); bleBereit = true; }
+      console.log('[Band] BleClient bereit');
+    } catch (e) {
+      statusSetzen('Bluetooth nicht verfügbar');
+      console.error('[Band] initialize()', e);
+      return;
+    }
+
+    // Zuerst ohne Auswahldialog versuchen, falls die ID schon bekannt
+    // ist – denselben Weg nimmt chat.html beim automatischen Reconnect.
+    let gespeicherte = null;
+    try { gespeicherte = localStorage.getItem(BAND_DEVICE_ID_KEY); } catch (e) {}
+    if (gespeicherte) {
+      try {
+        statusSetzen('verbinde mit bekanntem Band …');
+        console.log('[Band] versuche bekannte ID ' + gespeicherte);
+        await BleClient.connect(gespeicherte, getrennt);
+        await nachVerbindung(gespeicherte);
+        return;
+      } catch (e) {
+        console.warn('[Band] bekannte ID nicht erreichbar, öffne Auswahl:', e && e.message);
+      }
+    }
+
+    try {
+      statusSetzen('suche Gerät …');
+      const geraet = await BleClient.requestDevice({ services: [HEART_RATE_SERVICE] });
+      await BleClient.connect(geraet.deviceId, getrennt);
+      await nachVerbindung(geraet.deviceId);
+    } catch (e) {
+      if (/cancel/i.test(e && e.message || '')) { statusSetzen('abgebrochen'); return; }
+      // Häufigster Fall am Gerät: Die Haupt-App hält die Verbindung noch.
+      statusSetzen('Verbindung fehlgeschlagen – hält die App das Band noch?');
+      console.error('[Band] connect', e);
+    }
+  }
+
+  let absichtlichGetrennt = false;
+
+  function getrennt() {
+    const warGeplant = absichtlichGetrennt;
+    verbunden = false;
+    const alteId = deviceId;
+    deviceId = null;
+    $('band-btn').textContent = 'Band verbinden';
+    MomentumBleService.stop().catch(function () {});
+    console.log('[Band] Verbindung beendet' + (warGeplant ? ' (gewollt)' : ' (unerwartet)'));
+
+    if (warGeplant) { statusSetzen('getrennt'); return; }
+
+    // Unerwarteter Abbruch: einmal automatisch neu verbinden, damit eine
+    // laufende Messreihe nicht an einem kurzen Aussetzer scheitert.
+    statusSetzen('Verbindung verloren – versuche erneut …');
+    setTimeout(async function () {
+      if (verbunden || !alteId) return;
+      try {
+        await BleClient.connect(alteId, getrennt);
+        await nachVerbindung(alteId);
+      } catch (e) {
+        statusSetzen('Verbindung verloren');
+        console.error('[Band] automatischer Neuversuch fehlgeschlagen:', e && e.message);
+      }
+    }, 2000);
+  }
+
+  $('band-btn').addEventListener('click', async function () {
+    if (!verbunden) return verbinden_();
+    absichtlichGetrennt = true;
+    try { await BleClient.disconnect(deviceId); } catch (e) {}
+    getrennt();
+  });
+
+  // ── Bedienung ───────────────────────────────────────────────
+  $('skala').addEventListener('click', function (e) {
+    const btn = e.target.closest('button[data-stufe]');
+    if (!btn) return;
+    if (!letzteMessung) { statusSetzen('noch kein Messwert – erst Band verbinden'); return; }
+    punktErfassen(Number(btn.dataset.stufe));
+  });
+
+  $('export-btn').addEventListener('click', function () {
+    const feld = $('export');
+    feld.value = alsText();
+    feld.hidden = false;
+    feld.select();
+  });
+
+  $('kopieren-btn').addEventListener('click', async function () {
+    const text = alsText();
+    try {
+      await navigator.clipboard.writeText(text);
+      statusSetzen(punkte.length + ' Punkte kopiert');
+    } catch (e) {
+      // Zwischenablage braucht einen sicheren Kontext – sonst der
+      // Umweg über das Textfeld, das ohnehin da ist.
+      const feld = $('export');
+      feld.value = text; feld.hidden = false; feld.select();
+      statusSetzen('Kopieren nicht erlaubt – Text markiert');
+    }
+  });
+
+  $('leeren-btn').addEventListener('click', function () {
+    if (!punkte.length) return;
+    punkte = [];
+    speichern(PUNKTE_KEY, punkte);
+    listeRendern();
+    $('export').hidden = true;
+  });
+
+  $('normal-btn').addEventListener('click', function () {
+    // BEIDE Grundlinien zurücksetzen – eine allein zurückzusetzen würde
+    // den Index verzerren, weil dann eine frische gegen eine eingelaufene
+    // Grundlinie gerechnet würde.
+    normalwert = null; pulsNormalwert = null; geglaettet = null; pulsFenster = [];
+    normalwertAnzahl = 0; pulsNormalwertAnzahl = 0;
+    grundlinieStartZeit = null; grundlinieStartAnzahl = 0;
+    speichern(NORMAL_KEY, null);
+    speichern(PULS_NORMAL_KEY, null);
+    speichern(NORMAL_ANZAHL_KEY, 0);
+    speichern(PULS_NORMAL_ANZAHL_KEY, 0);
+    letzteMessung = null;
+    anzeigen();
+    statusSetzen('Beide Normalwerte zurückgesetzt – bauen sich in ca. 4 Minuten neu auf');
+  });
+
+  // ── Hintergrund-Aufzeichnung ────────────────────────────────
+  // Läuft unabhängig von den Einschätzungen, damit auch sichtbar
+  // wird, was ZWISCHEN den Antippern passiert.
+  setInterval(function () {
+    if (verbunden && letzteMessung) punktErfassen(null);
+  }, AUTO_INTERVALL_MS);
+
+  listeRendern();
+  anzeigen();
+})();
+</script>
+</body>
+</html>

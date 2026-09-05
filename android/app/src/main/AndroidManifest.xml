@@ -61,4 +61,22 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Kamera für das Scannen des Kopplungs-QR-Codes
+         (@capacitor-mlkit/barcode-scanning, siehe Abschnitt VERBINDUNG in
+         chat.html).
+
+         Muss HIER stehen: Anders als beim Bluetooth-Plugin bringt das
+         Barcode-Plugin die Berechtigung NICHT mit. Sein eigenes Manifest
+         ist leer, und aus CameraX kommt nur ein MetadataHolderService –
+         im zusammengeführten Manifest fehlte CAMERA nachweislich, geprüft
+         nach einem processDebugMainManifest-Lauf.
+
+         required="false": Der QR-Code ist eine Ergänzung, kein Ersatz.
+         Der sechsstellige Zahlencode funktioniert weiterhin vollständig,
+         deshalb soll die App auch auf Geräten ohne Kamera installierbar
+         bleiben. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 </manifest>

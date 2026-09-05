@@ -30,6 +30,15 @@ fs.copyFileSync(
   path.join(root, 'node_modules', '@capacitor-community', 'bluetooth-le', 'dist', 'plugin.js'),
   path.join(vendorRoot, 'bluetooth-le.js')
 );
+// QR-Erzeugung für den Kopplungs-Bildschirm (chat.html, Abschnitt
+// VERBINDUNG). qrcode-generator hat KEINE Abhängigkeiten und deklariert
+// intern "var qrcode" auf oberster Ebene – in einem klassischen <script>
+// ist das eine globale Variable, ganz ohne Bundler. Genau derselbe Weg
+// wie bei den beiden Dateien darüber.
+fs.copyFileSync(
+  path.join(root, 'node_modules', 'qrcode-generator', 'dist', 'qrcode.js'),
+  path.join(vendorRoot, 'qrcode.js')
+);
 
 // ── Kontakt-Fotos: assets/avatars/ → Kontaktliste in chat.html ─────
 // Der Browser kann Verzeichnisinhalte nicht selbst auflisten (auch
@@ -82,7 +91,11 @@ const gruppenDateien = fs.existsSync(gruppenOrdner)
 
 console.log('Gruppenbilder gefunden:', gruppenDateien.length, gruppenDateien);
 
-const dateien = ['index.html', 'chat.html', 'onboarding.html', 'situra-slider.html', 'ble-test.html'];
+// stresstest.html gehört bewusst dazu, umfrage.html bewusst nicht:
+// Der Wahrnehmungstest läuft im Browser, der Stresstest braucht dagegen
+// das Bluetooth-Band – und das Capacitor-Plugin dafür gibt es nur in der
+// gebauten App. Im reinen Browser bliebe die Seite ohne Messwerte.
+const dateien = ['index.html', 'chat.html', 'onboarding.html', 'situra-slider.html', 'ble-test.html', 'stresstest.html'];
 const ordner = ['assets', 'vendor'];
 
 fs.mkdirSync(dest, { recursive: true });

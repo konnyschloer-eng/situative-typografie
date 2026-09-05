@@ -22,8 +22,11 @@
   "homepage": "https://github.com/konnyschloer-eng/situative-typografie#readme",
   "dependencies": {
     "@capacitor-community/bluetooth-le": "^8.2.0",
+    "@capacitor-mlkit/barcode-scanning": "^8.1.0",
     "@capacitor/android": "^8.5.0",
     "@capacitor/cli": "^8.5.0",
-    "@capacitor/core": "^8.5.0"
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/local-notifications": "^8.3.1",
+    "qrcode-generator": "^2.0.4"
   }
 }

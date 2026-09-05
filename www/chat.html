@@ -780,6 +780,110 @@
       letter-spacing: normal;
     }
 
+    /* ══════════════════════════════════════════════════════════════
+       KOPPLUNG – zwei Modi: "Mein Code" und "Code scannen"
+
+       Bewusst getrennt statt untereinander: Wer koppeln will, ist immer
+       auf genau EINER Seite des Vorgangs – entweder man zeigt seinen
+       Code oder man liest den fremden. Beides gleichzeitig zu sehen
+       erzeugt nur die Frage, was man jetzt tun soll.
+
+       Der Umschalter übernimmt Form und Maße vom Tagebuch-Umschalter
+       (.tagebuch-ansicht-umschalter weiter oben) – dieselbe Bedeutung,
+       dieselbe Gestalt, keine zweite Erfindung. Farben durchweg aus den
+       vorhandenen Tokens, damit beide Modi der App folgen.
+       ══════════════════════════════════════════════════════════════ */
+    .kopplung-modus-umschalter {
+      display: flex;
+      gap: 2px;
+      width: fit-content;
+      margin: 0 auto 4px;
+      padding: 2px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+
+    .kopplung-modus-btn {
+      background: none;
+      border: none;
+      color: var(--text-3);
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      padding: 5px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .kopplung-modus-btn--aktiv,
+    .kopplung-modus-btn--aktiv:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .kopplung-seite[hidden] { display: none; }
+
+    .kopplung-seite {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      /* Beide Seiten gleich hoch halten, damit die Karte beim Umschalten
+         nicht springt. Der QR-Code (200px + Rand) gibt das Maß vor; die
+         Scan-Seite hat seit dem Entfernen der leeren Vorschaufläche
+         weniger Inhalt und verteilt den Rest gleichmäßig. */
+      min-height: 268px;
+      justify-content: center;
+    }
+
+    /* "oder eintippen" trennt die beiden Wege im Scan-Modus, ohne eine
+       Linie zu ziehen – zurückhaltend, aber deutlich genug, dass das
+       Eingabefeld nicht wie ein Anhängsel des Knopfes wirkt. */
+    .kopplung-trenner {
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 11px;
+      color: var(--text-3);
+      margin-top: 4px;
+    }
+
+    /* Der QR-Code braucht IMMER dunkle Module auf hellem Grund, auch im
+       invertierten Modus – Scanner erwarten diese Polarität, und eine
+       Umkehrung machte den Code für manche Lesegeräte unbrauchbar.
+       Deshalb hier bewusst feste Farben statt --bg/--text. */
+    .kopplung-qr {
+      width: 200px;
+      height: 200px;
+      padding: 12px;
+      background: #ffffff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .kopplung-qr svg { width: 100%; height: 100%; display: block; }
+
+    /* Platzhalter, solange kein Code erzeugt wurde */
+    .kopplung-qr--leer {
+      background: none;
+      border: 1px dashed var(--border);
+      color: var(--text-3);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 11px;
+      text-align: center;
+      padding: 20px;
+    }
+
+
+    /* Während der native Scanner läuft, muss die WebView durchsichtig
+       sein, sonst verdeckt sie das Kamerabild. */
+    .phone-frame.kamera-laeuft,
+    .phone-frame.kamera-laeuft .overlay,
+    .phone-frame.kamera-laeuft .overlay-karte { background: transparent; }
+    .phone-frame.kamera-laeuft .ansicht,
+    .phone-frame.kamera-laeuft .einstellung-zeile,
+    .phone-frame.kamera-laeuft .kopplung-modus-umschalter { visibility: hidden; }
+
     .infos-text {
       font-size: 13px;
       line-height: 1.6;
@@ -1334,7 +1438,10 @@
       margin-bottom: auto;
       font-size: 36px;
       line-height: 1.35;
-      text-align: center;
+      /* Linksbündig wie der Chat-Text. Die vertikale Zentrierung des
+         ganzen Absatzes in der Karte bleibt (margin-top/bottom:auto
+         oben) – hier geht es nur um die Zeilenausrichtung darin. */
+      text-align: left;
       color: #000000;
       overflow-wrap: break-word;
     }
@@ -2437,6 +2544,38 @@
       margin-left: 4px;
     }
 
+    /* ── "Neue Person": setzt beide Grundlinien zurück ──
+       Bewusst zurückhaltend statt als Gefahren-Knopf: Der Vorgang ist
+       nicht zerstörerisch, die Grundlinien bauen sich in rund vier
+       Minuten neu auf. */
+    .test-neue-person-btn {
+      display: block;
+      width: 100%;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: inherit;
+      font-family: inherit;
+      font-size: 12px;
+      padding: 9px 14px;
+      cursor: pointer;
+      transition: border-color 0.2s ease, opacity 0.1s ease;
+    }
+    .test-neue-person-btn:active { opacity: 0.7; }
+    .test-neue-person-btn:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+
+    .test-neue-person-hinweis {
+      display: block;
+      font-size: 9px;
+      color: var(--text-4);
+      font-style: italic;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
     /* ── Chat-Verlauf ─────────────────────────────────── */
     .chat-bereich {
       flex: 1;
@@ -2604,7 +2743,15 @@
     .nachricht .text {
       font-size: 30px;
       line-height: 1.35;
-      text-align: center;
+      /* Linksbündig, nicht zentriert: Bei mehrzeiligen Nachrichten
+         erzeugt Zentrierung unruhige Zeilenanfänge, und eine letzte
+         Zeile mit nur einem Wort steht verloren in der Mitte. Die BLASE
+         bleibt davon unberührt – sie ist inline-block mit
+         shrink-to-fit, ihre Breite ergibt sich aus der längsten Zeile
+         und ändert sich durch die Ausrichtung des Inhalts nicht. Auch
+         die Kontur (siehe .blase-kontur) wird aus der gemessenen
+         Blasengeometrie gezeichnet, nicht aus den Zeilen. */
+      text-align: left;
       overflow-wrap: break-word;
       min-width: 0;
     }
@@ -2666,6 +2813,10 @@
     }
 
     .nachricht-ich .nachricht-status { text-align: center; }
+
+    /* Empfangene Nachrichten: Kennzeichen linksbündig unter der Blase,
+       passend zur Ausrichtung der Nachricht selbst. */
+    .nachricht-andere .nachricht-status { text-align: left; }
 
     @keyframes einblenden {
       from { opacity: 0; transform: translateY(12px); }
@@ -2999,6 +3150,13 @@
       max-width: 100%;
       font-size: 14px; /* Fallback für Browser ohne Container-Query-Einheiten, siehe Regel direkt darunter */
       line-height: 1.35;
+      /* Nachrichtentext immer linksbündig, wie im 1:1-Chat (siehe
+         .nachricht .text). MUSS hier ausdrücklich stehen: Die Zone der
+         eigenen Person setzt text-align:right (siehe .raum-zone--du),
+         und das VERERBT sich in die Blase hinein – der Text darin stand
+         dadurch rechtsbündig. Die Blase selbst bleibt rechts, dafür
+         sorgt align-items:flex-end der Zone, nicht diese Eigenschaft. */
+      text-align: left;
       overflow-wrap: break-word;
       color: #000000;
       background: transparent;
@@ -3072,7 +3230,11 @@
       max-width: 88%;
       font-size: 30px;
       padding: 18px 24px;
-      text-align: center;
+      /* Linksbündig wie überall sonst – die große Zone ist derselbe
+         Nachrichtentext, nur größer gesetzt. Die Blase bleibt mittig,
+         dafür sorgt align-items:center von
+         .raum-zone--gross:not(.raum-merge) .raum-zone-nachrichten. */
+      text-align: left;
       background: transparent;
       z-index: 0;
     }
@@ -3900,7 +4062,10 @@
 
               <div class="sensor-dimension">
                 <div class="dimension-header">
-                  <span class="dimension-label">Intensität</span>
+                  <!-- Kennzeichnung wechselt zur Laufzeit: ohne Band ist
+                       der Regler ein Testwert, mit Band kommt der Wert
+                       aus dem Puls (siehe sensorHerkunftAktualisieren). -->
+                  <span class="dimension-label" id="label-intensitaet">Intensität<em class="test-badge" id="badge-intensitaet">Testwert</em></span>
                   <span class="dimension-wert" id="wert-intensitaet">500</span>
                 </div>
                 <input class="dimension-slider" type="range"
@@ -3919,7 +4084,7 @@
 
               <div class="sensor-dimension">
                 <div class="dimension-header">
-                  <span class="dimension-label dimension-label--live">Stabilität</span>
+                  <span class="dimension-label dimension-label--live" id="label-stabilitaet">Stabilität</span>
                   <span class="dimension-wert" id="wert-stabilitaet">—</span>
                 </div>
                 <div class="dimension-balken-spur">
@@ -3927,9 +4092,44 @@
                 </div>
               </div>
 
+              <!-- Wachheit: einzige Dimension ohne Regler. Der Wert kommt
+                   aus der nächtlichen Auswertung (nachtAuswertungPruefen),
+                   nicht aus einer Eingabe. Liegt keine Nacht vor, steht
+                   hier ausdrücklich "keine Messung" statt eines stillen
+                   Standardwerts – sonst sähe es nach Funktion aus. -->
               <div class="sensor-dimension">
                 <div class="dimension-header">
-                  <span class="dimension-label">Temperatur</span>
+                  <span class="dimension-label" id="label-wachheit">Wachheit</span>
+                  <span class="dimension-wert" id="wert-wachheit">—</span>
+                </div>
+                <div class="dimension-balken-spur">
+                  <div class="dimension-balken" id="balken-wachheit"></div>
+                </div>
+              </div>
+
+              <!-- Atmung: Regler steht bewusst HIER und nicht mehr im
+                   Test-Panel darunter. Zwei Namen für dieselbe Größe
+                   ("Atmung" oben, "Atemfrequenz" unten) waren nur
+                   verwirrend – die Kennzeichnung als Testwert sagt
+                   ohnehin, dass hier nichts gemessen wird. -->
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label">Atmung<em class="test-badge">Testwert</em></span>
+                  <span class="dimension-wert" id="wert-atemfrequenz">900</span>
+                </div>
+                <input class="dimension-slider" type="range"
+                  id="slider-atemfrequenz" min="100" max="900" value="900" step="1">
+                <div class="dimension-endpunkte"><span>aufgewühlt</span><span>gefasst</span></div>
+              </div>
+
+              <!-- Temperatur wirkt auf die Schriftgröße (kühl = kleiner,
+                   warm = größer, ±12 % – siehe sensorZuSchriftAchse).
+                   "Testwert", weil die Hauttemperatur weiterhin nicht
+                   angebunden ist: Der Wert kommt vom Regler, die echte
+                   Messung bleibt Ausblick. -->
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label">Temperatur<em class="test-badge">Testwert</em></span>
                   <span class="dimension-wert" id="wert-tonalitaet">500</span>
                 </div>
                 <input class="dimension-slider" type="range"
@@ -3953,28 +4153,29 @@
 
               <div class="test-drawer-inhalt" id="test-drawer-inhalt">
                 <div class="test-drawer-inneres">
-                  <span class="test-panel-label">Test-Eingaben · simuliert, kein Live-Sensor</span>
-                  <div class="sensor-grid">
+                  <span class="test-panel-label">Test-Eingaben · alle Regler stehen jetzt oben</span>
 
-                    <div class="sensor-dimension">
-                      <div class="dimension-header">
-                        <span class="dimension-label">Atemfrequenz<em class="test-badge">Testwert</em></span>
-                        <span class="dimension-wert" id="wert-atemfrequenz">900</span>
-                      </div>
-                      <!-- Ausgangswert 900 (nahezu volle Deckkraft): Die
-                           Atemfrequenz wird NICHT real gemessen. Ein
-                           mittlerer Startwert (vorher 500) hätte jeden
-                           Text dauerhaft bei ~68 % Deckkraft gehalten,
-                           obwohl dafür keine Messung vorliegt. Der
-                           Regler bleibt als Testwert bestehen – nur der
-                           Ausgangspunkt ist jetzt "unauffällig lesbar"
-                           statt "halb transparent ohne Anlass". -->
-                      <input class="dimension-slider" type="range"
-                        id="slider-atemfrequenz" min="100" max="900" value="900" step="1">
-                      <div class="dimension-endpunkte"><span>aufgewühlt</span><span>gefasst</span></div>
-                    </div>
-
-                  </div>
+                  <!-- Gerätewechsel beim Testen: Die persönlichen
+                       Grundlinien für Puls und Pulsvariabilität gehören zu
+                       EINER Person. Wird das Band weitergegeben, sind sie
+                       ungültig – und eine fremde Grundlinie erzeugt sofort
+                       Scheinabweichungen (das war die Ursache für
+                       Stabilität 100 direkt nach dem Anlegen). Beide werden
+                       immer gemeinsam zurückgesetzt, nie einzeln: Der
+                       Stress-Index verrechnet sie miteinander. -->
+                  <button class="test-neue-person-btn" id="neue-person-btn" type="button">
+                    Neue Person
+                  </button>
+                  <span class="test-neue-person-hinweis" id="neue-person-hinweis">
+                    Setzt die Grundlinien für Puls und Variabilität zurück
+                  </span>
+                  <!-- Die Regler für Atmung und Temperatur sind in die
+                       Sensor-Anzeige darüber gewandert: Dort stehen alle
+                       sechs Dimensionen beisammen, jeweils mit dem Vermerk
+                       "Testwert", wo nichts gemessen wird. Zwei Namen für
+                       dieselbe Größe ("Atmung" oben, "Atemfrequenz" hier)
+                       und doppelte element-IDs waren das Ergebnis der
+                       vorherigen Aufteilung. -->
                 </div>
               </div>
             </div>
@@ -4059,6 +4260,15 @@
      mit "BleClient"). -->
 <script src="vendor/capacitor.js"></script>
 <script src="vendor/bluetooth-le.js"></script>
+
+<!-- QR-Erzeugung für den Kopplungs-Bildschirm. qrcode-generator hat keine
+     Abhängigkeiten und deklariert intern "var qrcode" auf oberster Ebene –
+     bei klassischer Einbindung (ohne type=module) ist das eine globale
+     Variable, ganz ohne Bundler. Wird wie die beiden Dateien darüber von
+     scripts/sync-web.js aus node_modules nach vendor/ kopiert.
+     Das Scannen selbst läuft über das Capacitor-Plugin, das cap sync in
+     die App einbindet – dafür braucht es hier keine eigene Vendor-Datei. -->
+<script src="vendor/qrcode.js"></script>
 
 <script>
 
@@ -4731,6 +4941,27 @@
     'Situra-Black'
   ];
 
+  // Laufweite am langsamen Pol – für alle Schnitte gleich. Weite Laufweite
+  // gefährdet die Lesbarkeit nicht, sie ist nur ungewohnt; deshalb braucht
+  // sie im Gegensatz zum engen Pol keine Staffelung nach Strichstärke.
+  const SPACING_WEIT = 0.30;
+
+  // Laufweite am schnellen Pol, gestaffelt nach Schnitt. Begründung und
+  // Messprotokoll: siehe der Kommentarblock bei "spacing" in
+  // sensorZuSchriftAchse.
+  const SPACING_ENG_PRO_SCHNITT = {
+    'Situra-Thin':     -0.100,
+    'Situra-Light':    -0.090,
+    'Situra-Regular':  -0.065,
+    'Situra-Medium':   -0.055,
+    'Situra-SemiBold': -0.045,
+    'Situra-Bold':     -0.035,
+    'Situra-Black':    -0.025
+  };
+  // Rückfall, falls je ein Schnitt hinzukommt, der oben fehlt: der
+  // vorsichtigste Wert, nicht der großzügigste.
+  const SPACING_ENG_STANDARD = -0.025;
+
   function intensitaetZuSchriftschnitt(intensitaet) {
     const stufenBreite = 800 / SITURA_SCHRIFTSCHNITTE.length; // (900−100) / 7
     const index = Math.min(
@@ -5067,7 +5298,7 @@
   //  kontaktlisteAusManifestErsetzen und führt dort bewusst zu einem
   //  NO-OP (nichts wird angefasst) statt zu einer leeren Liste.
   // ═══════════════════════════════════════════════════════════════
-  const AVATARS_MANIFEST = /* @AVATARS_MANIFEST@ */ ["Elias.jpeg","Jonas.jpg","Jovan.jpeg","Lina.jpeg","Marie.jpeg","Marius.jpeg","Noelle.jpg","Paul.jpg","Theresa.png","Tim.jpg"];
+  const AVATARS_MANIFEST = /* @AVATARS_MANIFEST@ */ ["Elias.jpeg","Emilie.jpg","Fynn.jpg","Gina.jpg","Hannah.jpg","Jonas.jpg","Jovan.jpeg","Jule.jpg","Lina.jpeg","Linda.jpg","Marie.jpeg","Marius.jpeg","Miri.jpg","Noelle.jpg","Paul.jpg","Theresa.png","Tim.jpg","Vincent.jpg"];
   const gespraechsListe  = document.getElementById('gespraechs-liste');
 
   function kontaktNameAusDateiname(dateiname) {
@@ -5254,7 +5485,53 @@
     // getippten. 0,14 em ist bei 26–30 px Schriftgröße rund 4 px
     // Zusatzabstand – klar erkennbar, ohne das Wort auseinanderfallen
     // zu lassen. ← nachjustieren, wenn der Unterschied zu stark wirkt.
-    const spacing = umrechnen(rohwerte.tempo, 100, 900, 0.14, -0.02);
+    // ══════════════════════════════════════════════════════════════
+    //  TEMPO → LAUFWEITE, erweitert in beide Richtungen
+    //
+    //  Vorher: 0,140 em … −0,020 em. Der enge Pol war praktisch wirkungs-
+    //  los (−0,02 em sind bei 30 px keine 0,6 px), der weite blieb brav.
+    //
+    //  WEITER POL: 0,300 em, mehr als das Doppelte. Am Bildschirm geprüft
+    //  (Situra, 30 px = echte Größe von .nachricht .text): auch bei
+    //  0,380 em bleibt alles gut lesbar, aber ein langes Wort wird dann so
+    //  breit, dass es fast immer umbricht. 0,300 em ist deutlich gesperrt
+    //  und bricht seltener.
+    //
+    //  ENGER POL: schnittabhängig statt pauschal – das ist der Kern
+    //  dieser Änderung. Ein fester Wert kann nicht funktionieren, weil
+    //  Laufweite und Strichstärke sich gegenseitig aufheben: Dieselben
+    //  −0,07 em, die in Thin noch luftig wirken, machen Black zu einer
+    //  Masse. Die Intensitäts-Dimension wählt den Schnitt unabhängig vom
+    //  Tempo, beide Pole können also gleichzeitig auftreten.
+    //
+    //  Am Bildschirm ermittelt, mit langen Wörtern und den heiklen Paaren
+    //  rn / cl / vv / ss (dort summiert sich die Überlappung am stärksten,
+    //  und "rn" kippt als Erstes sichtbar zu "m"):
+    //
+    //    Schnitt     eng      Beobachtung an "Kernmodul"/"…schwierigkeiten"
+    //    ─────────── ──────── ────────────────────────────────────────────
+    //    Thin        −0,100   Striche kreuzen sich, Formen bleiben lesbar
+    //    Light       −0,090   dicht, alle Zeichen einzeln erkennbar
+    //    Regular     −0,065   berühren sich; ab −0,070 wird "rn" zu "m"
+    //    Medium      −0,055   entsprechend früher
+    //    SemiBold    −0,045
+    //    Bold        −0,035
+    //    Black       −0,025   hat kaum Spielraum: schon beim alten −0,020
+    //                         verschmilzt "ss" zu einer Form
+    //
+    //  Black bekommt damit sogar etwas WENIGER als vorher – dort war der
+    //  bisherige Wert bereits an der Grenze. Alle anderen Schnitte gewinnen
+    //  deutlich, Thin das Fünffache.
+    //  ← nachjustieren: Werte gelten für 30 px; bei kleinerer Schrift
+    //  verschmilzt es früher, weil die Überlappung in Pixeln gleich bleibt.
+    // ══════════════════════════════════════════════════════════════
+    const spacing = umrechnen(
+      rohwerte.tempo, 100, 900,
+      SPACING_WEIT,
+      SPACING_ENG_PRO_SCHNITT[schriftschnitt] != null
+        ? SPACING_ENG_PRO_SCHNITT[schriftschnitt]
+        : SPACING_ENG_STANDARD
+    );
 
     // Tempo → Dauer der Einblend-Animation neuer Nachrichten
     // Niedrig (100) = langsam/bedächtig (0.5 s) · hoch (900) = schnell/knapp (0.06 s)
@@ -5274,11 +5551,26 @@
     const wobbleRotRoh = umrechnen(rohwerte.stabilitaet, 100, 900, WOBBLE_ROT_MAX, 0);
     const wobbleRot    = wobbleRotRoh < WOBBLE_ROT_TOTZONE ? 0 : wobbleRotRoh;
 
-    // Temperatur (Körpertemperatur) ist ein Testwert (nicht real gemessen)
-    // und wirkt bewusst NICHT auf die Typografie der eigentlichen App –
-    // die Farb-Zuordnung kühl→warm ist rein illustrativ im Onboarding zu
-    // sehen (siehe onboarding.html, demo-farbe). Chat/Momente bleiben
-    // schwarz/weiß je nach Modus (siehe .text/.moment-karte-text CSS).
+    // ══ TEST/DEMO – Temperatur → Schriftgröße ══════════════════════
+    // Analogie Wärmeausdehnung: kühl = kleiner, warm = größer.
+    // Die Hauttemperatur wird NICHT real gemessen – der Wert kommt
+    // vorerst vom Testregler, die Anbindung bleibt Ausblick.
+    //
+    // Bewusst ein FAKTOR und keine Pixelgröße: Angewendet wird er als
+    // em-Wert (siehe stilAnwenden), also relativ zur Größe, die das
+    // umgebende Element ohnehin vorgibt. Dadurch bleibt die
+    // Größen-Hierarchie des Interface unangetastet – eine Nachricht
+    // skaliert von ihren 30px aus, ein Moment-Text von seinen 24px,
+    // und beide bleiben in ihrem jeweiligen Verhältnis.
+    //
+    // ±12 % ist eng genug, dass sich nichts überholt: Eine Nachricht
+    // misst im Minimum noch 26,4px und liegt damit weiterhin über dem
+    // Kontaktnamen (22px, skaliert gar nicht mit – stilAnwenden wirkt
+    // nur auf Wort-Spans in Nachrichten, Gruppenraum und Momenten).
+    // ← nachjustieren: größer als ~0,15 lässt Zeilen sichtbar springen.
+    const GROESSE_SPANNE = 0.12;
+    const temperaturWert = (rohwerte.tonalitaet != null) ? rohwerte.tonalitaet : 500;
+    const groesse = umrechnen(temperaturWert, 100, 900, 1 - GROESSE_SPANNE, 1 + GROESSE_SPANNE);
 
     // ══ TEST/DEMO – Schlafqualität → Unschärfe (filter: blur) ══════
     // Simulierte Eingabe, kein Live-Sensor. Niedrig/"müde" (100) = unscharf,
@@ -5297,7 +5589,7 @@
     const TRANSPARENZ_MIN = 0.35; // ← nachjustieren: Minimum bei Atemfrequenz 100
     const transparenz = umrechnen(rohwerte.atemfrequenz, 100, 900, TRANSPARENZ_MIN, 1);
 
-    return { schriftschnitt, spacing, einblendDauer, wobble, wobbleRot, blur, transparenz };
+    return { schriftschnitt, spacing, einblendDauer, wobble, wobbleRot, blur, transparenz, groesse };
   }
 
   function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
@@ -5382,9 +5674,19 @@
     // Tempo steuert NICHT das Zittern – nur Laufweite und Einblend-Speed.
     element.style.letterSpacing = `${achsen.spacing.toFixed(3)}em`;
 
-    // Temperatur wirkt bewusst NICHT auf die Farbe hier (siehe Kommentar
-    // an sensorZuSchriftAchse) – Text bleibt schwarz/weiß je nach Modus
-    // (element.style.color bleibt unangetastet, siehe stilNeutralAnwenden).
+    // ══ TEST/DEMO – Temperatur → Schriftgröße ═════════════════════
+    // In em, nicht in px: Der Faktor wirkt damit relativ zu der Größe,
+    // die das umgebende Element vorgibt (Nachricht 30px, Moment 24px,
+    // Gruppenraum eigene Container-Einheit). Die Hierarchie bleibt so
+    // erhalten, ohne dass diese Funktion sie kennen müsste.
+    // Ältere Snapshots ohne "groesse" (vor dieser Fassung eingefroren)
+    // fallen auf 1 zurück und bleiben damit unverändert.
+    element.style.fontSize = (achsen.groesse != null ? achsen.groesse : 1).toFixed(3) + 'em';
+
+    // Die Farbe bleibt von der Temperatur unberührt – Text ist schwarz
+    // oder weiß je nach Modus (element.style.color unangetastet, siehe
+    // stilNeutralAnwenden). Die Farb-Zuordnung kühl→warm ist rein
+    // illustrativ im Onboarding zu sehen.
 
     // BEHELF – Stabilität → per-Buchstaben-Zittern mit Zufallsanimation
     // Teilt KEINEN Parameter mit Tempo.
@@ -5421,6 +5723,9 @@
     element.style.animation             = 'none';
     element.style.filter                = 'none';
     element.style.opacity               = '1';
+    // Zurück auf die Größe des umgebenden Elements – neutral heißt
+    // hier: gar keine eigene Größe setzen, nicht "Faktor 1".
+    element.style.fontSize              = '';
     // Kein Pausenzuschlag im leblosen Zustand (siehe pausenZuschlagVerbrauchen)
     element.style.marginLeft            = '0em';
   }
@@ -5482,29 +5787,40 @@
   //  trotzdem alle Wörter ähnlich aussahen, lag an der Skalierung:
   //  0 bis 8 Zeichen/s auf die volle Achse 100–900.
   //
-  //  Reales Tippen auf einem Handy liegt etwa zwischen 1 Zeichen/s
-  //  (zögernd, mit Nachdenkpausen) und 5 Zeichen/s (flüssig). Das
-  //  belegte in der alten Skala nur den Bereich 200–600 – gut die
-  //  Hälfte der Achse blieb ungenutzt, und der Unterschied zwischen
-  //  einem gezögerten und einem schnellen Wort fiel entsprechend
-  //  klein aus.
+  //  Die Grenzen stammen jetzt aus Messdaten statt aus Schätzung:
+  //  Eine Studie mit 37.000 Teilnehmenden (Aalto University /
+  //  Cambridge / ETH Zürich, 2019) ermittelte fürs Tippen auf dem
+  //  Smartphone im Mittel 36 Wörter/Minute, 75 % unter 44, die
+  //  schnellsten über 80. Bei 5 Anschlägen je Wort sind das rund
+  //  3 Zeichen/s im Schnitt und bis 7 an der Spitze.
   //
-  //  Jetzt wird genau dieses Band auf die volle Achse abgebildet:
+  //  Vorher stand CPS_MAXIMUM auf 5, also 60 Wörter/Minute – schon
+  //  am oberen Rand der Verteilung. Dadurch landete bereits zügiges
+  //  Tippen (4,5 Z/s = 54 W/min) bei Tempo 800, praktisch am
+  //  Anschlag, und der Unterschied zwischen zügig und hastig fiel
+  //  in sich zusammen. Jetzt liegt derselbe Anschlag bei 577.
   //
-  //    Zeichen/s │ Tempo │ Laufweite  │ Eindruck
-  //    ──────────┼───────┼────────────┼──────────────────────
-  //      1,0     │  100  │  0,140 em  │ weit, zögernd
-  //      2,0     │  300  │  0,100 em  │ bedächtig
-  //      3,0     │  500  │  0,060 em  │ normal
-  //      4,0     │  700  │  0,020 em  │ zügig
-  //      5,0     │  900  │ −0,020 em  │ eng, gehetzt
+  //    Zeichen/s │ W/min │ Tempo │ Laufweite  │ Einordnung
+  //    ──────────┼───────┼───────┼────────────┼──────────────────
+  //      0,8     │   10  │  100  │  0,140 em  │ stark zögernd
+  //      1,5     │   18  │  190  │  0,122 em  │ bedächtig
+  //      3,0     │   36  │  384  │  0,083 em  │ Mittel der Studie
+  //      4,5     │   54  │  577  │  0,045 em  │ zügig
+  //      6,0     │   72  │  771  │  0,006 em  │ schnell
+  //      7,0     │   84  │  900  │ −0,020 em  │ schnellste Tippende
   //
-  //  Zum Nachjustieren: CPS_MINIMUM/CPS_MAXIMUM verschieben das Band
-  //  (bei schnellerem Tippen beide erhöhen), die Laufweiten-Grenzen in
-  //  sensorZuSchriftAchse bestimmen, wie stark der Effekt ausfällt.
+  //  Dass der Durchschnitt bei 384 und nicht exakt in der Mitte
+  //  liegt, ist beabsichtigt: Die Verteilung ist rechtsschief
+  //  (75 % unter 44 W/min), oberhalb des Mittels braucht es also
+  //  mehr Spielraum als darunter.
+  //
+  //  Zum Nachjustieren: CPS_MINIMUM/CPS_MAXIMUM verschieben das Band,
+  //  die Laufweiten-Grenzen in sensorZuSchriftAchse bestimmen, wie
+  //  stark der Effekt ausfällt. Die tatsächlich gemessenen Werte
+  //  stehen im Log unter [Tempo].
   // ══════════════════════════════════════════════════════════════
-  const CPS_MINIMUM            = 1; // ← nachjustieren: Zeichen/s → Tempo 100 (weiteste Laufweite). Alles darunter wird gekappt
-  const CPS_MAXIMUM            = 5; // ← nachjustieren: Zeichen/s → Tempo 900 (engste Laufweite)
+  const CPS_MINIMUM            = 0.8; // ← nachjustieren: Zeichen/s → Tempo 100 (weiteste Laufweite). Alles darunter wird gekappt
+  const CPS_MAXIMUM            = 7;   // ← nachjustieren: Zeichen/s → Tempo 900 (engste Laufweite)
   const WORT_TEMPO_MIN_ZEICHEN = 2; // ← nachjustieren: darunter ist die wortinterne Messung zu instabil (ein einzelner Tastendruck ergibt rechnerisch extreme cps). Von 4 auf 2 gesenkt – bei 4 reagierte die Anzeige bei kurzen Wörtern ("ok", "ja") überhaupt nie, siehe wortTempoLiveSchaetzen
   let letzteAnschlagZeit = null;    // Zeitpunkt des vorigen Tastendrucks – Grundlage der groben Live-Schätzung unterhalb der Schwelle
 
@@ -5636,11 +5952,44 @@
   // bei gesperrtem Bildschirm) – aktuelleRohwerte/aktuelleAchsen (relevant
   // fürs Wort-für-Wort-Einfrieren) werden davon unabhängig IMMER aktualisiert.
   function stabilitaetAnzeigenUndUebernehmen(gerundeterWert) {
+    stabilitaetGemessen          = true;
     aktuelleRohwerte.stabilitaet = gerundeterWert;
     aktuelleAchsen               = sensorZuSchriftAchse(aktuelleRohwerte);
     if (!document.hidden) {
+      if (labelStabilitaet) labelStabilitaet.innerHTML = 'Stabilität';
       wertStabilitaetAnzeige.textContent = gerundeterWert;
       balkenStabilitaet.style.width = `${(gerundeterWert - STAB_MIN) / (STAB_MAX - STAB_MIN) * 100}%`;
+      vorschauAktualisieren();
+    }
+  }
+
+  // Ob die angezeigte Stabilität auf einer belastbaren Messung beruht –
+  // analog wachheitGemessen weiter unten. false, solange sich die
+  // Grundlinien noch bilden (siehe GRUNDLINIE_MIN_MESSPUNKTE).
+  let stabilitaetGemessen = false;
+
+  /**
+   * Hält die Schrift ruhig, solange keine belastbare Grundlinie vorliegt.
+   * Setzt bewusst KEINEN gemessenen Wert, sondern den ruhigen Anschlag
+   * (STAB_MAX = kein Zittern), und schreibt in die Anzeige statt einer Zahl
+   * den Hinweis samt geschätzter Restzeit.
+   *
+   * Vorher fiel die Stabilität direkt nach dem Anlegen des Bands auf 100 –
+   * maximales Zittern – weil eine noch nicht eingelaufene (oder aus einer
+   * früheren Sitzung stammende) Grundlinie als Bezug diente. Ein Wert, der
+   * aussieht wie eine Messung, aber keine ist, ist schlechter als gar keiner.
+   */
+  function stabilitaetRuhigHalten() {
+    stabilitaetGemessen          = false;
+    aktuelleRohwerte.stabilitaet = STAB_MAX;
+    aktuelleAchsen               = sensorZuSchriftAchse(aktuelleRohwerte);
+    if (!document.hidden) {
+      wertStabilitaetAnzeige.textContent = '—';
+      balkenStabilitaet.style.width = '0%';
+      if (labelStabilitaet) {
+        labelStabilitaet.innerHTML = 'Stabilität<em class="test-badge">'
+          + (bandVerbunden ? grundlinieRestText() : 'keine Messung') + '</em>';
+      }
       vorschauAktualisieren();
     }
   }
@@ -5698,10 +6047,26 @@
       letzterStabilerTempo = tempo;
       // Laufweite hier nur zur Kontrolle mitgerechnet – die maßgebliche
       // Berechnung steht in sensorZuSchriftAchse.
+      // W/min mitgeloggt, weil die Kalibrierung in dieser Einheit
+      // vorliegt (Studie: Mittel 36, 75 % unter 44, Spitze über 80) –
+      // so lässt sich im Selbstversuch direkt einordnen, wo man liegt.
+      // 5 Anschläge je Wort ist die übliche Umrechnung.
+      const wpm = cps * 60 / 5;
+      const amRand = cps <= CPS_MINIMUM ? ' ⚠ am unteren Anschlag'
+                   : cps >= CPS_MAXIMUM ? ' ⚠ am oberen Anschlag' : '';
+      console.log('[Tipp] Wort endet · ' + wortZeichenAnzahl + ' Zeichen in ' +
+        Math.round(dauerMs) + ' ms → ' + cps.toFixed(2) + ' Z/s → Tempo ' + tempo);
       console.log('[Tempo] ' + new Date().toLocaleTimeString('de-DE') +
         ' · ' + wortZeichenAnzahl + ' Zeichen in ' + Math.round(dauerMs) + ' ms' +
-        ' · ' + cps.toFixed(2) + ' Z/s → Tempo ' + tempo +
-        ' · Laufweite ' + umrechnen(tempo, 100, 900, 0.14, -0.02).toFixed(3) + ' em');
+        ' · ' + cps.toFixed(2) + ' Z/s (' + Math.round(wpm) + ' W/min)' +
+        ' → Tempo ' + tempo +
+        // Laufweite über sensorZuSchriftAchse statt hier nachgerechnet: Der
+        // enge Pol hängt seit der Erweiterung am Schriftschnitt (siehe
+        // SPACING_ENG_PRO_SCHNITT), eine zweite Formel an dieser Stelle
+        // würde beim nächsten Nachjustieren still auseinanderlaufen.
+        ' · Laufweite ' + sensorZuSchriftAchse(
+            Object.assign({}, aktuelleRohwerte, { tempo: tempo })
+          ).spacing.toFixed(3) + ' em' + amRand);
     }
 
     wortStartZeit     = null;
@@ -5744,15 +6109,51 @@
     return Math.min(900, Math.max(100, Math.round(umrechnen(cps, CPS_MINIMUM, CPS_MAXIMUM, 100, 900))));
   }
 
+  // ══════════════════════════════════════════════════════════════
+  //  TIPP-ANALYSE – gespeist aus dem input-Ereignis, NICHT aus keydown
+  //
+  //  Vorher hing diese Funktion an 'keydown' und stieg gleich in der
+  //  ersten Zeile aus, wenn event.key kein einzelnes Zeichen war.
+  //  Genau das ist auf dem Handy der Regelfall: Android-Tastaturen
+  //  arbeiten über eine Eingabemethode (IME) und melden im keydown
+  //  key === 'Unidentified' (keyCode 229) statt des Zeichens.
+  //  'Unidentified'.length ist 12, nicht 1 – die Funktion kehrte also
+  //  bei JEDEM Anschlag sofort zurück.
+  //
+  //  Folge auf dem Gerät: Tempo blieb auf dem Startwert (jedes Wort
+  //  mit maximaler Laufweite), der Pausen-Zuschlag blieb 0, und ohne
+  //  Band änderte sich die Stabilität nie. Im Desktop-Browser fiel es
+  //  nicht auf, weil dort echte Tastenereignisse ankommen.
+  //
+  //  Das input-Ereignis feuert auf beiden Plattformen zuverlässig und
+  //  liefert über inputType/data dieselbe Information. Es ERSETZT den
+  //  keydown-Weg – liefen beide parallel, zählte eine physische
+  //  Tastatur jeden Anschlag doppelt.
+  // ══════════════════════════════════════════════════════════════
+  const TIPP_LOG = true;   // ← auf false setzen, wenn das Log stört
+
   function tippAnalysieren(event) {
-    const istTippTaste =
-      event.key.length === 1 ||
-      event.key === 'Backspace' ||
-      event.key === 'Delete';
-    if (!istTippTaste) return;
+    const art = event.inputType || 'insertText';
+
+    // Eingefügtes ist kein Tippen – das behandelt der Paste-Zweig im
+    // selben input-Handler (siehe dort, istEingefuegt).
+    if (art === 'insertFromPaste' || art === 'insertFromDrop') return;
+
+    // insertCompositionText kommt von Wisch-/Autokorrektur-Tastaturen,
+    // insertReplacementText beim Annehmen eines Vorschlags.
+    const istEinfuegen = art.lastIndexOf('insert', 0) === 0;
+    const istLoeschen  = art.lastIndexOf('delete', 0) === 0;
+    if (!istEinfuegen && !istLoeschen) return;
 
     const jetzt = Date.now();
-    const istEchtesZeichen = event.key.length === 1 && event.key !== ' '; // einzelnes Glyphen-Zeichen, explizit kein Leerzeichen
+
+    // Bei Wischeingabe liefert data mehrere Zeichen auf einmal – dann
+    // zählen sie auch alle, sonst liefe die Messung zu langsam.
+    const eingefuegt   = istEinfuegen ? (event.data || '') : '';
+    const anzahlNeu    = istEinfuegen ? Math.max(1, eingefuegt.length) : 0;
+    const letztesZeichen = eingefuegt.slice(-1);
+    const istLeerzeichen   = istEinfuegen && /\s/.test(letztesZeichen);
+    const istEchtesZeichen = istEinfuegen && !istLeerzeichen;
 
     // ── Pause zwischen Wörtern: Messung abschließen bzw. neu beginnen ──
     // Leerzeichen beginnt eine offene Messung. Das nächste echte Zeichen
@@ -5761,7 +6162,7 @@
     // löscht (Wortgrenze aufgehoben), lässt die offene Messung bewusst
     // unangetastet stehen – das nächste tatsächlich neue Wort bekommt
     // den Zuschlag dann trotzdem.
-    if (event.key === ' ') {
+    if (istLeerzeichen) {
       letzteLeerzeichenZeit = jetzt;
     } else if (istEchtesZeichen && letzteLeerzeichenZeit != null) {
       const pause = jetzt - letzteLeerzeichenZeit;
@@ -5778,10 +6179,10 @@
     // Prinzip wie beim Intensitäts-Regler, der bei BLE-Verbindung
     // deaktiviert wird) ─────────────────────
     if (!bandVerbunden) {
-      if (event.key === 'Backspace' || event.key === 'Delete') {
+      if (istLoeschen) {
         // Löschen destabilisiert; mehrere kurz hintereinander wirken kumulativ
         stabilitaet_wert = Math.max(STAB_MIN, stabilitaet_wert - STAB_BACKSPACE_ABZUG);
-      } else if (event.key === ' ') {
+      } else if (istLeerzeichen) {
         // Wort abgeschlossen → beruhigt den Rhythmus
         stabilitaet_wert = Math.min(STAB_MAX, stabilitaet_wert + STAB_LEERZEICHEN_GEWINN);
       }
@@ -5795,15 +6196,21 @@
     // – verändert weder letzterStabilerTempo noch die Messung selbst).
     // Backspace/Delete lassen die wortinterne Messung unangetastet.
     let tempo;
-    if (event.key === ' ') {
+    if (istLeerzeichen) {
       tempo = wortTempoAbschliessen(jetzt);
     } else {
       if (istEchtesZeichen) {
         if (wortStartZeit == null) {
           wortStartZeit     = jetzt; // erstes Zeichen eines neuen Worts
           wortZeichenAnzahl = 0;
+          if (TIPP_LOG) console.log('[Tipp] Wort beginnt · Zeichen "' + letztesZeichen +
+            '" · Quelle input/' + art);
         }
-        wortZeichenAnzahl++;
+        wortZeichenAnzahl += anzahlNeu;
+        if (TIPP_LOG) console.log('[Tipp] Zeichen ' + wortZeichenAnzahl +
+          ' · seit Wortbeginn ' + (jetzt - wortStartZeit) + ' ms');
+      } else if (istLoeschen && TIPP_LOG) {
+        console.log('[Tipp] Löschen (' + art + ') · Wortmessung läuft weiter');
       }
       tempo = wortTempoLiveSchaetzen(jetzt);
     }
@@ -5856,6 +6263,7 @@
   const wertStabilitaetAnzeige = document.getElementById('wert-stabilitaet');
   const balkenTempo            = document.getElementById('balken-tempo');
   const balkenStabilitaet      = document.getElementById('balken-stabilitaet');
+  const labelStabilitaet       = document.getElementById('label-stabilitaet');
 
   // Test-/Demo-Regler (simulierte Eingaben, kein Live-Sensor)
   const sliderAtemfrequenz     = document.getElementById('slider-atemfrequenz');
@@ -6180,10 +6588,11 @@
       wrapper.style.setProperty('--einblenden-dauer', `${eintrag.einblendDauer.toFixed(2)}s`);
     }
 
-    const absenderEl = document.createElement('span');
-    absenderEl.classList.add('nachricht-absender');
-    absenderEl.textContent = eintrag.vonMir ? 'Du' : (eintrag.absenderName || chatPartnerName.textContent);
-    wrapper.appendChild(absenderEl);
+    // Kein Absendername im Einzelchat: Zwischen genau zwei Personen ist
+    // ohnehin klar, wer schreibt – die Seite der Blase sagt es bereits.
+    // Im Gruppenraum bleibt die Zuordnung erhalten, der läuft über einen
+    // eigenen Renderpfad (.raum-* / raumNachrichtHinzufuegen) und ist
+    // von dieser Funktion nicht betroffen.
 
     const textEl = document.createElement('p');
     textEl.classList.add('text');
@@ -6225,9 +6634,17 @@
 
     wrapper.appendChild(textEl);
 
-    // Status-Indikator: Emotion-Zustand beim Absenden einfrieren
-    // Nur bei eigenen Nachrichten relevant; wird nie nachträglich geändert.
-    if (eintrag.vonMir) {
+    // Status-Indikator: Emotion-Zustand beim Absenden, eingefroren.
+    //
+    // Gilt für BEIDE Richtungen. Vorher stand hier "if (eintrag.vonMir)" –
+    // empfangene Nachrichten bekamen also nie ein "e", obwohl die
+    // Information vorliegt: Der leblos-Marker wird pro Wort mit
+    // übertragen (siehe Abschnitt VERBINDUNG, woerterPruefen im Server).
+    // Sie wurde beim Empfänger nur nie dargestellt.
+    //
+    // Das Kennzeichen sagt aus, wie die Nachricht GESENDET wurde – es
+    // gehört damit genauso zu einer empfangenen wie zu einer eigenen.
+    if (eintrag.wortSnapshots) {
       const statusEl = document.createElement('span');
       statusEl.classList.add('nachricht-status');
       // "e" sichtbar, wenn mindestens EIN Wort emotional eingefroren wurde;
@@ -7010,9 +7427,12 @@
 
   // ── Ereignis-Handler ──────────────────────────────────────────
 
-  eingabe.addEventListener('keydown', tippAnalysieren);
+  // Tipp-Analyse hängt am input-Ereignis weiter unten, NICHT hier:
+  // Android-Tastaturen melden im keydown kein Zeichen (siehe
+  // ausführliche Begründung bei tippAnalysieren). Chat.
   // Kombinierter Input-Handler: Höhe + Paste-Erkennung
   eingabe.addEventListener('input', function (e) {
+    tippAnalysieren(e);   // Tipp-Messung, siehe dort
     eingabeFeldAnpassen();
 
     // ══ MARKIERUNG: Unterscheidung eingefügt vs. getippt ═════════
@@ -7036,10 +7456,42 @@
     wortZustaendeSynchronisieren();
   });
 
+  // ── Senden: zwei Quellen, die sich gegenseitig ausschließen ──────
+  //
+  //  1. keydown mit key === 'Enter' – der Weg auf physischen Tastaturen
+  //     und bei allen Android-Tastaturen, die eine echte Enter-Taste
+  //     melden. preventDefault verhindert dort den Zeilenumbruch.
+  //
+  //  2. input mit inputType === 'insertLineBreak' – der Rückfall, falls
+  //     die Tastatur auch bei Enter nur 'Unidentified' liefert (dasselbe
+  //     IME-Verhalten, das die Tipp-Analyse lahmgelegt hat). Dann wird
+  //     der Umbruch nachträglich wieder entfernt und gesendet.
+  //
+  //  Doppeltes Senden ist ausgeschlossen: Greift Weg 1, verhindert sein
+  //  preventDefault den Umbruch – dann entsteht gar kein insertLineBreak.
+  //  Im Log steht unter [Tipp], welcher Weg gegriffen hat; damit lässt
+  //  sich auf dem Gerät nachsehen, statt es anzunehmen.
+  function nachrichtAbsenden(quelle) {
+    if (TIPP_LOG) console.log('[Tipp] Senden ausgelöst über ' + quelle);
+    absendenAusfuehren();
+  }
+
+  eingabe.addEventListener('input', function (e) {
+    if (e.inputType !== 'insertLineBreak') return;
+    // Umbruch entfernen, den der Browser bereits eingefügt hat.
+    eingabe.value = eingabe.value.replace(/\n$/, '');
+    if (!eingabe.value.trim()) return;
+    nachrichtAbsenden('input/insertLineBreak (IME-Tastatur)');
+  });
+
   eingabe.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter') return;
     if (e.shiftKey) return;        // Shift+Enter → Zeilenumbruch, nicht senden
     e.preventDefault();            // verhindert Zeilenumbruch beim Senden
+    nachrichtAbsenden('keydown/Enter (Taste meldet sich sauber)');
+  });
+
+  function absendenAusfuehren() {
     const text = eingabe.value.trim();
     if (!text) return;
 
@@ -7129,15 +7581,63 @@
 
     // Vorschau und Anzeigen auf den zurückgesetzten Zustand bringen
     stabilitaetUebernehmen(); // setzt aktuelleAchsen + Vorschau neu
-  });
+  }
+
+  // ── Sensor-Anzeige: alle sechs Dimensionen auf einen Blick ──────
+  // Zweck ist Ehrlichkeit: Man soll sehen, welcher Wert sich bewegt und
+  // welcher stillsteht. Deshalb zeigt jede Zeile den Wert UND seine
+  // Herkunft – ein Standardwert soll nicht wie eine Messung aussehen.
+  const labelIntensitaetEl = document.getElementById('label-intensitaet');
+  const badgeIntensitaet   = document.getElementById('badge-intensitaet');
+  const labelWachheit      = document.getElementById('label-wachheit');
+  const wertWachheit       = document.getElementById('wert-wachheit');
+  const balkenWachheit     = document.getElementById('balken-wachheit');
+  const wertAtmungSpiegel  = document.getElementById('wert-atmung-spiegel');
+  const balkenAtmung       = document.getElementById('balken-atmung');
+
+  // Ob die Wachheit aus einer echten Nacht stammt – wird von
+  // schlafStufeAnwenden gesetzt (siehe dort).
+  let wachheitGemessen = false;
+
+  function anteil(wert) { return Math.max(0, Math.min(100, (wert - 100) / 800 * 100)); }
+
+  function sensorAnzeigeAktualisieren() {
+    // Intensität: mit Band eine echte Messung, ohne Band Reglerwert.
+    if (badgeIntensitaet) {
+      badgeIntensitaet.textContent = bandVerbunden ? '' : 'Testwert';
+      badgeIntensitaet.hidden = bandVerbunden;
+    }
+    if (labelIntensitaetEl) {
+      labelIntensitaetEl.classList.toggle('dimension-label--live', bandVerbunden);
+    }
+    wertIntensitaet.textContent = aktuelleRohwerte.intensitaet;
+
+    // Wachheit: ohne ausgewertete Nacht ausdrücklich "keine Messung".
+    if (wertWachheit) {
+      wertWachheit.textContent = wachheitGemessen ? aktuelleRohwerte.schlafqualitaet : '—';
+    }
+    if (labelWachheit) {
+      labelWachheit.innerHTML = wachheitGemessen
+        ? 'Wachheit'
+        : 'Wachheit<em class="test-badge">keine Messung</em>';
+    }
+    if (balkenWachheit) {
+      balkenWachheit.style.width = wachheitGemessen ? anteil(aktuelleRohwerte.schlafqualitaet) + '%' : '0%';
+    }
+
+    // Atmung spiegelt den Testregler aus dem Test-Panel.
+    if (wertAtmungSpiegel) wertAtmungSpiegel.textContent = aktuelleRohwerte.atemfrequenz;
+    if (balkenAtmung)      balkenAtmung.style.width = anteil(aktuelleRohwerte.atemfrequenz) + '%';
+
+    wertTonalitaet.textContent   = aktuelleRohwerte.tonalitaet;
+    wertAtemfrequenz.textContent = aktuelleRohwerte.atemfrequenz;
+  }
 
   function sliderAktualisieren() {
     aktuelleRohwerte.intensitaet     = Number(sliderIntensitaet.value);
     aktuelleRohwerte.tonalitaet      = Number(sliderTonalitaet.value);
     aktuelleRohwerte.atemfrequenz    = Number(sliderAtemfrequenz.value);
-    wertIntensitaet.textContent      = aktuelleRohwerte.intensitaet;
-    wertTonalitaet.textContent       = aktuelleRohwerte.tonalitaet;
-    wertAtemfrequenz.textContent     = aktuelleRohwerte.atemfrequenz;
+    sensorAnzeigeAktualisieren();
     aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
     vorschauAktualisieren();
   }
@@ -7145,6 +7645,29 @@
   sliderIntensitaet.addEventListener('input', sliderAktualisieren);
   sliderTonalitaet.addEventListener('input',  sliderAktualisieren);
   sliderAtemfrequenz.addEventListener('input',    sliderAktualisieren);
+
+  // ── "Neue Person": beide Grundlinien gemeinsam zurücksetzen ──
+  // Kein Bestätigungsdialog: Der Vorgang ist nicht zerstörerisch (die
+  // Grundlinien bauen sich in ~4 Minuten neu auf) und beim Weitergeben des
+  // Bands soll er schnell gehen. Rückmeldung stattdessen direkt im Hinweis
+  // darunter, damit sichtbar ist, dass etwas passiert ist.
+  const neuePersonBtn     = document.getElementById('neue-person-btn');
+  const neuePersonHinweis = document.getElementById('neue-person-hinweis');
+  if (neuePersonBtn) {
+    neuePersonBtn.addEventListener('click', function () {
+      grundlinienZuruecksetzen();
+      sensorAnzeigeAktualisieren();
+      if (neuePersonHinweis) {
+        neuePersonHinweis.textContent = bandVerbunden
+          ? 'Zurückgesetzt · beide Grundlinien bilden sich neu, ca. 4 Minuten'
+          : 'Zurückgesetzt · Grundlinien bilden sich, sobald das Band verbunden ist';
+        clearTimeout(neuePersonBtn._hinweisTimer);
+        neuePersonBtn._hinweisTimer = setTimeout(function () {
+          neuePersonHinweis.textContent = 'Setzt die Grundlinien für Puls und Variabilität zurück';
+        }, 6000);
+      }
+    });
+  }
 
   antwortBtn.addEventListener('click', function () {
     if (naechsteAntwortIndex >= vorgegebeneNachrichten.length) return;
@@ -7247,14 +7770,22 @@
   const HEART_RATE_SERVICE     = capacitorCommunityBluetoothLe.numberToUUID(0x180d);
   const HEART_RATE_MEASUREMENT = capacitorCommunityBluetoothLe.numberToUUID(0x2a37);
 
-  // ── Nacht-Fenster (22:00–08:00) – Gerätesystemzeit, siehe MomentumBle-
+  // ── Nacht-Rahmen (21:00–11:00) – Gerätesystemzeit, siehe MomentumBle-
   // ForegroundService.istNachtzeit() für das native Pendant (native und
   // JS-Seite verwenden bewusst dieselbe simple Stunden-Grenze). Bestimmt
   // NUR die ACC-Rate + Connection Priority beim Verbindungsaufbau unten –
   // NICHT die reaktive Typografie (bpmEmpfangen bleibt unangetastet).
+  //
+  // Seit der Umstellung auf datengetriebene Schlaferkennung ist das nur
+  // noch eine Leitplanke gegen Mittagsschlaf, keine Schlafdauer mehr –
+  // deshalb weiter gefasst als früher (22:00–08:00). Wann der Schlaf
+  // tatsächlich begann und endete, entscheidet schlaffensterErkennen().
+  const RAHMEN_BEGINN_STUNDE = 21;
+  const RAHMEN_ENDE_STUNDE   = 11;
+
   function istNachtzeit() {
     const stunde = new Date().getHours();
-    return stunde >= 22 || stunde < 8;
+    return stunde >= RAHMEN_BEGINN_STUNDE || stunde < RAHMEN_ENDE_STUNDE;
   }
 
   // ── PMD (Polar Measurement Data) – Bewegung für die Nacht-Erfassung ──
@@ -7315,10 +7846,7 @@
       async meldeBewegung() {},
       async meldeVariabilitaet() {},
       async holeNachtDaten() {
-        return {
-          summeHerzfrequenz: 0, summeBewegung: 0, anzahlMesspunkte: 0,
-          summeVariabilitaet: 0, anzahlVariabilitaetsmesspunkte: 0
-        };
+        return { messpunkte: [], rahmenVorbei: false };
       },
       async nachtDatenZuruecksetzen() {}
     })
@@ -7358,7 +7886,17 @@
   // ══════════════════════════════════════════════════════════════════
   const PULS_VAR_FENSTER_MS     = 45000; // ← nachjustieren: gleitendes Fenster, 30–60s laut Auftrag
   const PULS_VAR_MIN_MESSPUNKTE = 5;     // ← nachjustieren: mind. 4 Differenzen, bevor der Wert genutzt wird
-  const PULS_VAR_EMA_ALPHA      = 0.08;  // ← nachjustieren: sehr träge, "persönlicher Normalwert" entwickelt sich über viele Minuten
+  // ← nachjustieren. WICHTIG, hier lag der eigentliche Fehler:
+  // Der Normalwert ist ein EMA über DIESELBE Größe, von der er die
+  // Abweichung liefern soll. Bei 0.08 und ~1 Messung/s lag seine
+  // Zeitkonstante bei rund 12 Sekunden – er jagte dem Signal also
+  // praktisch sofort hinterher, und die Differenz konnte gar nicht
+  // wachsen. Simuliert: Selbst ein Sturz der Variabilität um 62 %
+  // erzeugte nie mehr als 0,17 px Zittern, bei einer Totzone von
+  // 0,4 px also NIE etwas Sichtbares.
+  // 0.004 entspricht rund 4 Minuten – erst damit ist es ein
+  // "persönlicher Normalwert" und nicht ein Spiegel des Moments.
+  const PULS_VAR_EMA_ALPHA      = 0.004;
   // ══════════════════════════════════════════════════════════════
   //  STABILITÄT AUS DER PULS-VARIABILITÄT
   //
@@ -7374,31 +7912,146 @@
   //  persönlichen Normalwert fällt. Über dem Normalwert bleibt es ruhig
   //  — mehr Variabilität heißt entspannter, nicht unruhiger.
   //
-  //  Zusammenspiel der drei Größen (mit WOBBLE_TOTZONE_PX = 0,4 px):
-  //
-  //    Abweichung unter Normalwert │ Stabilität │ Zittern │ sichtbar?
-  //    ────────────────────────────┼────────────┼─────────┼──────────
-  //     bis 1,0 bpm (Toleranz)     │    900     │ 0,00 px │ nein
-  //     2,0 bpm                    │    780     │ 0,30 px │ nein (Totzone)
-  //     3,0 bpm                    │    660     │ 0,60 px │ ja, dezent
-  //     5,0 bpm                    │    420     │ 1,20 px │ ja, deutlich
-  //     ab 7,7 bpm                 │    100     │ 2,00 px │ Maximum
-  //
-  //  Praktisch heißt das: sichtbares Zittern beginnt erst ab etwa
-  //  2,7 bpm unter dem Normalwert. Zum Nachjustieren nach eigenen
-  //  Messungen: TOLERANZ verschiebt den Einsatzpunkt, SKALIERUNG die
-  //  Steilheit danach.
+  //  Seit dem Umbau auf den kombinierten Index (siehe unten) ist die
+  //  Variabilität allerdings nur noch EINE der beiden Eingangsgrößen.
   // ══════════════════════════════════════════════════════════════
-  const STAB_TOLERANZ           = 1.0;   // ← nachjustieren (bpm): Abweichung ohne jede Reaktion. Größer = später einsetzend
-  const STAB_PULS_SKALIERUNG    = 120;   // ← nachjustieren: Stabilitäts-Punkte pro bpm OBERHALB der Toleranz (vorher 150 ab Mittelwert). Kleiner = träger
-  const STAB_GLAETTUNG_ALPHA    = 0.2;   // ← nachjustieren: Glättung des angezeigten Werts. Bei ~1 Messung/s sind 0,2 rund 5 s bis 63 % einer Änderung
+
+  // ══════════════════════════════════════════════════════════════
+  //  KOMBINIERTER STRESS-INDEX AUS PULS **UND** VARIABILITÄT
+  //
+  //  Vorher zählte allein die Variabilität. Das Signal war zu schwach:
+  //  Die MASD-Näherung aus BPM-Werten ist grob (keine echten
+  //  RR-Intervalle), und ein einzelner verrauschter Kennwert trägt die
+  //  Aussage nicht.
+  //
+  //  Deshalb jetzt zwei Größen, beide gegen einen EIGENEN persönlichen
+  //  Normalwert gerechnet. Aus der Forschung zu Wearable-Stresserkennung
+  //  stammen die zwei Leitgedanken:
+  //    1. Auf die persönliche Grundlinie normalisieren – absolute Werte
+  //       schwanken zwischen Menschen zu stark (Ruhepuls 55 vs. 80).
+  //    2. Mehrere Kennwerte zu einem Index zusammenführen – das
+  //       verringert die Verzerrung durch den Messfehler eines einzelnen.
+  //
+  //  ── Schritt 1: relative Abweichungen (dimensionslos) ──
+  //    pulsAbweichung = (bpm − pulsNormalwert) / pulsNormalwert
+  //    hrvAbweichung  = (hrvNormalwert − masd) / hrvNormalwert
+  //  Beide sind so definiert, dass POSITIV = Anspannung bedeutet:
+  //  Puls ÜBER der Grundlinie, Variabilität UNTER der Grundlinie.
+  //
+  //  ── Schritt 2: auf eine gemeinsame Skala bringen ──
+  //  Die beiden schwanken unterschiedlich stark. Die Variabilität fällt
+  //  unter Belastung relativ viel deutlicher, als der Puls steigt –
+  //  deshalb eine eigene Bezugsspanne je Größe, die "volle Ausprägung"
+  //  auf 1,0 abbildet:
+  //    p = klemmen(pulsAbweichung / PULS_SPANNE, 0, 1)
+  //    h = klemmen(hrvAbweichung  / HRV_SPANNE,  0, 1)
+  //
+  //  ── Schritt 3: zusammenführen ──
+  //    index = (W_PULS·p + W_HRV·h + W_UEBEREINSTIMMUNG·p·h) / Summe
+  //
+  //  Gewichtung und ihre Begründung:
+  //   · HRV bekommt mehr Gewicht (0,6) – sie ist der besser belegte
+  //     Stressindikator.
+  //   · Der Puls bekommt trotzdem echtes Gewicht (0,4) als Korrektiv,
+  //     weil unsere HRV eben nur eine Näherung ist. Genau der Punkt aus
+  //     Schritt 2 der Forschungslage oben. Weniger als die HRV, weil der
+  //     Puls aus vielen Gründen steigt (Bewegung, Haltung, Koffein).
+  //   · Der Produktterm p·h trägt NUR bei, wenn beide Signale zugleich
+  //     anschlagen. Übereinstimmung zweier weitgehend unabhängiger
+  //     Messgrößen ist vertrauenswürdiger als ein starkes Einzelsignal.
+  //     Die Division durch die Gewichtssumme hält das Maximum bei 1,0.
+  //
+  //  Durchgerechnet (Normalwerte Puls 62 bpm, MASD 4,0):
+  //
+  //    Szenario                 │ bpm │ MASD │  p   │  h   │ Index │ Zittern
+  //    ─────────────────────────┼─────┼──────┼──────┼──────┼───────┼────────
+  //     Ruhe                    │  62 │ 4,0  │ 0,00 │ 0,00 │ 0,000 │ 0,00 px
+  //     leichte Anspannung      │  65 │ 3,2  │ 0,32 │ 0,50 │ 0,367 │ 0,56 px
+  //     deutliche Anspannung    │  68 │ 2,4  │ 0,65 │ 1,00 │ 0,809 │ 1,55 px
+  //     nur Puls hoch (Treppe)  │  72 │ 4,0  │ 1,00 │ 0,00 │ 0,308 │ 0,42 px
+  //     nur HRV runter          │  62 │ 2,2  │ 0,00 │ 1,00 │ 0,462 │ 0,77 px
+  //     beides zugleich         │  72 │ 2,4  │ 1,00 │ 1,00 │ 1,000 │ 1,98 px
+  //
+  //  Der Kern steht in den letzten drei Zeilen: einzeln liefern die
+  //  Signale 0,31 und 0,46, zusammen aber 1,00 – deutlich mehr als ihre
+  //  Summe. Treppensteigen allein landet knapp über der Totzone statt
+  //  bei voller Ausprägung.
+  //
+  //  GRENZE, ehrlich benannt: Körperliche Anstrengung sieht für das Band
+  //  aus wie Anspannung. Das geringere Puls-Gewicht dämpft das, beseitigt
+  //  es aber nicht. Bewegungsdaten lägen über den Beschleunigungssensor
+  //  vor (accDatenEmpfangen), fließen bisher aber nur in die
+  //  Nacht-Erfassung – sie als Korrektiv einzubeziehen wäre ein eigener
+  //  Schritt.
+  //
+  //  Die beiden SPANNEN sind begründete Schätzungen, keine Messwerte.
+  //  stresstest.html protokolliert alle Rohwerte mit und ist genau das
+  //  Werkzeug, um sie am eigenen Körper zu kalibrieren.
+  // ══════════════════════════════════════════════════════════════
+  const PULS_SPANNE          = 0.15; // ← nachjustieren: +15 % über Grundlinie = volles Puls-Signal
+  const HRV_SPANNE           = 0.40; // ← nachjustieren: −40 % unter Grundlinie = volles HRV-Signal
+  const W_PULS               = 0.4;  // Gewicht des Puls-Anteils
+  const W_HRV                = 0.6;  // Gewicht des Variabilitäts-Anteils (führend, siehe oben)
+  const W_UEBEREINSTIMMUNG   = 0.3;  // Bonus, wirkt nur wenn BEIDE anschlagen
+  const W_SUMME              = W_PULS + W_HRV + W_UEBEREINSTIMMUNG; // Normierung auf Maximum 1,0
+
+  // Totzone und Glättung bleiben – wirken jetzt aber auf den kombinierten
+  // Index statt auf die rohe bpm-Differenz. Die Toleranz ist damit
+  // dimensionslos (Index-Punkte), nicht mehr in bpm.
+  const STRESS_TOLERANZ         = 0.12;  // ← nachjustieren: Index-Abweichung ohne jede Reaktion. Größer = später einsetzend
+  const STRESS_SKALIERUNG       = 900;   // ← nachjustieren: Stabilitäts-Punkte pro Index-Punkt oberhalb der Toleranz
+  const STAB_GLAETTUNG_ALPHA    = 0.35;  // ← nachjustieren: Glättung des angezeigten Werts. Bei ~1 Messung/s sind 0,2 rund 5 s bis 63 % einer Änderung
 
   const PULS_VAR_NORMALWERT_KEY = 'situativeTypografie_pulsVariabilitaetNormalwert';
+  const PULS_NORMALWERT_KEY     = 'situativeTypografie_pulsNormalwert';
 
-  function pulsVariabilitaetNormalwertLaden() {
+  // ══════════════════════════════════════════════════════════════
+  //  BELASTBARKEIT DER GRUNDLINIEN
+  //
+  //  Beide Grundlinien sind EMAs, die mit dem ALLERERSTEN Messwert
+  //  starten (normalwert == null ? wert : …). Ein einzelner Messwert ist
+  //  aber keine Grundlinie – und direkt nach dem Anlegen des Bands ist er
+  //  der schlechteste denkbare: Das Band pendelt sich noch ein, der Puls
+  //  ist vom Aufstehen und Anlegen erhöht, die Variabilität schwankt.
+  //  Jede Abweichung von so einem Startwert ist bedeutungslos.
+  //
+  //  Beobachtet: Stabilität 100 – unterer Anschlag, maximales Zittern –
+  //  unmittelbar nach dem Anlegen. Zwei Wege führen dahin:
+  //    1. Ein in localStorage liegengebliebener Normalwert aus einer
+  //       früheren Sitzung (oder von einer anderen Person) wird sofort
+  //       als Bezug benutzt, obwohl er zum aktuellen Zustand nicht passt.
+  //    2. Ein aus der Einschwingphase des Bands stammender Startwert
+  //       liegt weit daneben, und der echte Wert danach erzeugt eine
+  //       riesige Scheinabweichung.
+  //
+  //  Deshalb zählt jede Grundlinie jetzt mit, aus wie vielen Messwerten
+  //  sie besteht, und liefert erst ab GRUNDLINIE_MIN_MESSPUNKTE einen
+  //  Beitrag. Solange sie sich bildet, wird KEIN Stabilitätswert gesetzt:
+  //  Die Schrift bleibt ruhig, die Anzeige sagt, dass die Grundlinie noch
+  //  entsteht, und nennt die ungefähre Restzeit.
+  //
+  //  250 Messpunkte, weil das genau der Zeitkonstante der EMA entspricht:
+  //  1 / PULS_VAR_EMA_ALPHA = 1 / 0,004 = 250. Bei rund einer Messung pro
+  //  Sekunde sind das die etwa 4 Minuten, nach denen der EMA erstmals
+  //  überwiegend aus eigenen Daten besteht statt aus dem Startwert.
+  //
+  //  Der Zähler wird MIT persistiert – sonst müsste eine längst
+  //  eingelaufene Grundlinie nach jedem App-Start erneut 4 Minuten
+  //  reifen. Nach dem Update auf diese Fassung passiert das einmalig,
+  //  weil für die bereits gespeicherten Werte kein Zähler existiert; das
+  //  ist gewollt, denn wie belastbar sie waren, weiß niemand.
+  // ══════════════════════════════════════════════════════════════
+  const GRUNDLINIE_MIN_MESSPUNKTE = 250;
+  const PULS_NORMALWERT_ANZAHL_KEY     = 'situativeTypografie_pulsNormalwertAnzahl';
+  const PULS_VAR_NORMALWERT_ANZAHL_KEY = 'situativeTypografie_pulsVariabilitaetNormalwertAnzahl';
+
+  // Liest einen persistierten Normalwert. Wird für beide Grundlinien
+  // benutzt (Variabilität und Puls) – dieselbe Logik, nur ein anderer
+  // Schlüssel.
+  function normalwertLaden(schluessel) {
     try {
-      const wert = JSON.parse(localStorage.getItem(PULS_VAR_NORMALWERT_KEY));
-      return typeof wert === 'number' ? wert : null;
+      const wert = JSON.parse(localStorage.getItem(schluessel));
+      return typeof wert === 'number' && isFinite(wert) ? wert : null;
     } catch (e) {
       return null;
     }
@@ -7406,7 +8059,95 @@
 
   let pulsFenster = []; // { bpm, zeit }-Einträge der letzten PULS_VAR_FENSTER_MS
   let stabilitaetGeglaettet = null; // EMA über den abgeleiteten Stabilitätswert, siehe STAB_GLAETTUNG_ALPHA
-  let pulsVariabilitaetNormalwert = pulsVariabilitaetNormalwertLaden(); // EMA, null bis genug Messpunkte da sind
+  let pulsVariabilitaetNormalwert = normalwertLaden(PULS_VAR_NORMALWERT_KEY); // EMA, null bis genug Messpunkte da sind
+  // Zweite Grundlinie: der persönliche Ruhepuls. Gleiche Zeitkonstante wie
+  // die Variabilitäts-Grundlinie (PULS_VAR_EMA_ALPHA, rund 4 Minuten), damit
+  // beide Abweichungen sich auf einen vergleichbar trägen Bezug stützen –
+  // sonst wäre die eine ein Momentwert und die andere ein Normalwert.
+  let pulsNormalwert = normalwertLaden(PULS_NORMALWERT_KEY);
+
+  // Reifegrad beider Grundlinien (siehe GRUNDLINIE_MIN_MESSPUNKTE oben).
+  let pulsNormalwertAnzahl    = normalwertLaden(PULS_NORMALWERT_ANZAHL_KEY) || 0;
+  let pulsVarNormalwertAnzahl = normalwertLaden(PULS_VAR_NORMALWERT_ANZAHL_KEY) || 0;
+
+  // Für die Restzeit-Schätzung: Wann kam der erste Messwert dieser Sitzung,
+  // und wie viele seither? Daraus ergibt sich die tatsächliche Messrate –
+  // besser als "1 pro Sekunde" anzunehmen, denn die Rate hängt am Band und
+  // an der Verbindungsqualität.
+  let grundlinieStartZeit     = null;
+  let grundlinieStartAnzahl   = 0;
+
+  // Beide Grundlinien werden IMMER gemeinsam betrachtet: Der Stress-Index
+  // verrechnet sie miteinander, eine reife gegen eine frische zu rechnen
+  // ergäbe einen verzerrten Wert.
+  function grundlinieBelastbar() {
+    return pulsNormalwertAnzahl >= GRUNDLINIE_MIN_MESSPUNKTE
+        && pulsVarNormalwertAnzahl >= GRUNDLINIE_MIN_MESSPUNKTE;
+  }
+
+  // Geschätzte Restzeit in Millisekunden, bis beide Grundlinien belastbar
+  // sind. null, wenn sich die Rate noch nicht abschätzen lässt.
+  function grundlinieRestMs() {
+    const fehlend = Math.max(
+      GRUNDLINIE_MIN_MESSPUNKTE - pulsNormalwertAnzahl,
+      GRUNDLINIE_MIN_MESSPUNKTE - pulsVarNormalwertAnzahl
+    );
+    if (fehlend <= 0) return 0;
+    if (grundlinieStartZeit == null) return null;
+
+    const vergangen = Date.now() - grundlinieStartZeit;
+    const gemessen  = Math.min(pulsNormalwertAnzahl, pulsVarNormalwertAnzahl) - grundlinieStartAnzahl;
+    if (gemessen < 5 || vergangen < 2000) return null; // zu früh für eine sinnvolle Schätzung
+
+    return Math.round(fehlend * (vergangen / gemessen));
+  }
+
+  // "noch ca. 3 min" / "noch ca. 40 s" – bewusst grob, es ist eine Schätzung.
+  function grundlinieRestText() {
+    const rest = grundlinieRestMs();
+    if (rest == null) return 'Grundlinie entsteht';
+    if (rest <= 0)    return 'Grundlinie steht';
+    const sekunden = Math.round(rest / 1000);
+    return sekunden < 90
+      ? 'Grundlinie entsteht · noch ca. ' + Math.max(10, Math.round(sekunden / 10) * 10) + ' s'
+      : 'Grundlinie entsteht · noch ca. ' + Math.round(sekunden / 60) + ' min';
+  }
+
+  /**
+   * Setzt beide Grundlinien gemeinsam zurück – nie einzeln, siehe
+   * grundlinieBelastbar(). Für den Fall, dass das Gerät beim Testen an eine
+   * andere Person weitergegeben wird: Deren Puls hat mit der gespeicherten
+   * Grundlinie nichts zu tun, und genau daraus entstand der Ausschlag auf
+   * Stabilität 100 direkt nach dem Anlegen.
+   */
+  function grundlinienZuruecksetzen() {
+    pulsNormalwert = null;
+    pulsVariabilitaetNormalwert = null;
+    pulsNormalwertAnzahl = 0;
+    pulsVarNormalwertAnzahl = 0;
+    grundlinieStartZeit = null;
+    grundlinieStartAnzahl = 0;
+    pulsFenster = [];
+    stabilitaetGeglaettet = null;
+
+    [PULS_NORMALWERT_KEY, PULS_VAR_NORMALWERT_KEY,
+     PULS_NORMALWERT_ANZAHL_KEY, PULS_VAR_NORMALWERT_ANZAHL_KEY,
+     // Die Stresstest-Seite führt eigene Grundlinien (bewusst getrennt,
+     // damit Belastungstests den Ruhewert der App nicht verziehen). Bei
+     // einem Personenwechsel sind sie genauso ungültig, deshalb hier mit.
+     'situativeTypografie_stresstestNormalwert',
+     'situativeTypografie_stresstestPulsNormalwert',
+     'situativeTypografie_stresstestNormalwertAnzahl',
+     'situativeTypografie_stresstestPulsNormalwertAnzahl'
+    ].forEach(function (schluessel) {
+      try { localStorage.removeItem(schluessel); } catch (e) {}
+    });
+
+    // Schrift auf ruhig, Anzeige auf "keine Messung" – wie beim Start.
+    stabilitaetRuhigHalten();
+    console.log('[Grundlinie] Zurückgesetzt (neue Person). Beide Grundlinien bilden sich neu, '
+      + 'benötigt werden je ' + GRUNDLINIE_MIN_MESSPUNKTE + ' Messpunkte (~4 min bei verbundenem Band).');
+  }
 
   // Nimmt einen neuen BPM-Wert entgegen, pflegt das gleitende Fenster und
   // liefert die aktuelle Variabilität zurück (oder null, falls noch nicht
@@ -7417,6 +8158,26 @@
     const jetzt = Date.now();
     pulsFenster.push({ bpm: bpm, zeit: jetzt });
     pulsFenster = pulsFenster.filter(function (eintrag) { return eintrag.zeit >= jetzt - PULS_VAR_FENSTER_MS; });
+
+    // Puls-Grundlinie fortschreiben. BEWUSST vor dem frühen Rücksprung
+    // unten: Sie braucht kein Messfenster, jeder einzelne Wert trägt bei.
+    // So steht sie schon bereit, wenn die Variabilität nach den ersten
+    // Messpunkten dazukommt.
+    pulsNormalwert = pulsNormalwert == null
+      ? bpm
+      : pulsNormalwert + (bpm - pulsNormalwert) * PULS_VAR_EMA_ALPHA;
+    pulsNormalwertAnzahl++;
+    try {
+      localStorage.setItem(PULS_NORMALWERT_KEY, JSON.stringify(pulsNormalwert));
+      localStorage.setItem(PULS_NORMALWERT_ANZAHL_KEY, JSON.stringify(pulsNormalwertAnzahl));
+    } catch (e) {}
+
+    // Startpunkt für die Restzeit-Schätzung – beim ersten Messwert dieser
+    // Sitzung festhalten, damit sich die tatsächliche Messrate ergibt.
+    if (grundlinieStartZeit == null) {
+      grundlinieStartZeit   = jetzt;
+      grundlinieStartAnzahl = Math.min(pulsNormalwertAnzahl, pulsVarNormalwertAnzahl);
+    }
 
     if (pulsFenster.length < PULS_VAR_MIN_MESSPUNKTE) return null;
 
@@ -7429,9 +8190,53 @@
     pulsVariabilitaetNormalwert = pulsVariabilitaetNormalwert == null
       ? variabilitaet
       : pulsVariabilitaetNormalwert + (variabilitaet - pulsVariabilitaetNormalwert) * PULS_VAR_EMA_ALPHA;
-    try { localStorage.setItem(PULS_VAR_NORMALWERT_KEY, JSON.stringify(pulsVariabilitaetNormalwert)); } catch (e) {}
+    pulsVarNormalwertAnzahl++;
+    try {
+      localStorage.setItem(PULS_VAR_NORMALWERT_KEY, JSON.stringify(pulsVariabilitaetNormalwert));
+      localStorage.setItem(PULS_VAR_NORMALWERT_ANZAHL_KEY, JSON.stringify(pulsVarNormalwertAnzahl));
+    } catch (e) {}
 
     return variabilitaet;
+  }
+
+  // Führt beide Abweichungen zu einem Stress-Index zwischen 0 und 1
+  // zusammen. Rechenweg und Begründung der Gewichte: siehe der große
+  // Kommentarblock bei PULS_SPANNE weiter oben.
+  //
+  // Liefert außerdem die beiden Einzelanteile zurück, damit die
+  // Protokollierung zeigen kann, WELCHES Signal gerade beiträgt – ohne
+  // das wäre im Selbstversuch nicht unterscheidbar, ob ein hoher Index
+  // von Anspannung oder bloß von Treppensteigen kommt.
+  function stressIndexBerechnen(bpm, variabilitaet) {
+    const klemmen = function (x) { return Math.max(0, Math.min(1, x)); };
+
+    // Relativ zum jeweiligen Normalwert, nicht in absoluten bpm –
+    // sonst ließen sich die beiden nicht vergleichbar gewichten.
+    // Fehlt eine Grundlinie noch, trägt die Größe schlicht nichts bei
+    // (0), statt die Rechnung mit einem Platzhalter zu verfälschen.
+    const pulsAbweichung = (pulsNormalwert != null && pulsNormalwert > 0)
+      ? (bpm - pulsNormalwert) / pulsNormalwert
+      : 0;
+    const hrvAbweichung = (pulsVariabilitaetNormalwert != null && pulsVariabilitaetNormalwert > 0)
+      ? (pulsVariabilitaetNormalwert - variabilitaet) / pulsVariabilitaetNormalwert
+      : 0;
+
+    // Auf die gemeinsame 0..1-Skala. Negative Werte (Puls unter bzw.
+    // Variabilität über der Grundlinie) heißen "entspannter als sonst"
+    // und werden auf 0 geklemmt, statt in die Gegenrichtung
+    // auszuschlagen – dieselbe Richtungslogik wie vor dem Umbau.
+    const p = klemmen(pulsAbweichung / PULS_SPANNE);
+    const h = klemmen(hrvAbweichung / HRV_SPANNE);
+
+    const index = (W_PULS * p + W_HRV * h + W_UEBEREINSTIMMUNG * p * h) / W_SUMME;
+
+    return {
+      index: index,
+      pulsAnteil: p,
+      hrvAnteil: h,
+      pulsAbweichung: pulsAbweichung,
+      hrvAbweichung: hrvAbweichung
+    };
   }
 
   let bandVerbunden        = false;
@@ -7625,20 +8430,74 @@
   // separat beobachten, bevor sie irgendeine Bewertung beeinflusst.
   const NACHT_PULS_VARIABILITAET_KEY = 'situativeTypografie_nachtPulsVariabilitaet';
 
-  // Formel-Konstanten (analog BAND_BPM_MIN/MAX oben, bewusst einfach
-  // gehalten): zwei 0–1-Teil-Scores (Herzfrequenz, Bewegung), gleich
-  // gewichtet gemittelt zu einem Gesamt-Score, der in 4 gleich große Viertel
-  // eingeteilt wird (0–0.25 sehr gut … 0.75–1 schlecht). Je niedriger der
-  // nächtliche Ruhepuls und je weniger Bewegung, desto besser die Stufe.
+  // ══════════════════════════════════════════════════════════════
+  //  SCHLAFFENSTER AUS DEN DATEN (statt aus der Uhrzeit)
+  //
+  //  Vorher lieferte die Uhrzeit das Fenster: Alles zwischen 22:00 und
+  //  08:00 galt als Schlaf. Wer um 1 Uhr ins Bett ging, hatte drei
+  //  Stunden Wachzeit im Durchschnitt – der nächtliche Ruhepuls war
+  //  dadurch systematisch zu hoch und die Bewertung zu schlecht.
+  //
+  //  Jetzt: Der native Service legt alle 5 Minuten einen Messpunkt an
+  //  (Puls, Bewegung, Variabilität – siehe MomentumBleForegroundService).
+  //  Aus dieser Zeitreihe wird das Schlaffenster hier abgeleitet.
+  //
+  //  ── Normalisierung: gegen die Verteilung DIESER Nacht ──
+  //  Absolute Schwellen funktionieren bei der Bewegung grundsätzlich
+  //  nicht: Ihre Einheit ist "Summe der Magnitude-Deltas pro Tick", und
+  //  die hängt an der ACC-Abtastrate, die beim Verbindungsaufbau anhand
+  //  der Uhrzeit gewählt wird (52 Hz nachts, 208 Hz tags). Wer sich um
+  //  21:30 verbindet, misst über die ganze Nacht rund VIERMAL so große
+  //  Werte wie jemand, der sich um 22:30 verbindet – bei identischem
+  //  Schlaf. Deshalb wird jeder Wert gegen das 10.- und 90.-Perzentil
+  //  derselben Nacht normalisiert; ein gemeinsamer Faktor kürzt sich
+  //  dabei heraus.
+  //
+  //    pulsAnteil     = (bpm − p10) / (p90 − p10)      geklemmt 0..1
+  //    bewegungAnteil = (bew − p10) / (p90 − p10)      geklemmt 0..1
+  //
+  //  Weil der Rahmen bewusst Wachzeit an beiden Enden enthält, ist p90
+  //  der Wachwert dieser Nacht und p10 der Tiefschlafwert. Die
+  //  persönliche Grundlinie kommt damit aus den eigenen Daten, ohne
+  //  geräteübergreifenden Zustand.
+  //
+  //  ── Ruhe-Kriterium: beides zugleich ──
+  //  Ein Tick gilt als Ruhe, wenn Puls UND Bewegung im unteren Bereich
+  //  liegen. Ein einzelnes Signal genügt nicht: Ruhig fernsehen senkt
+  //  die Bewegung, nicht den Puls; wach daliegen senkt den Puls, nicht
+  //  unbedingt die Bewegung.
+  //
+  //  ── Dauer-Regeln ──
+  //  Einschlafen braucht mehr Beleg als Aufwachen: 30 Minuten
+  //  ununterbrochene Ruhe, damit ruhiges Lesen nicht als Schlaf zählt –
+  //  aber nur 20 Minuten Unruhe zum Beenden, weil echtes Erwachen sich
+  //  schnell zeigt. Kürzere Wachphasen bleiben INNERHALB des Fensters,
+  //  sie gehören zum normalen Schlaf.
+  // ══════════════════════════════════════════════════════════════
+  const RUHE_ANTEIL_SCHWELLE   = 0.35;  // ← nachjustieren: unteres Drittel der Nacht-Spanne gilt als Ruhe
+  const EINSCHLAF_DAUER_MS     = 30 * 60 * 1000; // ← nachjustieren: so lange muss Ruhe anliegen, bis Schlaf beginnt
+  const AUFWACH_DAUER_MS       = 20 * 60 * 1000; // ← nachjustieren: so lange muss Unruhe anliegen, bis Schlaf endet
+  const MIN_SCHLAF_DAUER_MS    = 3 * 60 * 60 * 1000; // ← nachjustieren: darunter gilt die Nacht als nicht erkannt
+  // Plausibilitätsprüfung: Ohne erkennbare Absenkung gab es keinen Schlaf.
+  // Verhindert, dass in einer durchwachten Nacht irgendein Fenster erfunden
+  // wird, nur weil die Perzentile immer irgendeine Spanne liefern.
+  const MIN_PULS_ABSENKUNG     = 0.08;  // ← nachjustieren: Schlafpuls muss ≥ 8 % unter dem Wachpuls liegen
+
+  // Formel-Konstanten für die Bewertung (analog BAND_BPM_MIN/MAX oben):
+  // zwei 0–1-Teil-Scores, gleich gewichtet gemittelt zu einem Gesamt-Score,
+  // der in 4 gleich große Viertel eingeteilt wird (0–0.25 sehr gut …
+  // 0.75–1 schlecht).
   const SCHLAF_HF_GUT            = 55;  // ← durchschnittl. Ruhepuls, gilt als "sehr gut"
   const SCHLAF_HF_SCHLECHT       = 90;  // ← ab hier gilt der Puls-Teil-Score als "schlecht"
-  // Bewegungs-Schwellwerte: PLATZHALTER. Die Einheit (Summe aus
-  // Magnitude-Deltas pro 15-Min-Tick, siehe accDatenEmpfangen) lässt sich vor
-  // einer ersten echten Nacht mit dem Band nicht sinnvoll beziffern – nach
-  // dem ersten Testlauf anhand der in MomentumBleForegroundService
-  // geloggten "Nacht-Tick"-Werte kalibrieren.
-  const SCHLAF_BEWEGUNG_GUT      = 500;   // ← nachjustieren nach erster echter Nacht
-  const SCHLAF_BEWEGUNG_SCHLECHT = 5000;  // ← nachjustieren nach erster echter Nacht
+  // Der Bewegungs-Teil ist jetzt der UNRUHE-ANTEIL: der Anteil der Ticks
+  // INNERHALB des Schlaffensters, die das Ruhe-Kriterium nicht erfüllten.
+  // Das ersetzt die früheren absoluten Schwellen SCHLAF_BEWEGUNG_GUT/
+  // _SCHLECHT (500/5000), die nie kalibriert waren und wegen des
+  // Abtastraten-Problems oben auch gar nicht kalibrierbar gewesen wären.
+  // Ein Anteil ist einheitenlos, direkt interpretierbar ("in 12 % der
+  // Nacht war Unruhe") und über Nächte hinweg vergleichbar.
+  const SCHLAF_UNRUHE_GUT        = 0.05; // ← nachjustieren: bis 5 % Unruhe gilt als ruhige Nacht
+  const SCHLAF_UNRUHE_SCHLECHT   = 0.35; // ← nachjustieren: ab 35 % Unruhe gilt die Nacht als unruhig
 
   // Bildet eine der 4 Stufen auf einen Rohwert der bestehenden 100–900-Skala
   // ab (Quartils-Mitten, analog zum Slider-Wertebereich).
@@ -7675,8 +8534,158 @@
     const rohwert = NACHT_STUFE_ZU_ROHWERT[stufe];
     if (rohwert == null) return;
     aktuelleRohwerte.schlafqualitaet = rohwert;
+    // Ab jetzt beruht die Wachheit auf einer echten Nacht – die Anzeige
+    // darf den Wert zeigen statt "keine Messung".
+    wachheitGemessen = true;
+    sensorAnzeigeAktualisieren();
     aktuelleAchsen = sensorZuSchriftAchse(aktuelleRohwerte);
     vorschauAktualisieren();
+  }
+
+  // ── Hilfsmittel für die Segmentierung ───────────────────────────
+
+  // Perzentil über eine unsortierte Zahlenliste (lineare Interpolation).
+  // Perzentile statt Minimum/Maximum, weil einzelne Ausreißer – ein
+  // Fehlmesswert des Bandes, ein kurzer Ruck – sonst die ganze Spanne
+  // verschieben und damit alle abgeleiteten Anteile verzerren würden.
+  function perzentil(werte, anteil) {
+    if (!werte.length) return null;
+    const sortiert = werte.slice().sort(function (a, b) { return a - b; });
+    const pos = (sortiert.length - 1) * anteil;
+    const unten = Math.floor(pos);
+    const oben  = Math.ceil(pos);
+    if (unten === oben) return sortiert[unten];
+    return sortiert[unten] + (sortiert[oben] - sortiert[unten]) * (pos - unten);
+  }
+
+  // Typischer Abstand zwischen zwei Messpunkten. Wird aus den Daten
+  // ermittelt statt fest verdrahtet: Das Tick-Intervall steht im nativen
+  // Service, und ein dort geändertes Intervall würde die Dauer-Regeln hier
+  // sonst still verfälschen. Median, damit eine einzelne große Lücke
+  // (Prozess-Neustart) den Wert nicht verschiebt.
+  function medianAbstand(punkte) {
+    if (punkte.length < 2) return 5 * 60 * 1000; // Rückfall: das native Standardintervall
+    const abstaende = [];
+    for (let i = 1; i < punkte.length; i++) abstaende.push(punkte[i].zeit - punkte[i - 1].zeit);
+    return perzentil(abstaende, 0.5) || 5 * 60 * 1000;
+  }
+
+  /**
+   * Leitet das Schlaffenster aus der Zeitreihe ab. Liefert entweder
+   * { erkannt: true, vonIndex, bisIndex, … } oder { erkannt: false, grund }.
+   * Rechenweg und Begründung: siehe der Kommentarblock bei
+   * RUHE_ANTEIL_SCHWELLE weiter oben.
+   */
+  function schlaffensterErkennen(punkte) {
+    if (punkte.length < 3) {
+      return { erkannt: false, grund: 'zu wenige Messpunkte (' + punkte.length + ')' };
+    }
+
+    // Nur Punkte MIT Daten gehen in die Perzentile ein. Lücken (Band
+    // getrennt) bleiben in der Reihe stehen, zählen aber unten als
+    // "keine Ruhe" – ohne Messwerte lässt sich Schlaf nicht behaupten.
+    const gueltig      = punkte.filter(function (p) { return p.bpm != null && p.bewegung != null; });
+    if (gueltig.length < 3) {
+      return { erkannt: false, grund: 'fast nur Lücken – ' + gueltig.length + ' von ' + punkte.length + ' Punkten mit Daten' };
+    }
+
+    const pulsWerte     = gueltig.map(function (p) { return p.bpm; });
+    const bewegungWerte = gueltig.map(function (p) { return p.bewegung; });
+
+    const pulsP10     = perzentil(pulsWerte, 0.10);
+    const pulsP90     = perzentil(pulsWerte, 0.90);
+    const bewegungP10 = perzentil(bewegungWerte, 0.10);
+    const bewegungP90 = perzentil(bewegungWerte, 0.90);
+
+    // Plausibilität: Ohne erkennbare Puls-Absenkung gab es keinen Schlaf.
+    if (!(pulsP90 > 0) || pulsP10 > pulsP90 * (1 - MIN_PULS_ABSENKUNG)) {
+      return {
+        erkannt: false,
+        grund: 'keine Puls-Absenkung erkennbar (p10=' + pulsP10.toFixed(1)
+             + ', p90=' + pulsP90.toFixed(1) + ', nötig wären ≤ '
+             + (pulsP90 * (1 - MIN_PULS_ABSENKUNG)).toFixed(1) + ')'
+      };
+    }
+
+    const spannePuls     = pulsP90 - pulsP10;
+    const spanneBewegung = bewegungP90 - bewegungP10;
+    const klemmen = function (x) { return Math.max(0, Math.min(1, x)); };
+
+    // Ruhe-Kennzeichnung je Punkt. Ist die Bewegungsspanne 0 (völlig
+    // gleichförmige Nacht), gilt die Bewegungsbedingung als erfüllt –
+    // dann entscheidet der Puls allein, statt durch 0 zu teilen.
+    const ruhe = punkte.map(function (p) {
+      if (p.bpm == null || p.bewegung == null) return false;
+      const pulsAnteil     = klemmen((p.bpm - pulsP10) / spannePuls);
+      const bewegungAnteil = spanneBewegung > 0
+        ? klemmen((p.bewegung - bewegungP10) / spanneBewegung)
+        : 0;
+      return pulsAnteil < RUHE_ANTEIL_SCHWELLE && bewegungAnteil < RUHE_ANTEIL_SCHWELLE;
+    });
+
+    const takt = medianAbstand(punkte);
+    // Zeitspanne eines Laufs von Index a bis b EINSCHLIESSLICH. Ohne den
+    // Zuschlag von einem Takt wäre ein einzelner Punkt 0 ms lang und sechs
+    // 5-Minuten-Punkte nur 25 statt 30 Minuten.
+    const laufDauer = function (a, b) { return punkte[b].zeit - punkte[a].zeit + takt; };
+
+    // Schlafbeginn: erster Lauf ununterbrochener Ruhe, der lang genug ist.
+    let beginn = -1;
+    let i = 0;
+    while (i < ruhe.length) {
+      if (!ruhe[i]) { i++; continue; }
+      let j = i;
+      while (j + 1 < ruhe.length && ruhe[j + 1]) j++;
+      if (laufDauer(i, j) >= EINSCHLAF_DAUER_MS) { beginn = i; break; }
+      i = j + 1;
+    }
+    if (beginn === -1) {
+      return {
+        erkannt: false,
+        grund: 'keine ' + Math.round(EINSCHLAF_DAUER_MS / 60000) + ' Minuten ununterbrochene Ruhe gefunden'
+      };
+    }
+
+    // Schlafende: letzter Ruhe-Punkt vor einem ausreichend langen
+    // Unruhe-Lauf. Kürzere Wachphasen bleiben INNERHALB des Fensters.
+    let ende = beginn;
+    let k = beginn;
+    while (k < ruhe.length) {
+      if (ruhe[k]) { ende = k; k++; continue; }
+      let m = k;
+      while (m + 1 < ruhe.length && !ruhe[m + 1]) m++;
+      if (laufDauer(k, m) >= AUFWACH_DAUER_MS) break; // echtes Erwachen
+      k = m + 1;                                       // kurze Wachphase – gehört zum Schlaf
+    }
+
+    const dauer = laufDauer(beginn, ende);
+    if (dauer < MIN_SCHLAF_DAUER_MS) {
+      return {
+        erkannt: false,
+        grund: 'erkanntes Fenster nur ' + Math.round(dauer / 60000) + ' Minuten, nötig sind '
+             + Math.round(MIN_SCHLAF_DAUER_MS / 60000)
+      };
+    }
+
+    // Unruhe-Anteil INNERHALB des Fensters (ersetzt die früheren absoluten
+    // Bewegungsschwellen, siehe SCHLAF_UNRUHE_GUT oben).
+    let unruhig = 0;
+    for (let n = beginn; n <= ende; n++) if (!ruhe[n]) unruhig++;
+
+    return {
+      erkannt: true,
+      vonIndex: beginn,
+      bisIndex: ende,
+      dauerMs: dauer,
+      unruheAnteil: unruhig / (ende - beginn + 1),
+      pulsP10: pulsP10,
+      pulsP90: pulsP90,
+      luecken: punkte.slice(beginn, ende + 1).filter(function (p) { return p.bpm == null; }).length
+    };
+  }
+
+  function uhrzeit(ms) {
+    return new Date(ms).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
   }
 
   async function nachtAuswertungPruefen() {
@@ -7684,24 +8693,60 @@
 
     try {
       const daten = await MomentumBleService.holeNachtDaten();
-      if (daten && daten.anzahlMesspunkte > 0) {
-        const avgHF       = daten.summeHerzfrequenz / daten.anzahlMesspunkte;
-        const avgBewegung = daten.summeBewegung     / daten.anzahlMesspunkte;
+      const punkte = (daten && daten.messpunkte) || [];
+
+      // Erst auswerten, wenn der Rahmen vorbei ist. Vorher würde ein Blick
+      // in die App um 3 Uhr die laufende Nacht abschneiden, verbrauchen und
+      // löschen – der Rest der Nacht begänne bei null. Genau das passierte
+      // vor der Umstellung bei JEDEM Laden von chat.html.
+      if (punkte.length && !daten.rahmenVorbei) {
+        console.log('[Schlaf] ' + punkte.length + ' Messpunkte vorhanden, aber der Nacht-Rahmen läuft noch '
+          + '(bis ' + RAHMEN_ENDE_STUNDE + ':00) – Auswertung wird verschoben, Daten bleiben erhalten.');
+      } else if (punkte.length) {
+        const fenster = schlaffensterErkennen(punkte);
+
+        console.log('[Schlaf] Zeitreihe: ' + punkte.length + ' Messpunkte von '
+          + uhrzeit(punkte[0].zeit) + ' bis ' + uhrzeit(punkte[punkte.length - 1].zeit)
+          + ', davon ' + punkte.filter(function (p) { return p.bpm == null; }).length + ' Lücken.');
+
+        if (!fenster.erkannt) {
+          // Ehrlich nichts melden, statt ein Fenster zu erfinden. Die
+          // Wachheits-Dimension bleibt dann auf "keine Messung".
+          console.log('[Schlaf] Kein Schlaffenster erkannt – ' + fenster.grund
+            + '. Es wird KEINE Schlafstufe gesetzt.');
+          await MomentumBleService.nachtDatenZuruecksetzen();
+          return;
+        }
+
+        const imFenster = punkte.slice(fenster.vonIndex, fenster.bisIndex + 1)
+          .filter(function (p) { return p.bpm != null; });
+        const avgHF = imFenster.reduce(function (s, p) { return s + p.bpm; }, 0) / imFenster.length;
 
         const hfScore = Math.min(1, Math.max(0,
           (avgHF - SCHLAF_HF_GUT) / (SCHLAF_HF_SCHLECHT - SCHLAF_HF_GUT)));
-        const bewegungScore = Math.min(1, Math.max(0,
-          (avgBewegung - SCHLAF_BEWEGUNG_GUT) / (SCHLAF_BEWEGUNG_SCHLECHT - SCHLAF_BEWEGUNG_GUT)));
-        const gesamtScore = (hfScore + bewegungScore) / 2; // 0 = sehr gut … 1 = schlecht
+        const unruheScore = Math.min(1, Math.max(0,
+          (fenster.unruheAnteil - SCHLAF_UNRUHE_GUT) / (SCHLAF_UNRUHE_SCHLECHT - SCHLAF_UNRUHE_GUT)));
+        const gesamtScore = (hfScore + unruheScore) / 2; // 0 = sehr gut … 1 = schlecht
 
         const stufe =
           gesamtScore <= 0.25 ? 'sehr gut' :
           gesamtScore <= 0.50 ? 'gut'      :
           gesamtScore <= 0.75 ? 'mittel'   : 'schlecht';
 
-        console.log('[Schlaf] Nacht-Auswertung: avgHF=' + avgHF.toFixed(1)
-          + ', avgBewegung=' + avgBewegung.toFixed(1) + ', Score=' + gesamtScore.toFixed(2)
-          + ' → Stufe "' + stufe + '" (' + daten.anzahlMesspunkte + ' Messpunkte)');
+        const stunden = Math.floor(fenster.dauerMs / 3600000);
+        const minuten = Math.round((fenster.dauerMs % 3600000) / 60000);
+
+        console.log('[Schlaf] Fenster erkannt: ' + uhrzeit(punkte[fenster.vonIndex].zeit)
+          + ' bis ' + uhrzeit(punkte[fenster.bisIndex].zeit)
+          + ' (' + stunden + ' h ' + minuten + ' min)'
+          + ' · Wachpuls p90=' + fenster.pulsP90.toFixed(1)
+          + ' · Schlafpuls p10=' + fenster.pulsP10.toFixed(1)
+          + (fenster.luecken ? ' · ' + fenster.luecken + ' Lücken im Fenster' : ''));
+        console.log('[Schlaf] Bewertung: avgHF im Fenster=' + avgHF.toFixed(1)
+          + ' → hfScore=' + hfScore.toFixed(2)
+          + ' · Unruhe=' + (fenster.unruheAnteil * 100).toFixed(1) + ' %'
+          + ' → unruheScore=' + unruheScore.toFixed(2)
+          + ' · Gesamt=' + gesamtScore.toFixed(2) + ' → Stufe "' + stufe + '"');
 
         schlafStufeAnwenden(stufe);
         try { localStorage.setItem(NACHT_STUFE_KEY, JSON.stringify({ stufe: stufe, datum: heute })); } catch (e) {}
@@ -7709,14 +8754,14 @@
 
         // Nächtliche Puls-Variabilität: rein informativ ablegen, siehe
         // Kommentar bei NACHT_PULS_VARIABILITAET_KEY oben – fließt bewusst
-        // NICHT in gesamtScore/stufe ein. anzahlVariabilitaetsmesspunkte
-        // kann 0 sein (z. B. sehr kurze Nacht direkt nach Verbindungsaufbau,
-        // bevor das 45s-Fenster erstmals gefüllt war) – dann gibt es nichts
-        // abzulegen.
-        if (daten.anzahlVariabilitaetsmesspunkte > 0) {
-          const avgVariabilitaet = daten.summeVariabilitaet / daten.anzahlVariabilitaetsmesspunkte;
-          console.log('[HRV] Nächtliche Puls-Variabilität: avg=' + avgVariabilitaet.toFixed(2)
-            + ' (' + daten.anzahlVariabilitaetsmesspunkte + ' Messpunkte)');
+        // NICHT in gesamtScore/stufe ein. Jetzt ebenfalls nur über das
+        // erkannte Fenster gemittelt statt über den ganzen Rahmen.
+        const hrvImFenster = punkte.slice(fenster.vonIndex, fenster.bisIndex + 1)
+          .filter(function (p) { return p.hrv != null; });
+        if (hrvImFenster.length) {
+          const avgVariabilitaet = hrvImFenster.reduce(function (s, p) { return s + p.hrv; }, 0) / hrvImFenster.length;
+          console.log('[HRV] Nächtliche Puls-Variabilität im Schlaffenster: avg='
+            + avgVariabilitaet.toFixed(2) + ' (' + hrvImFenster.length + ' Messpunkte)');
           try {
             localStorage.setItem(NACHT_PULS_VARIABILITAET_KEY, JSON.stringify({
               wert: avgVariabilitaet, datum: heute
@@ -7750,7 +8795,8 @@
         console.log('[Schlaf] Keine Nacht-Daten und kein gespeichertes Ergebnis von heute – '
           + 'Schlafqualität bleibt auf dem Startwert ' + aktuelleRohwerte.schlafqualitaet
           + ' ("wach", keine Unschärfe). Mögliche Gründe: Foreground Service lief nicht, '
-          + 'Band war nachts getrennt, oder es war noch keine Nacht im Fenster 22:00–08:00.'
+          + 'Band war nachts getrennt, oder es war noch keine Nacht im Rahmen '
+          + RAHMEN_BEGINN_STUNDE + ':00–' + RAHMEN_ENDE_STUNDE + ':00.'
           + (gespeichert ? ' Letztes bekanntes Ergebnis stammt vom ' + gespeichert.datum + '.' : ''));
       }
     } catch (e) {
@@ -7819,15 +8865,31 @@
     // angespannt = zitternde Schrift (Wert niedrig) – daher
     // (variabilitaet − Normalwert), NICHT umgekehrt.
     const variabilitaet = pulsVariabilitaetMessen(bpm);
-    if (variabilitaet != null) {
-      // Nur eine Variabilität UNTER dem Normalwert gilt als Anspannung.
-      // Liegt sie darüber, ist die Person entspannter als sonst – dann
-      // bleibt die Schrift ruhig, statt in die andere Richtung
-      // auszuschlagen (früher wirkte jede Abweichung, beidseitig).
-      const abweichung  = pulsVariabilitaetNormalwert - variabilitaet;
-      const ueberschuss = Math.max(0, abweichung - STAB_TOLERANZ);
+
+    // Solange sich die Grundlinien noch bilden, wird KEIN Stabilitätswert
+    // gesetzt. Ohne belastbaren Bezug wäre jede Abweichung Zufall – und
+    // genau daraus entstand der Ausschlag auf 100 direkt nach dem Anlegen.
+    // Siehe GRUNDLINIE_MIN_MESSPUNKTE für die Begründung der Schwelle.
+    if (!grundlinieBelastbar()) {
+      stabilitaetRuhigHalten();
+      if ((pulsNormalwertAnzahl % 50) === 0) {
+        console.log('[Grundlinie] baut sich auf: Puls ' + pulsNormalwertAnzahl
+          + '/' + GRUNDLINIE_MIN_MESSPUNKTE + ', Variabilität ' + pulsVarNormalwertAnzahl
+          + '/' + GRUNDLINIE_MIN_MESSPUNKTE + ' · ' + grundlinieRestText()
+          + ' · Stabilität bleibt ausgesetzt, Schrift ruhig.');
+      }
+    } else if (variabilitaet != null) {
+      // Kombinierter Index aus Puls UND Variabilität – jede Größe gegen
+      // ihre eigene persönliche Grundlinie, beide relativ gerechnet.
+      // Richtung: Puls über Normalwert = Anspannung, Variabilität unter
+      // Normalwert = Anspannung. Treffen beide zu, ist das Signal
+      // deutlich stärker als bei nur einem (Produktterm im Index).
+      const stress = stressIndexBerechnen(bpm, variabilitaet);
+
+      // Totzone und Skalierung wirken jetzt auf den KOMBINIERTEN Wert.
+      const ueberschuss = Math.max(0, stress.index - STRESS_TOLERANZ);
       const stabilitaetRoh = Math.round(Math.min(STAB_MAX, Math.max(STAB_MIN,
-        STAB_MAX - ueberschuss * STAB_PULS_SKALIERUNG
+        STAB_MAX - ueberschuss * STRESS_SKALIERUNG
       )));
 
       // Glättung: Ohne sie springt der Wert bei jeder Messung (~1/s),
@@ -7840,11 +8902,18 @@
 
       const stabilitaetAnzeige = Math.round(stabilitaetGeglaettet);
 
-      console.log('[Puls] ' + new Date().toLocaleTimeString('de-DE') +
-        ' · bpm=' + bpm +
-        ' · Variabilität=' + variabilitaet.toFixed(2) +
-        ' · Normalwert=' + pulsVariabilitaetNormalwert.toFixed(2) +
-        ' · Abweichung=' + abweichung.toFixed(2) +
+      // Beide Einzelabweichungen UND der kombinierte Wert, damit im
+      // Selbstversuch sichtbar ist, welches Signal wie beiträgt.
+      // Prozentangaben sind die relativen Abweichungen aus Schritt 1,
+      // p/h die daraus auf 0..1 skalierten Anteile aus Schritt 2.
+      const prozent = function (x) { return (x >= 0 ? '+' : '−') + (Math.abs(x) * 100).toFixed(1) + ' %'; };
+      console.log('[Stress] ' + new Date().toLocaleTimeString('de-DE') +
+        ' · bpm=' + bpm + ' (Norm ' + pulsNormalwert.toFixed(1) +
+          ' · ' + prozent(stress.pulsAbweichung) + ' → p=' + stress.pulsAnteil.toFixed(2) + ')' +
+        ' · MASD=' + variabilitaet.toFixed(2) + ' (Norm ' + pulsVariabilitaetNormalwert.toFixed(2) +
+          ' · ' + prozent(stress.hrvAbweichung) + ' → h=' + stress.hrvAnteil.toFixed(2) + ')' +
+        ' · Index=' + stress.index.toFixed(3) +
+          (stress.index <= STRESS_TOLERANZ ? ' (in Totzone)' : '') +
         ' · Stabilität roh=' + stabilitaetRoh + ' geglättet=' + stabilitaetAnzeige +
         ' · Zittern=' + (stabilitaetAnzeige >= STAB_MAX ? '0.00' :
             Math.max(0, 2.0 * (STAB_MAX - stabilitaetAnzeige) / 800).toFixed(2)) + 'px');
@@ -7868,7 +8937,9 @@
     // variabilitaet vorlag – sonst hier nachholen.
     if (!document.hidden) {
       bandBpmLive.textContent = bpm + ' bpm';
-      wertIntensitaet.textContent = intensitaetRoh;
+      // Ganze Anzeige nachziehen, nicht nur die Intensität – damit die
+      // Kennzeichnung "Testwert" verschwindet, sobald das Band liefert.
+      sensorAnzeigeAktualisieren();
       if (variabilitaet == null) vorschauAktualisieren();
       profilStatsAktualisieren(); // Puls/Stabilitaet im Profil live nachziehen, siehe Abschnitt PROFIL
     }
@@ -7957,6 +9028,15 @@
     // angezeigten Wert nachziehen, damit der nächste Tastendruck nahtlos
     // anschließt statt auf den alten Vor-Verbindungs-Wert zurückzuspringen.
     stabilitaet_wert = aktuelleRohwerte.stabilitaet;
+    // Die Grundlinien-Schätzung gilt nur je Verbindung – beim nächsten
+    // Verbinden beginnt die Restzeit-Messung neu. Die Zähler selbst bleiben
+    // (die Grundlinie ist ja gereift), nur der Bezugspunkt der Schätzung
+    // wird gelöst.
+    grundlinieStartZeit   = null;
+    grundlinieStartAnzahl = 0;
+    // Ohne Band liefert wieder die Tipp-Engine die Stabilität – der
+    // Grundlinien-Hinweis am Label wäre dort irreführend.
+    stabilitaetUebernehmen();
     bandBtn.textContent = 'Band verbinden';
     bandBtn.classList.remove('verbunden');
     bandBpmLive.hidden = true;
@@ -8102,7 +9182,33 @@
     { name: 'Jonas',   text: 'Fünf Tabs offen, keine Ahnung mehr wofür.', likes: 0,
       rohwerte: { intensitaet: 340, tempo: 550, stabilitaet: 900, tonalitaet: 500, schlafqualitaet: 500, atemfrequenz: 500 } },
     { name: 'Jovan',   text: 'Sport für heute erledigt. Bin zum Kühlschrank gesprintet.', likes: 2,
-      rohwerte: { intensitaet: 780, tempo: 650, stabilitaet: 320, tonalitaet: 650, schlafqualitaet: 500, atemfrequenz: 500 } }
+      rohwerte: { intensitaet: 780, tempo: 650, stabilitaet: 320, tonalitaet: 650, schlafqualitaet: 500, atemfrequenz: 500 } },
+
+    // ── Zweite Runde aus assets/avatars/ ──────────────────────
+    // Ohne eigenen Eintrag hier bekämen diese Namen die generischen
+    // MOMENT_PLATZHALTER_TEXTE ("Kurze Pause.") – und zwar mit
+    // rohwerte:null, also LEBLOS gesetzt. Im Feed stünden sie damit
+    // ohne jede typografische Regung neben den ausgestalteten
+    // Beiträgen. Gleicher Ton wie oben: beiläufige Selbstironie.
+    { name: 'Emilie',  text: 'Wollte früh ins Bett. Das war um halb zwölf.', likes: 3,
+      rohwerte: { intensitaet: 200, tempo: 300, stabilitaet: 900, tonalitaet: 400, schlafqualitaet: 500, atemfrequenz: 500 } },
+    // Einziger der acht mit niedriger Stabilität – der Text gibt die
+    // Hektik her, wie bei Mia/Marius/Paul/Jovan oben. Der Rest bleibt
+    // bewusst auf 900, damit nicht wieder fast jeder Beitrag zittert.
+    { name: 'Fynn',    text: 'Zug verpasst, Bus verpasst, Kaffee verschüttet. Guter Start.', likes: 5,
+      rohwerte: { intensitaet: 560, tempo: 720, stabilitaet: 300, tonalitaet: 480, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Gina',    text: 'Playlist für zehn Minuten Fußweg. Hat vierzig gedauert.', likes: 4,
+      rohwerte: { intensitaet: 320, tempo: 450, stabilitaet: 900, tonalitaet: 600, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Hannah',  text: 'Die Pflanze gegossen, die aus Plastik ist.', likes: 7,
+      rohwerte: { intensitaet: 240, tempo: 350, stabilitaet: 900, tonalitaet: 550, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Jule',    text: 'Wecker gestellt, um ihn wieder auszumachen.', likes: 2,
+      rohwerte: { intensitaet: 160, tempo: 250, stabilitaet: 900, tonalitaet: 350, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Linda',   text: 'Laut gelacht. War allein im Raum.', likes: 6,
+      rohwerte: { intensitaet: 420, tempo: 500, stabilitaet: 900, tonalitaet: 680, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Miri',    text: 'Drei Wochen Sportsachen getragen. Keinen Sport gemacht.', likes: 1,
+      rohwerte: { intensitaet: 280, tempo: 400, stabilitaet: 900, tonalitaet: 450, schlafqualitaet: 500, atemfrequenz: 500 } },
+    { name: 'Vincent', text: 'Termin verschoben, den ich selbst gelegt habe.', likes: 0,
+      rohwerte: { intensitaet: 300, tempo: 380, stabilitaet: 900, tonalitaet: 420, schlafqualitaet: 500, atemfrequenz: 500 } }
   ];
 
   // momente[name] = { text, wortSnapshots: [{achsen, leblos}, ...], datum? }
@@ -8702,9 +9808,12 @@
   // wie im Chat – tippAnalysieren operiert auf dem gemeinsamen globalen
   // Zustand (aktuelleRohwerte/aktuelleAchsen), unabhängig davon, in
   // welchem Textfeld gerade getippt wird.
-  momentEingabe.addEventListener('keydown', tippAnalysieren);
+  // Tipp-Analyse hängt am input-Ereignis weiter unten, NICHT hier:
+  // Android-Tastaturen melden im keydown kein Zeichen (siehe
+  // ausführliche Begründung bei tippAnalysieren). Moment.
 
   momentEingabe.addEventListener('input', function (e) {
+    tippAnalysieren(e);   // Tipp-Messung, siehe dort
     if (e.inputType === 'insertFromPaste') {
       momentIstEingefuegt = true;
     } else if (momentIstEingefuegt && e.inputType === 'insertText') {
@@ -8775,6 +9884,12 @@
   // die aus assets/avatars/ abgeleiteten Kontakte, sofern beim Build
   // (scripts/sync-web.js) welche gefunden wurden.
   kontaktlisteAusManifestErsetzen(AVATARS_MANIFEST);
+
+  // Sensor-Anzeige einmal beim Start füllen – sonst stünde bei Wachheit
+  // ein blankes "—" ohne den Vermerk "keine Messung", und die
+  // Kennzeichnung der Intensität wäre bis zur ersten Reglerbewegung
+  // nicht gesetzt.
+  sensorAnzeigeAktualisieren();
 
 
   // ═══════════════════════════════════════════════════════════════
@@ -9067,9 +10182,12 @@
   // Chat/Moment – tippAnalysieren bleibt komplett unverändert, wird nur
   // zusätzlich an dieses dritte Textfeld gehängt (siehe Kommentar bei
   // momentEingabe weiter oben, identisches Prinzip).
-  tagebuchEingabe.addEventListener('keydown', tippAnalysieren);
+  // Tipp-Analyse hängt am input-Ereignis weiter unten, NICHT hier:
+  // Android-Tastaturen melden im keydown kein Zeichen (siehe
+  // ausführliche Begründung bei tippAnalysieren). Tagebuch.
 
   tagebuchEingabe.addEventListener('input', function (e) {
+    tippAnalysieren(e);   // Tipp-Messung, siehe dort
     if (e.inputType === 'insertFromPaste') {
       tagebuchIstEingefuegt = true;
     } else if (tagebuchIstEingefuegt && e.inputType === 'insertText') {
@@ -9615,7 +10733,19 @@
 
     testreglerAchseEinrichten('tempo', {
       anwenden(wert, wertEl) {
-        const spacing = umrechnen(wert, 100, 900, -0.04, 0.12);
+        // Dieselbe Zuordnung wie in sensorZuSchriftAchse – vorher stand hier
+        // eine eigene, zudem UMGEKEHRTE Spanne (−0,04 bei langsam bis 0,12
+        // bei schnell). Der Regler zeigte damit das Gegenteil dessen, was
+        // die App tut: langsam = eng statt gesperrt.
+        //
+        // Der enge Pol hängt am Schnitt, den der Intensitäts-Regler daneben
+        // setzt – deshalb wird er hier aus der aktuellen Schriftfamilie des
+        // Vorschauworts gelesen, damit die Vorschau auch bei Black stimmt.
+        const familie = (testreglerWort.style.fontFamily.match(/Situra-[A-Za-z]+/) || [])[0];
+        const eng = SPACING_ENG_PRO_SCHNITT[familie] != null
+          ? SPACING_ENG_PRO_SCHNITT[familie]
+          : SPACING_ENG_PRO_SCHNITT['Situra-Regular'];
+        const spacing = umrechnen(wert, 100, 900, SPACING_WEIT, eng);
         testreglerWort.style.letterSpacing = `${spacing.toFixed(3)}em`;
         wertEl.innerHTML = `<strong>${spacing.toFixed(3)}em</strong> · ${wert}`;
       },
@@ -9967,7 +11097,10 @@
 
     // ── Kopplungs-Overlay ──────────────────────────────────────
     let overlayEl = null, statusEl = null, codeEl = null, eingabeEl = null;
-    let codeBtn = null, koppelnBtn = null;   // für das Sperren, siehe overlayKnoepfeAktualisieren
+    let koppelnBtn = null;   // für das Sperren, siehe overlayKnoepfeAktualisieren
+    let qrEl = null, scanBtn = null;
+    let aktuellerModus = 'zeigen';   // Standardzustand beim Öffnen
+    let aktuellerCode  = null;       // für die QR-Erzeugung vorgehalten
 
     function overlayAufbauen() {
       if (overlayEl) return;
@@ -9980,23 +11113,45 @@
             '<span class="overlay-titel">Kontakt hinzufügen</span>' +
             '<button class="overlay-schliessen" aria-label="Schließen">&times;</button>' +
           '</div>' +
-          '<div class="einstellung-zeile">' +
-            '<div class="einstellung-info">' +
-              '<span class="einstellung-label">Dein Code</span>' +
-              '<span class="kopplung-code kopplung-code--leer" data-rolle="code">noch nicht erzeugt</span>' +
-            '</div>' +
-            '<button class="overlay-btn" data-rolle="code-btn">Code zeigen</button>' +
+
+          // Umschalter zwischen den beiden Modi – oben, damit vor jeder
+          // anderen Entscheidung klar ist, auf welcher Seite man steht.
+          '<div class="kopplung-modus-umschalter" role="tablist">' +
+            '<button class="kopplung-modus-btn kopplung-modus-btn--aktiv" ' +
+                    'data-modus="zeigen" role="tab">Mein Code</button>' +
+            '<button class="kopplung-modus-btn" data-modus="scannen" role="tab">Code scannen</button>' +
           '</div>' +
+
+          // ── Modus 1: Mein Code ────────────────────────────────
+          // Ohne Zwischenschritt: Der Code wird beim Betreten des Modus
+          // automatisch angefordert (siehe codeAnfordern). Ein Knopf
+          // „Code zeigen“ hätte nichts entschieden – es gibt nur einen
+          // sinnvollen nächsten Schritt, und den kann die App selbst tun.
+          '<div class="kopplung-seite" data-seite="zeigen">' +
+            '<div class="kopplung-qr kopplung-qr--leer" data-rolle="qr">' +
+              'Code wird erzeugt …' +
+            '</div>' +
+            '<span class="kopplung-code kopplung-code--leer" data-rolle="code">…</span>' +
+          '</div>' +
+
+          // ── Modus 2: Code scannen ─────────────────────────────
+          // Keine Vorschaufläche: Das Plugin öffnet eine eigene
+          // Vollbild-Kamera, die Fläche in der Karte wäre dauerhaft leer.
+          // Rückmeldungen laufen über die Statuszeile unten.
+          '<div class="kopplung-seite" data-seite="scannen" hidden>' +
+            '<button class="overlay-btn" data-rolle="scan-btn">Kamera öffnen</button>' +
+            '<span class="kopplung-trenner">oder eintippen</span>' +
+            '<input type="text" inputmode="numeric" maxlength="6" class="kopplung-eingabe" ' +
+                   'data-rolle="eingabe" placeholder="6-stelliger Code" ' +
+                   'aria-label="Code des anderen Handys">' +
+            '<button class="overlay-btn" data-rolle="koppeln-btn">Hinzufügen</button>' +
+          '</div>' +
+
           '<div class="einstellung-zeile">' +
             '<div class="einstellung-info">' +
-              '<span class="einstellung-label">Code des anderen Handys</span>' +
               '<span class="einstellung-hinweis" data-rolle="status">Nicht verbunden</span>' +
             '</div>' +
           '</div>' +
-          '<input type="text" inputmode="numeric" maxlength="6" class="kopplung-eingabe" ' +
-                 'data-rolle="eingabe" placeholder="6-stelliger Code" ' +
-                 'aria-label="Code des anderen Handys">' +
-          '<button class="overlay-btn" data-rolle="koppeln-btn">Hinzufügen</button>' +
         '</div>';
 
       // MUSS innerhalb von .phone-frame hängen, nicht am body: dort sind
@@ -10007,19 +11162,21 @@
       statusEl  = overlayEl.querySelector('[data-rolle="status"]');
       codeEl    = overlayEl.querySelector('[data-rolle="code"]');
       eingabeEl = overlayEl.querySelector('[data-rolle="eingabe"]');
+      qrEl      = overlayEl.querySelector('[data-rolle="qr"]');
+      scanBtn   = overlayEl.querySelector('[data-rolle="scan-btn"]');
+
+      overlayEl.querySelectorAll('.kopplung-modus-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () { modusSetzen(btn.dataset.modus); });
+      });
+
+      scanBtn.addEventListener('click', scannenStarten);
 
       overlayEl.querySelector('.overlay-schliessen').addEventListener('click', overlaySchliessen);
       overlayEl.addEventListener('click', function (e) {
         if (e.target === overlayEl) overlaySchliessen();
       });
 
-      codeBtn    = overlayEl.querySelector('[data-rolle="code-btn"]');
       koppelnBtn = overlayEl.querySelector('[data-rolle="koppeln-btn"]');
-
-      codeBtn.addEventListener('click', function () {
-        if (!bereit()) { melden(warteHinweis()); return; }
-        senden({ typ: 'code-erzeugen' });
-      });
 
       koppelnBtn.addEventListener('click', function () {
         const code = (eingabeEl.value || '').replace(/\D/g, '');
@@ -10037,17 +11194,154 @@
     // nicht mehr entstehen – das Problem wird verhindert statt gemeldet.
     function overlayKnoepfeAktualisieren() {
       const gesperrt = !bereit();
-      if (codeBtn)    codeBtn.disabled    = gesperrt;
       if (koppelnBtn) koppelnBtn.disabled = gesperrt;
+      // Der Scan-Knopf gehört dazu: Ein gescannter Code führt direkt zu
+      // "koppeln", und das scheitert ohne Anmeldung genauso.
+      if (scanBtn)    scanBtn.disabled    = gesperrt;
+    }
+
+    // ── Eigenen Code besorgen ──────────────────────────────────
+    // Wird beim Betreten des Modus "Mein Code" aufgerufen. Früher hing
+    // das an einem Knopf – der bot aber keine Wahl, sondern nur einen
+    // Pflichtklick vor dem einzig sinnvollen Ergebnis.
+    //
+    // Nur EINMAL pro geöffnetem Fenster: aktuellerCode wird beim
+    // Schließen zurückgesetzt. Sonst bekäme man bei jedem Hin- und
+    // Herschalten einen neuen Code, während das Gegenüber vielleicht
+    // gerade den alten abtippt.
+    function codeAnfordern() {
+      if (aktuellerCode) { qrZeichnen(aktuellerCode); return; }
+      if (!bereit()) {
+        // Anmeldung läuft noch – sobald 'willkommen' da ist, wird
+        // erneut angefragt (siehe dort).
+        if (qrEl) { qrEl.classList.add('kopplung-qr--leer'); qrEl.textContent = warteHinweis(); }
+        return;
+      }
+      if (qrEl) { qrEl.classList.add('kopplung-qr--leer'); qrEl.textContent = 'Code wird erzeugt …'; }
+      senden({ typ: 'code-erzeugen' });
     }
 
     function warteHinweis() {
       return verbunden() ? 'Warte auf Anmeldung …' : 'Keine Verbindung zum Server';
     }
 
+    // ── Moduswechsel ───────────────────────────────────────────
+    // Genau eine Seite ist sichtbar. Beim Verlassen des Scan-Modus wird
+    // ein eventuell laufender Scan beendet – sonst liefe die Kamera
+    // weiter, während man den eigenen Code anschaut.
+    function modusSetzen(modus) {
+      aktuellerModus = modus;
+      overlayEl.querySelectorAll('.kopplung-modus-btn').forEach(function (b) {
+        b.classList.toggle('kopplung-modus-btn--aktiv', b.dataset.modus === modus);
+      });
+      overlayEl.querySelectorAll('.kopplung-seite').forEach(function (s) {
+        s.hidden = s.dataset.seite !== modus;
+      });
+      if (modus !== 'scannen') scannenBeenden();
+      if (modus === 'zeigen') codeAnfordern();
+      console.log('[Kopplung] Modus: ' + modus);
+    }
+
+    // ── QR-Code zeichnen ───────────────────────────────────────
+    // Trägt DENSELBEN sechsstelligen Code wie die Ziffernanzeige – der
+    // QR-Code ist eine Abkürzung, kein eigener Mechanismus. Läuft die
+    // Bibliothek nicht (Datei fehlt), bleibt die Ziffernfolge stehen und
+    // der Weg über die Eingabe funktioniert unverändert weiter.
+    function qrZeichnen(code) {
+      if (!qrEl) return;
+      if (typeof qrcode !== 'function') {
+        qrEl.classList.add('kopplung-qr--leer');
+        qrEl.textContent = 'QR nicht verfügbar – Zahlencode nutzen';
+        console.warn('[Kopplung] qrcode-generator nicht geladen (vendor/qrcode.js)');
+        return;
+      }
+      try {
+        // Typ 0 = kleinste passende Version, 'M' = mittlere Fehlerkorrektur.
+        const qr = qrcode(0, 'M');
+        qr.addData(code);
+        qr.make();
+        qrEl.classList.remove('kopplung-qr--leer');
+        // createSvgTag skaliert über die viewBox, bleibt also scharf.
+        qrEl.innerHTML = qr.createSvgTag({ margin: 0, scalable: true });
+        console.log('[Kopplung] QR-Code erzeugt für ' + code);
+      } catch (e) {
+        qrEl.classList.add('kopplung-qr--leer');
+        qrEl.textContent = 'QR nicht verfügbar – Zahlencode nutzen';
+        console.error('[Kopplung] QR-Erzeugung fehlgeschlagen:', e);
+      }
+    }
+
+    // ── Scannen ────────────────────────────────────────────────
+    function scannerPlugin() {
+      return (window.Capacitor && window.Capacitor.Plugins &&
+              window.Capacitor.Plugins.BarcodeScanner) || null;
+    }
+
+    async function scannenStarten() {
+      const plugin = scannerPlugin();
+      if (!plugin) {
+        // Web-Vorschau ohne native Bindung: Der Zahlenweg bleibt offen,
+        // deshalb hier nur ein Hinweis statt einer Fehlermeldung.
+        melden('Scannen ist nur in der App möglich – Code unten eintippen');
+        console.warn('[Kopplung] Barcode-Plugin nicht verfügbar (Web-Vorschau?)');
+        return;
+      }
+
+      try {
+        // Berechtigung selbst anfordern: Anders als das BLE-Plugin
+        // erledigt das Barcode-Plugin das NICHT in seiner Initialisierung.
+        const status = await plugin.requestPermissions();
+        console.log('[Kopplung] Kamera-Berechtigung: ' + status.camera);
+        if (status.camera !== 'granted' && status.camera !== 'limited') {
+          melden('Kamera nicht erlaubt – Code unten eintippen');
+          melden('Kamera nicht erlaubt');
+          return;
+        }
+
+        // Die native Vorschau liegt HINTER der WebView; die Seite muss
+        // solange durchsichtig sein, sonst sieht man nur die App.
+        phoneFrame.classList.add('kamera-laeuft');
+        melden('Kamera läuft …');
+
+        const ergebnis = await plugin.scan({ formats: ['QR_CODE'] });
+        scannenBeenden();
+
+        const gescannt = (ergebnis && ergebnis.barcodes && ergebnis.barcodes[0])
+          ? String(ergebnis.barcodes[0].rawValue || '') : '';
+        const code = gescannt.replace(/\D/g, '').slice(0, 6);
+        console.log('[Kopplung] Gescannt: "' + gescannt + '" → Code ' + (code || '(keiner)'));
+
+        if (code.length !== 6) {
+          melden('Kein gültiger Kopplungs-Code erkannt');
+          melden('Kein gültiger Code erkannt');
+          return;
+        }
+        eingabeEl.value = code;
+        koppelnBtn.click();   // derselbe Weg wie beim Eintippen
+      } catch (e) {
+        scannenBeenden();
+        // Abbruch durch den Nutzer ist kein Fehler.
+        if (/cancel/i.test(e && e.message || '')) {
+          melden('Abgebrochen – erneut versuchen oder Code eintippen');
+          return;
+        }
+        melden('Scannen nicht möglich – Code unten eintippen');
+        console.error('[Kopplung] Scannen fehlgeschlagen:', e);
+      }
+    }
+
+    function scannenBeenden() {
+      if (phoneFrame) phoneFrame.classList.remove('kamera-laeuft');
+      const plugin = scannerPlugin();
+      if (plugin && plugin.stopScan) plugin.stopScan().catch(function () {});
+    }
+
     function overlayOeffnen() {
       overlayAufbauen();
       overlayEl.classList.add('sichtbar');
+      // Standardzustand ist "Mein Code" – wer koppeln will, zeigt in der
+      // Regel zuerst seinen eigenen.
+      modusSetzen('zeigen');
       overlayKnoepfeAktualisieren();
       // Der Zurücksetzungs-Hinweis hat Vorrang: Er erklärt, warum die
       // Kontaktliste leer ist. Ohne ihn stünde hier "Mit dem Server
@@ -10059,6 +11353,11 @@
     }
     function overlaySchliessen() {
       if (overlayEl) overlayEl.classList.remove('sichtbar');
+      // Sonst liefe die Kamera weiter, nachdem das Fenster zu ist.
+      scannenBeenden();
+      // Beim nächsten Öffnen wird ein frischer Code geholt – der alte
+      // wäre womöglich abgelaufen (Gültigkeit zehn Minuten).
+      aktuellerCode = null;
     }
 
     // Schreibt IMMER auch ins Log, nicht nur ins Overlay.
@@ -10218,6 +11517,12 @@
           overlayKnoepfeAktualisieren();
           melden(kontakte.length ? kontakte.length + ' Kontakt(e) verbunden' : 'Mit dem Server verbunden');
 
+          // Stand das Fenster schon offen, während die Anmeldung noch
+          // lief, wurde der Code damals nicht angefordert – jetzt geht es.
+          if (overlayEl && overlayEl.classList.contains('sichtbar') && aktuellerModus === 'zeigen') {
+            codeAnfordern();
+          }
+
           // Während der Abwesenheit eingegangene Nachrichten.
           if (Array.isArray(nachricht.nachrichten)) {
             nachricht.nachrichten.forEach(eingehendeNachricht);
@@ -10226,11 +11531,16 @@
         }
 
         case 'code':
+          aktuellerCode = nachricht.code;
           if (codeEl) {
             codeEl.textContent = nachricht.code;
             codeEl.classList.remove('kopplung-code--leer');
           }
-          melden('Diesen Code am anderen Handy eingeben');
+          // Der QR-Code trägt DENSELBEN Wert wie die Ziffernanzeige – er
+          // erbt damit auch dessen Gültigkeit von zehn Minuten und wird
+          // bei jedem neu erzeugten Code mit erneuert.
+          qrZeichnen(nachricht.code);
+          melden('Diesen Code am anderen Handy scannen oder eingeben');
           break;
 
         case 'kontakt-neu': {
@@ -10371,7 +11681,10 @@
         kontaktlisteFiltern();   // "Ungelesen"-Filter sofort nachziehen
       }
 
-      if (!chatOffen) benachrichtigen(name, nachricht.text);
+      // Absender-ID statt Text: Die Benachrichtigung zeigt bewusst
+      // keinen Inhalt, braucht aber die ID, um beim Antippen den
+      // richtigen Chat zu öffnen.
+      if (!chatOffen) benachrichtigen(name, nachricht.von);
     }
 
     // ── Benachrichtigung außerhalb der App ─────────────────────
@@ -10386,24 +11699,70 @@
     // Die Berechtigung POST_NOTIFICATIONS steht bereits im Manifest
     // (wird für den BLE-Foreground-Service ohnehin gebraucht), es käme
     // also keine neue Berechtigung hinzu.
-    function benachrichtigen(name, text) {
-      const kurz = text.length > 60 ? text.slice(0, 57) + '…' : text;
-      console.log('[Benachrichtigung] ' + name + ' hat geschrieben: ' + kurz);
-
-      const plugin = window.Capacitor && window.Capacitor.Plugins &&
-                     window.Capacitor.Plugins.LocalNotifications;
-      if (!plugin) return;   // Plugin nicht installiert – siehe oben
-
-      plugin.schedule({
-        notifications: [{
-          id: Date.now() % 2147483647,
-          title: name + ' hat geschrieben',
-          body: kurz
-        }]
-      }).catch(function (e) {
-        console.error('[Benachrichtigung] konnte nicht angezeigt werden:', e);
-      });
+    function benachrichtigungsPlugin() {
+      return (window.Capacitor && window.Capacitor.Plugins &&
+              window.Capacitor.Plugins.LocalNotifications) || null;
     }
+
+    let benachrichtigungErlaubt = null;   // null = noch nicht gefragt
+
+    async function benachrichtigen(name, kontaktId) {
+      // BEWUSST OHNE INHALT: Es wird nur gemeldet, DASS jemand
+      // geschrieben hat, nicht was. Auf einem gesperrten Bildschirm
+      // stünde der Text sonst für jeden lesbar da – das widerspräche
+      // dem Prinzip, dass die App keine Gesprächsinhalte preisgibt
+      // (der Server speichert aus demselben Grund keinen Verlauf).
+      console.log('[Benachrichtigung] ' + name + ' hat geschrieben (Inhalt wird bewusst nicht angezeigt)');
+
+      const plugin = benachrichtigungsPlugin();
+      if (!plugin) {
+        console.warn('[Benachrichtigung] Plugin nicht verfügbar (Web-Vorschau?)');
+        return;
+      }
+
+      try {
+        if (benachrichtigungErlaubt === null) {
+          const status = await plugin.requestPermissions();
+          benachrichtigungErlaubt = status.display === 'granted';
+          console.log('[Benachrichtigung] Berechtigung: ' + status.display);
+        }
+        if (!benachrichtigungErlaubt) {
+          console.warn('[Benachrichtigung] nicht erlaubt – in den Systemeinstellungen freigeben');
+          return;
+        }
+
+        await plugin.schedule({
+          notifications: [{
+            // Millisekunden überschreiten den zulässigen 32-Bit-Bereich,
+            // deshalb der Modulo.
+            id: Date.now() % 2147483647,
+            title: name,
+            body: 'hat dir geschrieben',
+            // Wird beim Antippen zurückgegeben – damit öffnet die App
+            // genau diesen Chat (siehe Listener unten).
+            extra: { kontaktId: kontaktId }
+          }]
+        });
+        console.log('[Benachrichtigung] angezeigt für ' + name);
+      } catch (e) {
+        console.error('[Benachrichtigung] konnte nicht angezeigt werden:', e);
+      }
+    }
+
+    // Antippen der Benachrichtigung öffnet den zugehörigen Chat.
+    // Der Listener wird einmal beim Start registriert; die App kann zu
+    // diesem Zeitpunkt aus dem Hintergrund geholt worden sein.
+    (function benachrichtigungAntippenEinrichten() {
+      const plugin = benachrichtigungsPlugin();
+      if (!plugin || !plugin.addListener) return;
+      plugin.addListener('localNotificationActionPerformed', function (ereignis) {
+        const id = ereignis && ereignis.notification && ereignis.notification.extra &&
+                   ereignis.notification.extra.kontaktId;
+        const name = id ? namen[id] : null;
+        console.log('[Benachrichtigung] angetippt → Kontakt ' + (name || '(unbekannt)'));
+        if (name) zeigeChat(name);
+      });
+    })();
 
     // ── Nach außen, für den Enter-Handler und zeigeChat ────────
     // Über window, weil dieser Abschnitt in einer eigenen,

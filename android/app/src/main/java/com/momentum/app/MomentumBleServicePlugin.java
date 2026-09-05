@@ -7,6 +7,11 @@ import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
+import java.util.List;
+
+import org.json.JSONObject;
+
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
@@ -133,19 +138,36 @@ public class MomentumBleServicePlugin extends Plugin {
         call.resolve();
     }
 
+    // Liefert die ganze Zeitreihe der Nacht (statt wie früher nur Summen) –
+    // aus einer Summe lässt sich kein Schlafbeginn rekonstruieren, siehe
+    // MomentumBleForegroundService. Lücken bleiben als JSON-null erhalten,
+    // damit die Auswertung Verbindungsabbrüche erkennen kann.
     @PluginMethod
     public void holeNachtDaten(PluginCall call) {
-        MomentumBleForegroundService.NachtDaten daten = MomentumBleForegroundService.holeNachtDaten();
+        List<MomentumBleForegroundService.Messpunkt> reihe =
+            MomentumBleForegroundService.holeNachtDaten();
+
+        JSArray punkte = new JSArray();
+        int mitDaten = 0;
+        for (MomentumBleForegroundService.Messpunkt m : reihe) {
+            JSObject o = new JSObject();
+            o.put("zeit", m.zeit);
+            // JSObject erbt von JSONObject: put(String, Object) mit null
+            // ENTFERNT den Schlüssel, deshalb explizit JSONObject.NULL.
+            o.put("bpm", m.bpm == null ? JSONObject.NULL : m.bpm);
+            o.put("bewegung", m.bewegung == null ? JSONObject.NULL : m.bewegung);
+            o.put("hrv", m.variabilitaet == null ? JSONObject.NULL : m.variabilitaet);
+            punkte.put(o);
+            if (m.bpm != null) mitDaten++;
+        }
+
         JSObject ergebnis = new JSObject();
-        ergebnis.put("summeHerzfrequenz", daten.summeHerzfrequenz);
-        ergebnis.put("summeBewegung", daten.summeBewegung);
-        ergebnis.put("anzahlMesspunkte", daten.anzahlMesspunkte);
-        ergebnis.put("summeVariabilitaet", daten.summeVariabilitaet);
-        ergebnis.put("anzahlVariabilitaetsmesspunkte", daten.anzahlVariabilitaetsmesspunkte);
-        Log.d(TAG, "holeNachtDaten: summeHerzfrequenz=" + daten.summeHerzfrequenz
-            + ", summeBewegung=" + daten.summeBewegung + ", anzahlMesspunkte=" + daten.anzahlMesspunkte
-            + ", summeVariabilitaet=" + daten.summeVariabilitaet
-            + ", anzahlVariabilitaetsmesspunkte=" + daten.anzahlVariabilitaetsmesspunkte);
+        ergebnis.put("messpunkte", punkte);
+        ergebnis.put("rahmenVorbei", MomentumBleForegroundService.istRahmenVorbei());
+
+        Log.d(TAG, "holeNachtDaten: " + reihe.size() + " Messpunkte (" + mitDaten
+            + " mit Daten, " + (reihe.size() - mitDaten) + " Lücken), rahmenVorbei="
+            + MomentumBleForegroundService.istRahmenVorbei());
         call.resolve(ergebnis);
     }
 

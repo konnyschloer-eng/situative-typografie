@@ -14,7 +14,13 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import androidx.core.app.NotificationCompat;
 
@@ -50,62 +56,103 @@ public class MomentumBleForegroundService extends Service {
     // Handler in diesem bereits geschützten Prozess dagegen nicht. Felder
     // sind static, weil MomentumBleServicePlugin nicht an die Service-
     // Instanz gebunden ist (nur Start-/Stop-Intents) und so trotzdem lesend/
-    // schreibend zugreifen kann. Bewusst nur Summen + Zähler im
-    // Arbeitsspeicher – keine Einzelmesspunkte (siehe Plan). Zusätzlich bei
-    // jedem Tick in SharedPreferences abgesichert (siehe nachtSummen-
-    // Persistieren/-Wiederherstellen weiter unten), falls der Prozess vor
-    // der Morgen-Auswertung endet.
-    // Zwei Takte statt einem: NUR innerhalb des Nacht-Fensters (22:00–08:00,
-    // siehe istNachtzeit()) wird tatsächlich in die Schlaf-Summen aufsummiert
-    // (grobe 4-Stufen-Einordnung, siehe nachtAuswertungPruefen in chat.html –
-    // avgHF/avgBewegung = Summe/anzahlMesspunkte, keine Zeitreihen-Analyse,
-    // daher unkritisch, ob daraus 96 oder 32 Ticks pro Nacht werden).
-    // Außerhalb des Fensters (Tag) tickt der Handler weiterhin (alle 5 Min,
-    // der ursprüngliche/"bisherige" Takt von vor dieser Optimierung), macht
+    // schreibend zugreifen kann.
+    //
+    // ZEITREIHE STATT SUMMEN (Umstellung auf datengetriebenen Schlafbeginn):
+    // Früher hielt dieser Service nur Summen + Zähler. Daraus lässt sich
+    // kein ZEITPUNKT rekonstruieren – die Frage "wann hat der Schlaf
+    // begonnen?" ist aus einer Summe grundsätzlich nicht beantwortbar.
+    // Deshalb jetzt ein Messpunkt pro Tick. Der Speicherbedarf ist
+    // unkritisch: 5-Minuten-Takt über den Rahmen 21:00–11:00 sind maximal
+    // 168 Einträge à vier Zahlen, rund 8 KB als JSON. Nebengewinn: Eine
+    // gespeicherte Nacht lässt sich nachträglich mit anderen Schwellen neu
+    // auswerten, statt jede Änderung eine Nacht lang testen zu müssen.
+    //
+    // Zwei Takte statt einem: NUR innerhalb des Nacht-Rahmens (21:00–11:00,
+    // siehe istNachtzeit()) wird tatsächlich ein Messpunkt angelegt.
+    // Außerhalb (Tag) tickt der Handler weiterhin alle 5 Minuten, macht
     // dabei aber NICHTS außer erneut die Uhrzeit zu prüfen – so wird der
-    // Tag→Nacht-Übergang spätestens nach 5 Minuten erkannt, der
-    // Nacht→Tag-Übergang spätestens nach 15 Minuten (die Zeit wird bei
-    // JEDEM Tick neu geprüft, nicht nur einmal beim Verbindungsaufbau).
-    private static final long NACHT_TICK_INTERVALL_MS = 15 * 60 * 1000L; // 15 Minuten (nachts)
-    private static final long TAG_TICK_INTERVALL_MS   =  5 * 60 * 1000L; // 5 Minuten (tagsüber, unverändert zum ursprünglichen Takt)
+    // Tag→Nacht-Übergang spätestens nach 5 Minuten erkannt (die Zeit wird
+    // bei JEDEM Tick neu geprüft, nicht nur beim Verbindungsaufbau).
+    //
+    // 5 statt vorher 15 Minuten nachts: Für die Regel "30 Minuten
+    // ununterbrochene Ruhe" wären 15-Minuten-Schritte nur zwei Messpunkte –
+    // zu grob, um einen Einschlafzeitpunkt zu bestimmen. Der Tick selbst
+    // kostet fast nichts (ein Listeneintrag + ein kleiner Schreibvorgang);
+    // der BLE-Verkehr, der den Akku wirklich belastet, ändert sich nicht.
+    private static final long NACHT_TICK_INTERVALL_MS = 5 * 60 * 1000L; // 5 Minuten (nachts)
+    private static final long TAG_TICK_INTERVALL_MS   = 5 * 60 * 1000L; // 5 Minuten (tagsüber, tut nichts außer Uhrzeit prüfen)
 
-    private static volatile int letzteHerzfrequenz     = 0;
+    // Reine Sicherung gegen unbegrenztes Wachsen (z. B. wenn die Auswertung
+    // über Tage nicht läuft). 21:00–11:00 sind 14 h = 168 Ticks; 240 lässt
+    // Luft, ohne dass die Liste je problematisch wird.
+    private static final int MAX_MESSPUNKTE = 240;
+
+    // ── Frische der Daten: der Kern der Abbruch-Behandlung ──────────────
+    // Früher wurde letzteHerzfrequenz nur überschrieben und nie ungültig.
+    // Brach die Verbindung nachts ab, addierte JEDER weitere Tick denselben
+    // eingefrorenen Puls weiter, während die Bewegung mangels ACC-Daten auf
+    // 0 blieb – ein Verbindungsabbruch sah damit aus wie besonders tiefer
+    // Schlaf. Nach einem Prozess-Kill war es schlimmer: die statischen
+    // Felder starten bei 0, es wurde also 0 bpm aufaddiert und die Nacht
+    // als "sehr gut" gemeldet.
+    //
+    // Jetzt trägt jeder gemeldete Wert einen Zeitstempel. Ist der Puls
+    // älter als DATEN_FRISCHE_MS, gilt der ganze Tick als Lücke (null) und
+    // fällt aus der Auswertung – statt sie still zu verfälschen.
+    //
+    // Der Puls dient dabei als Frische-Anzeiger für die GESAMTE Verbindung:
+    // HF-Notifications kommen ca. 1×/s, viel dichter als jedes Tick-
+    // Intervall. Bewegung eignet sich dafür nicht – meldeBewegung() wird
+    // aus chat.html nur bei Beträgen > 0 aufgerufen, "keine Meldung" ließe
+    // sich also nicht von "vollkommen still" unterscheiden.
+    private static final long DATEN_FRISCHE_MS = 2 * 60 * 1000L; // 2 Minuten
+
+    private static volatile int letzteHerzfrequenz      = 0;
+    private static volatile long letzteHerzfrequenzZeit = 0; // 0 = noch nie ein Wert gemeldet
     private static volatile double bewegungSeitTick     = 0;
-    private static volatile long summeHerzfrequenz      = 0;
-    private static volatile double summeBewegung        = 0;
-    private static volatile int anzahlMesspunkte        = 0;
 
-    // ── Pulsvariabilität (Annäherung an HRV) – eigenes Summenpaar ───────
-    // EIGENER Zähler nötig (statt anzahlMesspunkte mitzuverwenden): laut
-    // pulsVariabilitaetMessen() in chat.html liefert die Variabilität erst
-    // ab 5 Messpunkten im gleitenden 45s-Fenster einen Wert – direkt nach
-    // Verbindungsaufbau oder nach kurzen Empfangslücken kann
-    // letzteVariabilitaet also noch null sein, während bereits ein
-    // gültiger letzteHerzfrequenz-Wert vorliegt. Double (statt double)
-    // bewusst, damit "noch kein Wert gemeldet" (null) von "Wert 0.0"
-    // unterscheidbar bleibt.
-    private static volatile Double letzteVariabilitaet         = null;
-    private static volatile double summeVariabilitaet          = 0;
-    private static volatile int anzahlVariabilitaetsmesspunkte = 0;
+    // Double (statt double) bewusst, damit "noch kein Wert gemeldet" (null)
+    // von "Wert 0.0" unterscheidbar bleibt: laut pulsVariabilitaetMessen()
+    // in chat.html liefert die Variabilität erst ab 5 Messpunkten im
+    // gleitenden 45s-Fenster einen Wert.
+    private static volatile Double letzteVariabilitaet   = null;
+    private static volatile long letzteVariabilitaetZeit = 0;
 
-    // ── Absicherung der Nacht-Summen (SharedPreferences) ────────────────
-    // Die obigen Felder leben NUR im Arbeitsspeicher dieses Prozesses –
-    // wird der Prozess vor der Morgen-Auswertung beendet (Speicherdruck,
-    // Reboot), sind sie ohne diese Absicherung verloren, auch wenn
-    // START_STICKY den Service danach neu startet (die statischen Felder
-    // beginnen dann wieder bei 0). Deshalb: bei jedem Nacht-Tick den
-    // aktuellen Stand persistieren, beim Service-Start wiederherstellen –
-    // aber NUR, wenn der gespeicherte Stand nachweislich aus derselben
-    // Nacht stammt (siehe nachtKennung()), sonst verwerfen.
+    /**
+     * Ein Messpunkt der Nacht. bpm/bewegung/variabilitaet sind null, wenn zum
+     * Tick-Zeitpunkt keine frischen Daten vorlagen – diese Lücken bleiben
+     * bewusst in der Reihe stehen (statt übersprungen zu werden), damit die
+     * Auswertung in chat.html Abbrüche erkennen und benennen kann.
+     */
+    public static final class Messpunkt {
+        public final long zeit;              // Wanduhrzeit (System.currentTimeMillis)
+        public final Integer bpm;
+        public final Double bewegung;
+        public final Double variabilitaet;
+
+        Messpunkt(long zeit, Integer bpm, Double bewegung, Double variabilitaet) {
+            this.zeit = zeit;
+            this.bpm = bpm;
+            this.bewegung = bewegung;
+            this.variabilitaet = variabilitaet;
+        }
+    }
+
+    private static final List<Messpunkt> messpunkte = new ArrayList<>();
+
+    // ── Absicherung der Zeitreihe (SharedPreferences) ───────────────────
+    // Die Liste lebt NUR im Arbeitsspeicher dieses Prozesses – wird er vor
+    // der Morgen-Auswertung beendet (Speicherdruck, Reboot), wäre sie ohne
+    // diese Absicherung verloren, auch wenn START_STICKY den Service danach
+    // neu startet. Deshalb: bei jedem Nacht-Tick den Stand persistieren,
+    // beim Service-Start wiederherstellen – aber NUR, wenn er nachweislich
+    // aus derselben Nacht stammt (siehe nachtKennung()), sonst verwerfen.
     private static Context appKontext; // ApplicationContext, NICHT die Service-Instanz selbst (kein Leak-Risiko über den static-Verweis)
 
     private static final String NACHT_PREFS_NAME = "momentum_nacht_erfassung";
     private static final String PREF_KENNUNG     = "nachtKennung";
-    private static final String PREF_SUMME_HF    = "summeHerzfrequenz";
-    private static final String PREF_SUMME_BEW   = "summeBewegung";
-    private static final String PREF_ANZAHL      = "anzahlMesspunkte";
-    private static final String PREF_SUMME_VAR   = "summeVariabilitaet";
-    private static final String PREF_ANZAHL_VAR  = "anzahlVariabilitaetsmesspunkte";
+    private static final String PREF_REIHE       = "messpunkte";
 
     /**
      * Echte Uhrzeit-Prüfung (Systemzeit des Geräts, java.util.Calendar statt
@@ -116,9 +163,30 @@ public class MomentumBleForegroundService extends Service {
      * Tick-Intervall als Nächstes gilt – der Foreground Service selbst
      * läuft davon komplett unabhängig durchgehend weiter.
      */
+    // 21:00–11:00 statt vorher 22:00–08:00: Der Rahmen ist seit der
+    // Umstellung NUR NOCH eine Leitplanke – er verhindert, dass ein
+    // Mittagsschlaf als Nacht gewertet wird, bestimmt aber nicht mehr die
+    // Schlafdauer. Die eigentliche Erkennung läuft über die Messwerte
+    // (siehe schlaffensterErkennen in chat.html). Weiter gefasst, weil ein
+    // enger Rahmen genau die späten Einschläfer und langen Schläfer
+    // abschneiden würde, deretwegen die Umstellung überhaupt nötig war.
+    private static final int RAHMEN_BEGINN_STUNDE = 21;
+    private static final int RAHMEN_ENDE_STUNDE   = 11;
+
     private static boolean istNachtzeit() {
         int stunde = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        return stunde >= 22 || stunde < 8;
+        return stunde >= RAHMEN_BEGINN_STUNDE || stunde < RAHMEN_ENDE_STUNDE;
+    }
+
+    /**
+     * Ob der Nacht-Rahmen für heute vorbei ist. Die Morgen-Auswertung in
+     * chat.html darf die Zeitreihe erst dann verbrauchen und löschen –
+     * vorher würde ein Blick in die App um 3 Uhr die laufende Nacht
+     * abschneiden und den Rest bei null beginnen lassen (genau das passierte
+     * vor der Umstellung bei JEDEM Laden von chat.html).
+     */
+    private static boolean rahmenVorbei() {
+        return !istNachtzeit();
     }
 
     /**
@@ -132,39 +200,53 @@ public class MomentumBleForegroundService extends Service {
      */
     private static String nachtKennung() {
         Calendar cal = Calendar.getInstance();
-        if (cal.get(Calendar.HOUR_OF_DAY) < 8) {
-            cal.add(Calendar.DAY_OF_YEAR, -1); // 00:00–08:00 gehört noch zur Nacht des Vortages
+        if (cal.get(Calendar.HOUR_OF_DAY) < RAHMEN_ENDE_STUNDE) {
+            cal.add(Calendar.DAY_OF_YEAR, -1); // 00:00–11:00 gehört noch zur Nacht des Vortages
         }
         return cal.get(Calendar.YEAR) + "-" + cal.get(Calendar.DAY_OF_YEAR);
     }
 
-    /** Schreibt den aktuellen Nacht-Summenstand nach SharedPreferences (siehe nachtTick()). */
-    private static void nachtSummenPersistieren() {
+    /** Serialisiert die Zeitreihe. Lücken werden als JSON-null geschrieben, nicht ausgelassen. */
+    private static String reiheAlsJson() {
+        JSONArray arr = new JSONArray();
+        for (Messpunkt m : messpunkte) {
+            JSONObject o = new JSONObject();
+            try {
+                o.put("zeit", m.zeit);
+                // JSONObject.put(String, Object) mit null ENTFERNT den Schlüssel –
+                // deshalb explizit JSONObject.NULL, damit die Lücke erhalten bleibt.
+                o.put("bpm", m.bpm == null ? JSONObject.NULL : m.bpm);
+                o.put("bewegung", m.bewegung == null ? JSONObject.NULL : m.bewegung);
+                o.put("hrv", m.variabilitaet == null ? JSONObject.NULL : m.variabilitaet);
+            } catch (JSONException e) {
+                Log.e(TAG, "reiheAlsJson: Messpunkt konnte nicht serialisiert werden.", e);
+                continue;
+            }
+            arr.put(o);
+        }
+        return arr.toString();
+    }
+
+    /** Schreibt die aktuelle Zeitreihe nach SharedPreferences (siehe nachtTick()). */
+    private static void nachtReihePersistieren() {
         if (appKontext == null) return; // sollte nach onCreate() nie eintreten, defensiv trotzdem
-        SharedPreferences.Editor editor = appKontext
-            .getSharedPreferences(NACHT_PREFS_NAME, Context.MODE_PRIVATE)
-            .edit();
-        editor.putString(PREF_KENNUNG, nachtKennung());
-        editor.putLong(PREF_SUMME_HF, summeHerzfrequenz);
-        // SharedPreferences kennt kein putDouble – als String statt Float
-        // gespeichert, um keine Präzision zu verlieren.
-        editor.putString(PREF_SUMME_BEW, String.valueOf(summeBewegung));
-        editor.putInt(PREF_ANZAHL, anzahlMesspunkte);
-        editor.putString(PREF_SUMME_VAR, String.valueOf(summeVariabilitaet));
-        editor.putInt(PREF_ANZAHL_VAR, anzahlVariabilitaetsmesspunkte);
-        editor.apply();
+        appKontext.getSharedPreferences(NACHT_PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(PREF_KENNUNG, nachtKennung())
+            .putString(PREF_REIHE, reiheAlsJson())
+            .apply();
     }
 
     /**
-     * Stellt die Nacht-Summen aus SharedPreferences wieder her – NUR, wenn
-     * die dort abgelegte Kennung zur aktuellen Nacht passt (siehe
+     * Stellt die Zeitreihe aus SharedPreferences wieder her – NUR, wenn die
+     * dort abgelegte Kennung zur aktuellen Nacht passt (siehe
      * nachtKennung()). Gehören die gespeicherten Daten zu einer anderen
-     * (bereits ausgewerteten oder länger zurückliegenden) Nacht, werden
-     * sie stattdessen verworfen, damit sie sich nicht fälschlich als
-     * "laufende Nacht" ausgeben. Wird einmalig beim Service-Start
-     * aufgerufen (siehe onStartCommand()).
+     * (bereits ausgewerteten oder länger zurückliegenden) Nacht, werden sie
+     * stattdessen verworfen, damit sie sich nicht fälschlich als "laufende
+     * Nacht" ausgeben. Wird einmalig beim Service-Start aufgerufen (siehe
+     * onStartCommand()).
      */
-    private static void nachtSummenWiederherstellen() {
+    private static synchronized void nachtReiheWiederherstellen() {
         if (appKontext == null) return;
         SharedPreferences prefs = appKontext.getSharedPreferences(NACHT_PREFS_NAME, Context.MODE_PRIVATE);
         String gespeicherteKennung = prefs.getString(PREF_KENNUNG, null);
@@ -174,13 +256,28 @@ public class MomentumBleForegroundService extends Service {
             return;
         }
 
-        summeHerzfrequenz = prefs.getLong(PREF_SUMME_HF, 0);
-        summeBewegung = Double.parseDouble(prefs.getString(PREF_SUMME_BEW, "0"));
-        anzahlMesspunkte = prefs.getInt(PREF_ANZAHL, 0);
-        summeVariabilitaet = Double.parseDouble(prefs.getString(PREF_SUMME_VAR, "0"));
-        anzahlVariabilitaetsmesspunkte = prefs.getInt(PREF_ANZAHL_VAR, 0);
-        Log.d(TAG, "nachtSummenWiederherstellen: Summen derselben Nacht übernommen (anzahlMesspunkte="
-            + anzahlMesspunkte + ", anzahlVariabilitaetsmesspunkte=" + anzahlVariabilitaetsmesspunkte + ").");
+        String roh = prefs.getString(PREF_REIHE, null);
+        if (roh == null) return;
+
+        messpunkte.clear();
+        try {
+            JSONArray arr = new JSONArray(roh);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.getJSONObject(i);
+                messpunkte.add(new Messpunkt(
+                    o.getLong("zeit"),
+                    o.isNull("bpm")      ? null : o.getInt("bpm"),
+                    o.isNull("bewegung") ? null : o.getDouble("bewegung"),
+                    o.isNull("hrv")      ? null : o.getDouble("hrv")
+                ));
+            }
+            Log.d(TAG, "nachtReiheWiederherstellen: " + messpunkte.size()
+                + " Messpunkte derselben Nacht übernommen.");
+        } catch (JSONException e) {
+            Log.e(TAG, "nachtReiheWiederherstellen: Zeitreihe nicht lesbar – wird verworfen.", e);
+            messpunkte.clear();
+            nachtPrefsLoeschen();
+        }
     }
 
     /** Löscht den abgesicherten Stand vollständig (nach erfolgter Morgen-Auswertung oder bei fremder Nacht-Kennung). */
@@ -203,9 +300,15 @@ public class MomentumBleForegroundService extends Service {
         }
     };
 
-    /** Wird von MomentumBleServicePlugin bei jeder neuen HF-Messung aufgerufen (letzter Wert wird gehalten). */
+    /**
+     * Wird von MomentumBleServicePlugin bei jeder neuen HF-Messung aufgerufen
+     * (letzter Wert wird gehalten). Der Zeitstempel ist entscheidend: Ohne
+     * ihn ließe sich "aktueller Puls" nicht von "seit zwei Stunden
+     * eingefrorener Puls" unterscheiden (siehe DATEN_FRISCHE_MS).
+     */
     public static synchronized void meldeHerzfrequenz(int bpm) {
         letzteHerzfrequenz = bpm;
+        letzteHerzfrequenzZeit = System.currentTimeMillis();
     }
 
     /** Wird von MomentumBleServicePlugin nach jeder ausgewerteten ACC-Notification aufgerufen (wird aufsummiert, nicht überschrieben). */
@@ -224,64 +327,66 @@ public class MomentumBleForegroundService extends Service {
      */
     public static synchronized void meldeVariabilitaet(double wert) {
         letzteVariabilitaet = wert;
+        letzteVariabilitaetZeit = System.currentTimeMillis();
     }
 
-    /** Einfacher Werte-Container für holeNachtDaten() – reine Datenhaltung, keine Logik. */
-    public static final class NachtDaten {
-        public final long summeHerzfrequenz;
-        public final double summeBewegung;
-        public final int anzahlMesspunkte;
-        public final double summeVariabilitaet;
-        public final int anzahlVariabilitaetsmesspunkte;
-
-        NachtDaten(long summeHerzfrequenz, double summeBewegung, int anzahlMesspunkte,
-                   double summeVariabilitaet, int anzahlVariabilitaetsmesspunkte) {
-            this.summeHerzfrequenz = summeHerzfrequenz;
-            this.summeBewegung = summeBewegung;
-            this.anzahlMesspunkte = anzahlMesspunkte;
-            this.summeVariabilitaet = summeVariabilitaet;
-            this.anzahlVariabilitaetsmesspunkte = anzahlVariabilitaetsmesspunkte;
-        }
+    /** Liefert die Zeitreihe der laufenden Nacht (Kopie) für die Morgen-Auswertung in chat.html. */
+    public static synchronized List<Messpunkt> holeNachtDaten() {
+        return new ArrayList<>(messpunkte);
     }
 
-    /** Liefert die bisherigen Nacht-Summen (read-only) für die Morgen-Auswertung in chat.html. */
-    public static synchronized NachtDaten holeNachtDaten() {
-        return new NachtDaten(summeHerzfrequenz, summeBewegung, anzahlMesspunkte,
-            summeVariabilitaet, anzahlVariabilitaetsmesspunkte);
+    /** Ob der Nacht-Rahmen vorbei ist – die Auswertung darf erst dann verbrauchen. */
+    public static boolean istRahmenVorbei() {
+        return rahmenVorbei();
     }
 
-    /** Verwirft die Nacht-Summen nach erfolgter Morgen-Auswertung (im Arbeitsspeicher UND im abgesicherten Stand). */
+    /** Verwirft die Zeitreihe nach erfolgter Morgen-Auswertung (im Arbeitsspeicher UND im abgesicherten Stand). */
     public static synchronized void nachtDatenZuruecksetzen() {
-        summeHerzfrequenz = 0;
-        summeBewegung = 0;
-        anzahlMesspunkte = 0;
-        summeVariabilitaet = 0;
-        anzahlVariabilitaetsmesspunkte = 0;
-        nachtPrefsLoeschen(); // die Rohsummen sind ausgewertet – der abgesicherte Stand muss mit verschwinden, sonst würde ein Neustart derselben Nacht sie fälschlich wiederherstellen
-        Log.d(TAG, "nachtDatenZuruecksetzen: Nacht-Summen verworfen.");
+        int vorher = messpunkte.size();
+        messpunkte.clear();
+        nachtPrefsLoeschen(); // die Rohdaten sind ausgewertet – der abgesicherte Stand muss mit verschwinden, sonst würde ein Neustart derselben Nacht sie fälschlich wiederherstellen
+        Log.d(TAG, "nachtDatenZuruecksetzen: " + vorher + " Messpunkte verworfen.");
     }
 
     private static synchronized void nachtTick() {
-        summeHerzfrequenz += letzteHerzfrequenz;
-        summeBewegung += bewegungSeitTick;
-        anzahlMesspunkte++;
+        long jetzt = System.currentTimeMillis();
+
+        // Frische-Prüfung: Liegt der letzte Puls zu lange zurück, war die
+        // Verbindung während dieses Ticks tot. Dann wird der Punkt als Lücke
+        // eingetragen (alles null) statt eingefrorene Werte weiterzuschleppen.
+        // Auch die Bewegung gilt dann als unbekannt – ohne Verbindung kommen
+        // keine ACC-Daten, "0" hieße fälschlich "vollkommen still".
+        boolean pulsFrisch = letzteHerzfrequenzZeit > 0
+            && (jetzt - letzteHerzfrequenzZeit) <= DATEN_FRISCHE_MS;
+
+        Integer bpm = pulsFrisch ? letzteHerzfrequenz : null;
+        Double bewegung = pulsFrisch ? bewegungSeitTick : null;
 
         // Lokale Kopie: vermeidet, dass zwischen Null-Prüfung und Verwendung
         // ein Race mit meldeVariabilitaet() den Wert unter der Hand ändert.
         Double variabilitaet = letzteVariabilitaet;
-        if (variabilitaet != null) {
-            summeVariabilitaet += variabilitaet;
-            anzahlVariabilitaetsmesspunkte++;
+        boolean hrvFrisch = pulsFrisch && variabilitaet != null && letzteVariabilitaetZeit > 0
+            && (jetzt - letzteVariabilitaetZeit) <= DATEN_FRISCHE_MS;
+        Double hrv = hrvFrisch ? variabilitaet : null;
+
+        messpunkte.add(new Messpunkt(jetzt, bpm, bewegung, hrv));
+        // Sicherung gegen unbegrenztes Wachsen – ältesten Punkt verwerfen.
+        while (messpunkte.size() > MAX_MESSPUNKTE) {
+            messpunkte.remove(0);
         }
 
-        Log.d(TAG, "Nacht-Tick #" + anzahlMesspunkte + ": HF=" + letzteHerzfrequenz
-            + ", Bewegung=" + bewegungSeitTick
-            + ", Variabilität=" + (variabilitaet != null ? variabilitaet : "–")
-            + " (Summen bisher: HF=" + summeHerzfrequenz + ", Bewegung=" + summeBewegung
-            + ", Variabilität=" + summeVariabilitaet + "/" + anzahlVariabilitaetsmesspunkte + ")");
+        Log.d(TAG, "Nacht-Tick #" + messpunkte.size() + ": "
+            + (pulsFrisch
+                ? ("HF=" + letzteHerzfrequenz + ", Bewegung=" + bewegungSeitTick
+                   + ", Variabilität=" + (hrv != null ? hrv : "–"))
+                : ("LÜCKE – keine frischen Daten seit "
+                   + (letzteHerzfrequenzZeit == 0
+                      ? "Start des Dienstes"
+                      : ((jetzt - letzteHerzfrequenzZeit) / 1000) + " s")
+                   + " (Band getrennt?)")));
 
         bewegungSeitTick = 0;
-        nachtSummenPersistieren(); // Absicherung: sofort schreiben, falls der Prozess vor der Morgen-Auswertung endet
+        nachtReihePersistieren(); // Absicherung: sofort schreiben, falls der Prozess vor der Morgen-Auswertung endet
     }
 
     @Override
@@ -328,11 +433,11 @@ public class MomentumBleForegroundService extends Service {
         // erneutem MomentumBleService.start() (z. B. Reconnect) mehrfach
         // aufgerufen werden, solange der Service bereits läuft.
         if (nachtHandler == null) {
-            // Absicherung (Change 4): falls dieser Prozess seit dem letzten
-            // Nacht-Tick derselben Nacht neu gestartet wurde (Speicherdruck-
-            // Kill + START_STICKY-Neustart), hier den Summenstand aus
+            // Absicherung: falls dieser Prozess seit dem letzten Nacht-Tick
+            // derselben Nacht neu gestartet wurde (Speicherdruck-Kill +
+            // START_STICKY-Neustart), hier die Zeitreihe aus
             // SharedPreferences übernehmen, BEVOR der Handler weiterzählt.
-            nachtSummenWiederherstellen();
+            nachtReiheWiederherstellen();
 
             nachtHandler = new Handler(Looper.getMainLooper());
             boolean nachts = istNachtzeit();
