@@ -36,7 +36,7 @@
     @font-face {
       font-family: 'Situra-Thin';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-thin.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -44,7 +44,7 @@
     @font-face {
       font-family: 'Situra-Light';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-Light.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -52,7 +52,7 @@
     @font-face {
       font-family: 'Situra-Regular';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-Regular.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -60,7 +60,7 @@
     @font-face {
       font-family: 'Situra-Medium';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-Medium.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -68,7 +68,7 @@
     @font-face {
       font-family: 'Situra-SemiBold';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -76,7 +76,7 @@
     @font-face {
       font-family: 'Situra-Bold';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-Bold.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -84,7 +84,7 @@
     @font-face {
       font-family: 'Situra-Black';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-Black.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -138,7 +138,14 @@
       --text-4:       #505050;   /* Sehr schwacher Text, Wertanzeigen */
       --accent:       #888888;   /* Slider-Thumb, Fortschrittsbalken */
       --placeholder:  #484848;   /* Eingabefeld-Platzhalter */
-      --bubble-outline: var(--bubble-outline);  /* Sprechblasen-Outline, dunkler Modus */
+      /* Stand vorher auf var(--bubble-outline) – also auf SICH SELBST.
+         Eine Custom Property darf sich nicht selbst referenzieren; die
+         Deklaration ist dadurch ungültig, und der einzige Nutzer
+         (.avatar, border) bekam im dunklen Modus gar keine Rahmenfarbe.
+         Avatar-Kreise ohne Foto waren deshalb unsichtbar – im Profil
+         schwebte nur der Buchstabe. Wert analog zum hellen Modus
+         gespiegelt, wie bei --scrollbar-farbe eine Zeile darunter. */
+      --bubble-outline: rgba(255, 255, 255, 0.75); /* Sprechblasen-Outline, dunkler Modus */
       --scrollbar-farbe: rgba(255, 255, 255, 0.22); /* Scroll-Indikator, dunkler Modus */
       --emotion-karte-bg: rgba(255, 255, 255, 0.10); /* Karte hinter dem Emotion-Schalter, dunkler Modus */
       --ring-ungesehen: #ffffff; /* "Ungesehen"-Ring um Moment-Kreise, dunkler Modus */
@@ -406,15 +413,18 @@
       padding: 10px 20px;
     }
 
+    /* Punkt 2: 13 → 14px Schrift, Polsterung 7/10 → 11/13px. Damit
+       wächst das Feld von rund 30px auf 40px Höhe – näher an einer
+       bequemen Tippfläche, ohne die Liste darunter zu verdrängen. */
     .suche-eingabe {
       width: 100%;
       background: none;
       border: 1px solid var(--border);
       outline: none;
       font-family: 'Situra-Regular', 'Inter', sans-serif;
-      font-size: 13px;
+      font-size: 14px;
       color: #000000;
-      padding: 7px 10px;
+      padding: 11px 13px;
     }
 
     .suche-eingabe:focus { border-color: var(--text-2); }
@@ -431,15 +441,44 @@
       padding: 12px 20px 10px;
     }
 
+    /* ══════════════════════════════════════════════════════════════
+       "+"-ZEICHEN OPTISCH ZENTRIEREN
+       Alle Plus-Kreise stehen bereits auf display:flex mit
+       align-items/justify-content:center – rechnerisch also mittig.
+       Trotzdem sitzt das Zeichen sichtbar zu hoch, denn Flexbox
+       zentriert die ZEILENBOX, nicht die Glyphe. Die Zeilenbox reicht
+       von der Oberkante der Versalien bis zur Unterlänge; das "+" hat
+       aber weder Ober- noch Unterlänge und liegt in Situra oberhalb
+       der Boxmitte.
+
+       Am Bildschirm nachgemessen, mit einer 0x0-Sonde auf der
+       Grundlinie (erfasst das Half-Leading mit) gegen die Tintenkanten
+       aus dem Canvas: Die Tintenmitte lag 2,09px über der Kreismitte,
+       bei 22px Schrift also 0,095em. Ein erster Versuch mit 0,08em
+       ließ noch 0,33px Rest stehen – deshalb 0,095em.
+
+       em-relativ statt in Pixeln, damit die Korrektur in jeder Größe
+       stimmt: Der Versatz wächst proportional zur Schriftgröße.
+
+       Horizontal ist keine Korrektur nötig: Das "+" ist symmetrisch,
+       gemessene Abweichung 0,01px. */
+    .plus-zeichen {
+      display: block;
+      transform: translateY(0.095em);
+    }
+
     .filter-chip {
       background: none;
       border: 1px solid var(--border);
       color: var(--text-2);
       font-family: 'Situra-Regular', 'Inter', sans-serif;
-      font-size: 11px;
+      /* Punkt 2: 11 → 12px, Polsterung 5/12 → 7/14px. Chips werden
+         regelmäßig bedient; die Tippfläche wächst damit von rund
+         23px auf 29px Höhe, ohne dass sie laut werden. */
+      font-size: 12px;
       letter-spacing: 0.02em;
       text-align: center;
-      padding: 5px 12px;
+      padding: 7px 14px;
       border-radius: 999px;
       cursor: pointer;
     }
@@ -483,27 +522,84 @@
       border-top: 1px solid var(--border);
     }
 
+    /* ══════════════════════════════════════════════════════════════
+       TAB-LEISTE – zentrales Navigationselement, deshalb etwas
+       präsenter als zuvor (11px Schrift, 12px Padding, Leiste rund
+       37px hoch – für den Daumen knapp und für die Bedeutung zu leise).
+       Der aktive Reiter unterschied sich zudem AUSSCHLIESSLICH durch
+       die Farbe; die Schriftfamilie war ausdrücklich dieselbe.
+
+       Neu: 56px Leistenhöhe. Das ist genau die Konvention beider
+       Plattformen (Android 56dp, iOS 49pt) und liegt über den 48dp,
+       die als Mindestmaß für eine Tippfläche gelten.
+
+       Nicht zu dominant: Die Beschriftung bleibt mit 12px klein –
+       gegenüber 30px Nachrichtentext ist das Verhältnis rund 1:2,5.
+       Die Leiste gewinnt also über die FLÄCHE an Präsenz, nicht über
+       die Schriftgröße. Der Inhalt darüber bleibt das Lauteste.
+       ══════════════════════════════════════════════════════════════ */
+    /* Höhe der Leiste als Variable, NICHT als Zahl in zwei Regeln.
+       Genau daran ist es zuvor gescheitert: Der schwebende
+       Emotions-Schalter stand auf bottom:54px – ein Wert, der zur
+       damaligen ~37px-Leiste passte. Als die Leiste auf 56px wuchs,
+       ragte der Schalter 3px in sie hinein (am Bildschirm nachgemessen).
+       Zwei unabhängige Zahlen für dieselbe Kante laufen früher oder
+       später auseinander; über die Variable können sie das nicht mehr.
+       Wer die Leistenhöhe ändert, verschiebt den Schalter automatisch
+       mit – siehe .emotion-schalter--schwebend. */
+    .phone-frame { --tab-leiste-hoehe: 56px; }
+
     .tab-btn {
+      position: relative;
       flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: var(--tab-leiste-hoehe);
       background: none;
       border: none;
       font-family: 'Situra-Regular', 'Inter', sans-serif;
-      font-size: 11px;
+      font-size: 12px;
       letter-spacing: 0.06em;
       text-transform: uppercase;
       color: var(--text-3);
-      padding: 12px 0;
+      padding: 0 4px;
       cursor: pointer;
+      transition: color 0.2s ease;
     }
 
     .tab-btn:hover { color: var(--text-2); }
 
+    /* Drei Unterschiede statt einem: voller Kontrast, kräftigerer
+       Schnitt und ein kurzer Strich an der Oberkante. Farbe allein
+       trug zu wenig – besonders im dunklen Modus, wo --text-3 (#666)
+       und Weiß auf kleiner Schrift nah beieinanderliegen. */
     .tab-btn--aktiv {
       color: #000000;
-      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
     }
 
     .phone-frame.emotion-an .tab-btn--aktiv { color: #ffffff; }
+
+    /* Kurzer Indikator auf der Trennlinie der Leiste (top:-1px deckt
+       den 1px-Rand von .tab-leiste ab). Bewusst nur 28px breit statt
+       über die volle Reiterbreite: markiert, ohne einen zweiten
+       kräftigen Balken durchs Bild zu ziehen.
+
+       3px statt der zunächst gewählten 2px: Am Bildschirm geprüft war
+       ein 2px-Strich am äußersten Rand der Leiste kaum wahrnehmbar –
+       technisch vorhanden, aber als Unterscheidungsmerkmal wertlos. */
+    .tab-btn--aktiv::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 3px;
+      border-radius: 0 0 2px 2px;
+      background: currentColor;
+    }
 
     /* ── Gruppen-Kopf: Titel + "+"-Button ──────────────────────── */
     .gruppen-kopf {
@@ -617,34 +713,139 @@
       accent-color: var(--accent);
     }
 
-    .overlay-btn {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text-2);
-      font-family: 'Situra-Regular', 'Inter', sans-serif;
-      font-size: 13px;
-      padding: 10px;
+    /* ══════════════════════════════════════════════════════════════
+       BUTTON-HIERARCHIE – drei Stufen, app-weit
+       ──────────────────────────────────────────────────────────────
+       Vorher gab es .overlay-btn: EINE flache Variante (Outline,
+       13px, 10px Padding, kein Radius) für acht sehr verschiedene
+       Aktionen – "Gruppe erstellen" sah aus wie "Abbrechen". Genau
+       daher rührte der Eindruck, alles sei gleichwertig.
+
+       Vorbild ist das Onboarding, wo die Unterscheidung schon
+       bestand (#weiter-btn gefüllt, .bluetooth-btn Outline,
+       .link-btn nur Text). Diese drei Stufen sind hier
+       verallgemeinert und heißen überall gleich.
+
+         Stufe        Fläche          Rahmen        Form
+         ──────────── ─────────────── ───────────── ──────────────
+         primär       gefüllt         wie Fläche    Pille, 46px
+         sekundär     keine           1px --border  Pille, 46px
+         tertiär      keine           keiner        nur Text
+
+       Primär und sekundär teilen sich ABSICHTLICH exakt dieselbe
+       Geometrie – sie unterscheiden sich nur durch die Füllung, wie
+       gefordert. Dadurch bleibt eine Reihe aus beiden ruhig.
+
+       Die Füllung nutzt --schalter-fuellung/-kontrast (siehe
+       Modus-Variablen ganz oben): dunkler Modus weiße Fläche mit
+       schwarzer Schrift, heller Modus umgekehrt. Diese beiden
+       Variablen existierten bereits für den Emotion-Schalter und
+       bedeuten exakt das – kein neues Farbpaar nötig.
+
+       KOMPAKTE VARIANTE (.btn--kompakt): für die Composer-Zeilen in
+       Tagebuch und Moment, wo der Knopf neben einem Eingabefeld in
+       einer schmalen Zeile sitzt. Gleiche Form und Rangfolge, nur
+       kleiner – eine 46px-Pille über die volle Breite würde die
+       Zeile dort sprengen.
+       ══════════════════════════════════════════════════════════════ */
+    .btn-primaer,
+    .btn-sekundaer {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 14px 22px;
+      border-radius: 999px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 14px;
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+      text-align: center;
       cursor: pointer;
+      transition: opacity 0.2s ease, background-color 0.2s ease,
+                  border-color 0.2s ease, transform 0.15s ease;
     }
 
-    .overlay-btn:hover:not(:disabled) { border-color: var(--text-2); }
+    .btn-primaer {
+      background: var(--schalter-fuellung);
+      color: var(--schalter-fuellung-kontrast);
+      border: 1px solid var(--schalter-fuellung);
+    }
 
-    /* Gesperrt, solange die Anmeldung beim Server nicht bestätigt ist
-       (siehe overlayKnoepfeAktualisieren im Abschnitt VERBINDUNG).
-       Dieselbe Darstellung wie bei #antwort-btn weiter unten. */
-    .overlay-btn:disabled { opacity: 0.3; cursor: default; }
+    /* Primärtext hat in dieser App keine eigene Variable (siehe
+       Modus-Block oben: es gibt --text-2/-3/-4, aber kein --text) –
+       deshalb wie überall sonst das Paar #000000 / .emotion-an #ffffff. */
+    .btn-sekundaer {
+      background: none;
+      border: 1px solid var(--border);
+      color: #000000;
+    }
+    .phone-frame.emotion-an .btn-sekundaer { color: #ffffff; }
+
+    .btn-primaer:hover:not(:disabled)   { opacity: 0.86; }
+    .btn-sekundaer:hover:not(:disabled) { border-color: var(--schalter-fuellung); }
+    .btn-primaer:active:not(:disabled),
+    .btn-sekundaer:active:not(:disabled) { transform: scale(0.98); }
+
+    /* Gesperrt, z. B. solange die Anmeldung beim Server nicht bestätigt
+       ist (siehe overlayKnoepfeAktualisieren im Abschnitt VERBINDUNG). */
+    .btn-primaer:disabled,
+    .btn-sekundaer:disabled { opacity: 0.3; cursor: default; }
+
+    /* Tertiär: Abbrechen, Überspringen, Zurück. Kein Rahmen, keine
+       Fläche, kleiner – soll erreichbar sein, aber nichts vorschlagen. */
+    .btn-tertiaer {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      padding: 8px 10px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+    .btn-tertiaer:hover { color: #000000; }
+    .phone-frame.emotion-an .btn-tertiaer:hover { color: #ffffff; }
+
+    .btn--kompakt {
+      flex-shrink: 0; /* stand vorher auf .moment-senden-btn/.tagebuch-speichern-btn */
+      min-height: 36px;
+      padding: 9px 16px;
+      font-size: 13px;
+    }
+
+    /* Die globale Fokusregel (.phone-frame :focus-visible, siehe
+       FOKUS-Abschnitt) setzt border-radius:2px und ist mit (0,2,0)
+       stärker als diese Klassen (0,1,0) – ohne diese Zeile würden die
+       Pillen beim Tabben rechteckig. Spezifität hier (0,3,0). */
+    .phone-frame .btn-primaer:focus-visible,
+    .phone-frame .btn-sekundaer:focus-visible { border-radius: 999px; }
+
+    /* Über die volle Breite, wenn der Knopf direkt in einer Overlay-
+       Karte steht – die stapelt ihre Kinder ohnehin untereinander.
+       Als Container-Regel statt als Zusatzklasse an jedem Knopf: so
+       kann keiner vergessen werden. */
+    .overlay-karte > .btn-primaer,
+    .overlay-karte > .btn-sekundaer,
+    .kopplung-seite > .btn-primaer,
+    .kopplung-seite > .btn-sekundaer { width: 100%; }
 
     /* Destruktive Aktion (z. B. "Gruppe löschen"): dünne rote Outline
        statt schwarz/weiß, signalisiert Endgültigkeit – bewusst die
-       einzige Farbabweichung vom sonst rein monochromen Look. */
-    .overlay-btn--gefahr {
+       einzige Farbabweichung vom sonst rein monochromen Look. Wirkt auf
+       BEIDE Stufen, damit eine gefährliche Aktion primär ODER sekundär
+       sein kann, je nachdem wie leicht sie erreichbar sein soll. */
+    .btn--gefahr {
       border-color: rgba(196, 60, 48, 0.55);
       color: rgba(196, 60, 48, 0.9);
     }
-
-    .overlay-btn--gefahr:hover {
-      border-color: rgba(196, 60, 48, 0.85);
-      background: rgba(196, 60, 48, 0.08);
+    .phone-frame.emotion-an .btn-sekundaer.btn--gefahr { color: rgba(224, 96, 84, 0.95); }
+    .btn-primaer.btn--gefahr {
+      background: rgba(196, 60, 48, 0.9);
+      border-color: rgba(196, 60, 48, 0.9);
+      color: #ffffff;
     }
 
     /* ── Menü (Hamburger) + Einstellungen + Infos ────────────────── */
@@ -1099,7 +1300,7 @@
       gap: 10px;
     }
 
-    .bestaetigung-aktionen .overlay-btn { flex: 1; }
+    .bestaetigung-aktionen .btn-primaer { flex: 1; }
 
     /* ══════════════════════════════════════════════════════════════
        MOMENT – horizontale Story-Leiste + Composer (versteckt hinter
@@ -1236,24 +1437,6 @@
     .moment-eingabe:focus { border-bottom-color: var(--text-2); }
 
     .moment-eingabe::placeholder { color: var(--placeholder); }
-
-    .moment-senden-btn {
-      flex-shrink: 0;
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text-2);
-      font-family: 'Situra-Regular', 'Inter', sans-serif;
-      font-size: 12px;
-      padding: 7px 12px;
-      cursor: pointer;
-    }
-
-    .moment-senden-btn:hover:not(:disabled) {
-      border-color: var(--text-2);
-      color: #000000;
-    }
-
-    .moment-senden-btn:disabled { opacity: 0.3; cursor: default; }
 
     /* ── Feed: Momente der anderen Personen als große Karten ─────────
        Füllt den vormals leeren Bereich unterhalb der Kreis-Leiste. Der
@@ -1533,22 +1716,71 @@
     /* Mittig statt am linken Rand, mit mehr Luft rundherum – Avatar
        über dem Namen statt nebeneinander, damit der Bereich weniger
        gedrängt wirkt. */
+    /* ── Hierarchie im Profilbereich ──────────────────────────────
+       Vorher lagen Name (20px), Graph-Titel (12px), Werte (10px) und
+       Namens-Hinweis (10px) so dicht beieinander, dass keine Rangfolge
+       ablesbar war – alles wirkte gleichwertig. Die Abstände zwischen
+       den Abschnitten (14–24px) waren zudem kaum größer als die
+       Abstände INNERHALB eines Abschnitts, wodurch die Bereiche
+       ineinander liefen.
+
+       Neue Staffelung, drei klar getrennte Ebenen:
+         1. Identität   Foto 112px, Name 32px      ← dominant
+         2. Inhalt      Graph-Titel 12px, Tagebuch
+         3. Beiwerk     Werte-Labels 9px, Werte 11px, Hinweis 11px
+
+       Der Sprung von 32px auf 11px ist bewusst groß: Ein Verhältnis
+       von rund 3:1 liest sich als Rangfolge, die bisherigen 2:1
+       (20px zu 10px) taten das nicht.
+
+       ABSCHNITTSABSTAND: einheitlich 40px zwischen den Bereichen
+       (--profil-abschnitt), gegenüber 6–10px innerhalb eines Bereichs.
+       Erst dieses Verhältnis macht sichtbar, dass es verschiedene
+       Bereiche sind – dafür braucht es keine Trennlinien, die dem
+       reduzierten Schwarz/Weiß-Ansatz widersprächen. */
+    .tab-inhalt#tab-profil { --profil-abschnitt: 40px; }
+
     .profil-kopf {
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      gap: 14px;
-      padding: 40px 24px 28px;
+      gap: 18px;
+      padding: 44px 24px var(--profil-abschnitt);
     }
 
     /* Größere Variante des bestehenden .avatar-Kreises (siehe dort) –
        gleicher Aufbau (Outline, Foto überschreibt Buchstaben), nur
-       größer fürs Profil. */
-    .avatar--profil {
+       größer.
+
+       DOPPELTE KLASSE (.avatar.avatar--profil) ist hier notwendig, nicht
+       Kosmetik: Die Basisregel .avatar steht im Stylesheet WEITER UNTEN
+       (bei den Kontaktlisten) und hat dieselbe Spezifität wie
+       .avatar--profil allein – bei Gleichstand gewinnt die spätere
+       Regel. Die 72px kamen dadurch nie an, alle drei Verwendungen
+       (Profil, Neue Gruppe, Gruppeninfo) rendern bis heute mit den
+       42px der Basisregel. Mit zwei Klassen (0-2-0 statt 0-1-0)
+       gewinnt diese Regel unabhängig von der Reihenfolge. */
+    .avatar.avatar--profil {
       width: 72px; height: 72px;
       font-size: 26px;
+    }
+
+    /* Nur der Profil-Tab: 112px statt 72px. Das Foto soll das Erste
+       sein, was man wahrnimmt, nicht ein Element unter vielen. Bewusst
+       NUR hier – in den beiden Overlays (Neue Gruppe, Gruppeninfo)
+       wäre ein 112px-Kreis für den knappen Platz dort zu groß. */
+    #profil-avatar.avatar--profil {
+      width: 112px; height: 112px;
+      font-size: 40px;
+    }
+
+    /* Mitwachsen mit dem größeren Kreis – ein 22px-Stift an einem
+       112px-Kreis wirkte verloren. */
+    #profil-avatar + .profil-foto-upload-btn {
+      width: 28px; height: 28px;
+      font-size: 13px;
     }
 
     .profil-foto-wrapper {
@@ -1599,16 +1831,21 @@
       border: none;
       outline: none;
       text-align: center;
-      font-size: 20px;
+      /* 32px statt 20px – zusammen mit dem 112px-Foto die dominante
+         Ebene. Bei sehr langen Namen (maxlength 24) scrollt das
+         Eingabefeld horizontal, wie schon vorher, nur früher. */
+      font-size: 32px;
+      line-height: 1.15;
       color: #000000;
-      padding: 0 0 4px;
+      padding: 0 0 6px;
       font-family: 'Situra-Medium', 'Inter', sans-serif; /* Fallback, bis JS den echten Schnitt setzt */
     }
 
     .phone-frame.emotion-an .profil-name-eingabe { color: #ffffff; }
 
     .profil-name-hinweis {
-      font-size: 10px;
+      font-size: 11px;
+      line-height: 1.45;
       color: var(--text-3);
       letter-spacing: 0.04em;
     }
@@ -1628,26 +1865,92 @@
        der bleibt vollständig der reagierenden Wort-für-Wort-Typografie
        überlassen (momentTextRendern/stilAnwenden) – hier absichtlich
        kein statischer font-family-Wert gesetzt. ── */
+    /* Werte-Gruppe: drei gleich gebaute Zellen nebeneinander. Damit sie
+       als EINE Gruppe lesbar ist, bekommt jede Zelle dieselbe
+       Beschriftungsgröße, denselben Innenabstand und dieselbe Breite
+       (flex:1) – Unterschiede zwischen den Zellen wären sonst
+       Bedeutungsträger, obwohl keiner gemeint ist. */
     .tagebuch-werte {
       flex-shrink: 0;
       display: flex;
-      gap: 20px;
-      padding: 4px 20px 20px;
+      gap: 16px;
+      padding: 0 20px var(--profil-abschnitt);
     }
 
-    .tagebuch-werte .sensor-dimension { flex: 1; }
+    .tagebuch-werte .sensor-dimension { flex: 1; min-width: 0; gap: 0; }
+
+    /* Gestapelt statt nebeneinander: Bei drei Zellen in einer schmalen
+       Spalte stünden Label und Wert sonst gedrängt auf einer Zeile
+       (space-between). Übereinander liest sich jede Zelle als Einheit,
+       und alle drei Zellen sehen identisch aus. */
+    .tagebuch-werte .dimension-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
 
     .tagebuch-werte .dimension-label,
     .tagebuch-werte .dimension-wert {
       font-family: 'Situra-Medium', 'Inter', sans-serif;
     }
 
+    /* Zusatzinformation, nicht gleichrangiger Block: Beide Zeilen
+       kleiner als bisher (Label 10→9, Wert bleibt klein) und deutlich
+       unter dem 32px-Namen. Der Wert steht etwas größer und heller als
+       sein Label, damit innerhalb der Zelle die Zahl das Inhaltliche
+       ist – zwischen den Zellen bleibt aber alles gleich. */
+    .tagebuch-werte .dimension-label {
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      color: var(--text-3);
+    }
+
+    .tagebuch-werte .dimension-wert {
+      font-size: 11px;
+      color: var(--text-2);
+    }
+
+    /* Kein zusätzlicher Abstand nach oben: Den liefert bereits das
+       padding-bottom des Schlafgraphen darüber (--profil-abschnitt).
+       Beides zu setzen ergäbe 80px und risse den Bereich auseinander.
+
+       KLEBEND am oberen Rand des Scrollbereichs (#tab-profil hat
+       overflow-y:auto, ist also selbst der Container): Das löst die
+       Überlappung mit dem schwebenden Emotions-Schalter, der unten
+       rechts sitzt – sobald die Kopfzeile oben klebt, sind die beiden
+       an entgegengesetzten Rändern und können sich nicht mehr
+       begegnen. Nebeneffekt, der hier erwünscht ist: Die Hauptaktion
+       des Bereichs ("+" für einen neuen Eintrag) bleibt beim Scrollen
+       durch lange Tagebuchlisten sichtbar.
+
+       Eigener Hintergrund ist Pflicht, sonst scheinen die Einträge
+       beim Vorbeiscrollen durch die Kopfzeile hindurch. padding-top
+       ersetzt den Abstand, den vorher der Schlafgraph darüber lieferte
+       – im geklebten Zustand liegt darüber nichts mehr.
+
+       z-index:4 hält sie über dem scrollenden Inhalt, aber unter dem
+       Emotions-Schalter (z-index:5): Falls sich die beiden doch
+       einmal berühren, verdeckt die Kopfzeile den Schalter nicht –
+       er trägt das Kernprinzip der App und muss sichtbar bleiben. */
     .tagebuch-kopf {
+      position: sticky;
+      top: 0;
+      z-index: 4;
       flex-shrink: 0;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px 8px;
+      /* Label und "+" beieinander am LINKEN Rand statt auseinander-
+         gezogen (vorher space-between). Damit verlässt die Hauptaktion
+         des Bereichs die rechte Spalte, in der der schwebende
+         Emotions-Schalter sitzt – gemessen war das "+" dort an der
+         Startansicht nicht anklickbar, weil der Schalter die Klicks
+         abfing. Die klebende Kopfzeile allein löste das nicht: Bei
+         Scrollposition 0 steht sie naturgemäß tief, also genau in der
+         Zone des Schalters. */
+      justify-content: flex-start;
+      gap: 14px;
+      padding: 10px 20px;
+      background: var(--bg);
     }
 
     .tagebuch-kopf-label {
@@ -1662,21 +1965,30 @@
        "+"-Button für neue Gruppen (.neue-gruppe-btn) – dezenter
        Outline-Kreis mit zentriertem "+" statt auffälligem
        Eingabe-Kasten oder freistehendem Symbol. */
+    /* Punkt 3: Das Anlegen eines Eintrags ist die Hauptinteraktion
+       des Tagebuchs – 26px waren dafür zu leise. Jetzt 40px Kreis mit
+       22px Zeichen und voller Kontrastfarbe statt --text-2. Bewusst
+       weiterhin Outline und nicht gefüllt: gefüllt wäre ein primärer
+       Button (siehe Button-Hierarchie), und der steht in diesem
+       Bereich dem "Eintragen" im Composer zu. */
     .tagebuch-neu-btn {
       flex-shrink: 0;
-      width: 26px; height: 26px;
+      width: 40px; height: 40px;
       border-radius: 50%;
       border: 1px solid var(--border);
       background: none;
-      color: var(--text-2);
+      color: #000000;
       font-family: 'Situra-Medium', 'Inter', sans-serif;
-      font-size: 16px;
+      font-size: 22px;
       line-height: 1;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: border-color 0.2s ease;
     }
+
+    .phone-frame.emotion-an .tagebuch-neu-btn { color: #ffffff; }
 
     .tagebuch-neu-btn:hover { border-color: var(--text-2); }
 
@@ -1751,30 +2063,6 @@
       display: flex;
       justify-content: flex-end;
       gap: 8px;
-    }
-
-    .tagebuch-abbrechen-btn {
-      flex-shrink: 0;
-      background: none;
-      border: none;
-      color: var(--text-3);
-      font-family: 'Situra-Medium', 'Inter', sans-serif;
-      font-size: 12px;
-      padding: 7px 4px;
-      cursor: pointer;
-    }
-
-    .tagebuch-abbrechen-btn:hover { color: var(--text-2); }
-
-    .tagebuch-speichern-btn {
-      flex-shrink: 0;
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text-2);
-      font-family: 'Situra-Medium', 'Inter', sans-serif;
-      font-size: 12px;
-      padding: 7px 12px;
-      cursor: pointer;
     }
 
     .tagebuch-mehr-btn {
@@ -1928,7 +2216,7 @@
        nahtlos in echte Werte hinein. ── */
     .tagebuch-schlafgraph {
       flex-shrink: 0;
-      padding: 10px 20px 14px;
+      padding: 0 20px var(--profil-abschnitt);
     }
 
     .tagebuch-graph-titel {
@@ -2548,25 +2836,6 @@
        Bewusst zurückhaltend statt als Gefahren-Knopf: Der Vorgang ist
        nicht zerstörerisch, die Grundlinien bauen sich in rund vier
        Minuten neu auf. */
-    .test-neue-person-btn {
-      display: block;
-      width: 100%;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      color: inherit;
-      font-family: inherit;
-      font-size: 12px;
-      padding: 9px 14px;
-      cursor: pointer;
-      transition: border-color 0.2s ease, opacity 0.1s ease;
-    }
-    .test-neue-person-btn:active { opacity: 0.7; }
-    .test-neue-person-btn:focus-visible {
-      outline: 2px solid currentColor;
-      outline-offset: 2px;
-    }
-
     .test-neue-person-hinweis {
       display: block;
       font-size: 9px;
@@ -3423,10 +3692,24 @@
        (selbst position:absolute, siehe .ansicht) – dadurch bleibt er
        beim Scrollen der Listen/des Feeds fest an Ort und Stelle, ganz
        unabhängig davon, welcher Tab gerade aktiv ist. */
+    /* Sitzt vollständig ÜBER der Tab-Leiste, mit sichtbarem Abstand.
+       Der Bezugsrahmen (#ansicht-uebersicht) reicht bis zur Unterkante
+       des Frames, also HINTER die Leiste – deshalb muss der Abstand
+       deren volle Höhe mit einrechnen:
+
+         Leistenhöhe (56) + Trennlinie (1) + Abstand (12) = 69px
+
+       Als calc() statt als fertige 69, damit die ersten beiden Summanden
+       aus derselben Quelle kommen wie die Leiste selbst. Vorher stand
+       hier eine feste 54 – die Zahl passte zur alten Leistenhöhe und
+       wurde beim Vergrößern der Leiste still falsch.
+
+       z-index:5 sorgt zusätzlich dafür, dass der Schalter nicht von der
+       Leiste überdeckt wird, falls sich die Kanten je wieder berühren. */
     .emotion-schalter--schwebend {
       position: absolute;
       right: 16px;
-      bottom: 54px;
+      bottom: calc(var(--tab-leiste-hoehe) + 1px + 12px);
       z-index: 5;
     }
 
@@ -3687,7 +3970,7 @@
 
     <div class="gruppen-kopf">
       <span class="gruppen-kopf-label">Gruppen</span>
-      <button class="neue-gruppe-btn" id="neue-gruppe-oeffnen-btn" title="Neue Gruppe erstellen">+</button>
+      <button class="neue-gruppe-btn" id="neue-gruppe-oeffnen-btn" title="Neue Gruppe erstellen"><span class="plus-zeichen">+</span></button>
     </div>
 
     <main class="gespraechs-liste" id="gruppen-liste"></main>
@@ -3710,7 +3993,7 @@
       <div class="moment-composer" id="moment-composer" hidden>
         <input class="moment-eingabe" type="text" id="moment-eingabe"
           placeholder="Was ist gerade los?" autocomplete="off" maxlength="140">
-        <button class="moment-senden-btn" id="moment-senden-btn">Senden</button>
+        <button class="btn-primaer btn--kompakt" id="moment-senden-btn">Senden</button>
       </div>
 
       <div class="moment-feed" id="moment-feed"></div>
@@ -3746,6 +4029,17 @@
             <span class="dimension-wert" id="profil-wert-puls">—</span>
           </div>
         </div>
+        <!-- Stabilität fehlte hier bisher ganz, obwohl sie zu denselben
+             Zustandswerten gehört wie Puls und Schlaf. Zeigt "—",
+             solange kein Band verbunden ist oder die persönliche
+             Grundlinie sich noch bildet (siehe stabilitaetGemessen) –
+             ein Wert ohne belastbare Grundlinie wäre keine Messung. -->
+        <div class="sensor-dimension">
+          <div class="dimension-header">
+            <span class="dimension-label dimension-label--live">Stabilität</span>
+            <span class="dimension-wert" id="profil-wert-stabilitaet">—</span>
+          </div>
+        </div>
         <div class="sensor-dimension">
           <div class="dimension-header">
             <span class="dimension-label dimension-label--live">Schlaf</span>
@@ -3767,7 +4061,7 @@
 
       <div class="tagebuch-kopf">
         <span class="tagebuch-kopf-label">Tagebuch</span>
-        <button class="tagebuch-neu-btn" id="tagebuch-neu-btn" type="button" title="Neuer Eintrag" aria-label="Neuer Eintrag">+</button>
+        <button class="tagebuch-neu-btn" id="tagebuch-neu-btn" type="button" title="Neuer Eintrag" aria-label="Neuer Eintrag"><span class="plus-zeichen">+</span></button>
       </div>
 
       <div class="tagebuch-ansicht-umschalter" id="tagebuch-ansicht-umschalter" role="tablist">
@@ -3779,8 +4073,8 @@
         <textarea class="tagebuch-eingabe" id="tagebuch-eingabe" rows="3"
           placeholder="Was ist heute passiert?" autocomplete="off" maxlength="2000"></textarea>
         <div class="tagebuch-composer-aktionen">
-          <button class="tagebuch-abbrechen-btn" id="tagebuch-abbrechen-btn" type="button">Abbrechen</button>
-          <button class="tagebuch-speichern-btn" id="tagebuch-speichern-btn" type="button">Eintragen</button>
+          <button class="btn-tertiaer" id="tagebuch-abbrechen-btn" type="button">Abbrechen</button>
+          <button class="btn-primaer btn--kompakt" id="tagebuch-speichern-btn" type="button">Eintragen</button>
         </div>
       </div>
 
@@ -3826,7 +4120,12 @@
             <span class="einstellung-label">Sensor-Verbindung</span>
             <span class="einstellung-hinweis" id="einstellungen-band-status">Nicht verbunden</span>
           </div>
-          <button class="overlay-btn" id="einstellungen-band-btn">Verbinden</button>
+          <!-- Kompakt, weil der Knopf IN einer Zeile neben seinem Label
+               sitzt und nicht als eigenständiger Block darunter. Die
+               Rangfolge trägt hier die Füllung, nicht die Größe:
+               gefüllt = Hauptaktion, "Profil bearbeiten" darunter nur
+               Outline. -->
+          <button class="btn-primaer btn--kompakt" id="einstellungen-band-btn">Verbinden</button>
         </div>
 
         <div class="einstellung-zeile">
@@ -3837,7 +4136,7 @@
           </label>
         </div>
 
-        <button class="overlay-btn" id="einstellungen-profil-btn">Profil bearbeiten</button>
+        <button class="btn-sekundaer" id="einstellungen-profil-btn">Profil bearbeiten</button>
       </div>
     </div>
 
@@ -3992,7 +4291,7 @@
         <input class="suche-eingabe" type="text" id="neue-gruppe-name"
           placeholder="Gruppenname (optional)" autocomplete="off">
         <div class="kontakt-auswahl-liste" id="kontakt-auswahl-liste"></div>
-        <button class="overlay-btn" id="neue-gruppe-erstellen-btn">Gruppe erstellen</button>
+        <button class="btn-primaer" id="neue-gruppe-erstellen-btn">Gruppe erstellen</button>
       </div>
     </div>
 
@@ -4163,7 +4462,7 @@
                        Stabilität 100 direkt nach dem Anlegen). Beide werden
                        immer gemeinsam zurückgesetzt, nie einzeln: Der
                        Stress-Index verrechnet sie miteinander. -->
-                  <button class="test-neue-person-btn" id="neue-person-btn" type="button">
+                  <button class="btn-sekundaer btn--kompakt" id="neue-person-btn" type="button">
                     Neue Person
                   </button>
                   <span class="test-neue-person-hinweis" id="neue-person-hinweis">
@@ -4230,7 +4529,7 @@
           </div>
         </div>
         <div class="kontakt-auswahl-liste" id="gruppeninfo-mitglieder-liste"></div>
-        <button class="overlay-btn overlay-btn--gefahr" id="gruppe-loeschen-btn">Gruppe löschen</button>
+        <button class="btn-sekundaer btn--gefahr" id="gruppe-loeschen-btn">Gruppe löschen</button>
       </div>
     </div>
 
@@ -4239,8 +4538,8 @@
       <div class="bestaetigung-karte">
         <p class="bestaetigung-text" id="bestaetigung-text">Wirklich?</p>
         <div class="bestaetigung-aktionen">
-          <button class="overlay-btn" id="bestaetigung-abbrechen-btn">Abbrechen</button>
-          <button class="overlay-btn overlay-btn--gefahr" id="bestaetigung-bestaetigen-btn">Entfernen</button>
+          <button class="btn-tertiaer" id="bestaetigung-abbrechen-btn">Abbrechen</button>
+          <button class="btn-primaer btn--gefahr" id="bestaetigung-bestaetigen-btn">Entfernen</button>
         </div>
       </div>
     </div>
@@ -9445,7 +9744,11 @@
         const plus = document.createElement('span');
         plus.className = 'moment-kreis-plus';
         plus.setAttribute('aria-hidden', 'true');
-        plus.textContent = '+';
+        // In einem Span statt als nackter Textknoten, damit die
+        // optische Korrektur (.plus-zeichen) greifen kann – ein
+        // Transform auf dem Badge selbst würde den ganzen Kreis
+        // verschieben, nicht das Zeichen darin.
+        plus.innerHTML = '<span class="plus-zeichen">+</span>';
         duWrapper.appendChild(plus);
 
         kreisElement = duWrapper;
@@ -9930,6 +10233,7 @@
   const profilFotoInput       = document.getElementById('profil-foto-input');
   const profilNameEingabe     = document.getElementById('profil-name-eingabe');
   const profilWertPuls        = document.getElementById('profil-wert-puls');
+  const profilWertStabilitaet = document.getElementById('profil-wert-stabilitaet');
   const profilWertSchlaf      = document.getElementById('profil-wert-schlaf');
 
   function profilNameSchriftAktualisieren() {
@@ -10077,6 +10381,16 @@
 
   function profilStatsAktualisieren() {
     profilWertPuls.textContent   = letzterBpmWert == null ? '—' : letzterBpmWert + ' bpm';
+    // Nur anzeigen, wenn der Wert auf einer belastbaren Grundlinie beruht
+    // (siehe stabilitaetGemessen / GRUNDLINIE_MIN_MESSPUNKTE). Sonst "—":
+    // Der Startwert STAB_MAX bedeutet "ruhig halten, weil nichts gemessen",
+    // nicht "gemessen und ruhig" – als 900 angezeigt wäre er eine
+    // vorgetäuschte Messung.
+    if (profilWertStabilitaet) {
+      profilWertStabilitaet.textContent = stabilitaetGemessen
+        ? aktuelleRohwerte.stabilitaet
+        : '—';
+    }
     profilWertSchlaf.textContent = aktuelleSchlafstufeText();
   }
 
@@ -10954,7 +11268,7 @@
 
       const avatar = document.createElement('div');
       avatar.className = 'avatar';
-      avatar.textContent = '+';
+      avatar.innerHTML = '<span class="plus-zeichen">+</span>'; // siehe .plus-zeichen
       plusEl.appendChild(avatar);
 
       const info = document.createElement('div');
@@ -11139,12 +11453,12 @@
           // Vollbild-Kamera, die Fläche in der Karte wäre dauerhaft leer.
           // Rückmeldungen laufen über die Statuszeile unten.
           '<div class="kopplung-seite" data-seite="scannen" hidden>' +
-            '<button class="overlay-btn" data-rolle="scan-btn">Kamera öffnen</button>' +
+            '<button class="btn-primaer" data-rolle="scan-btn">Kamera öffnen</button>' +
             '<span class="kopplung-trenner">oder eintippen</span>' +
             '<input type="text" inputmode="numeric" maxlength="6" class="kopplung-eingabe" ' +
                    'data-rolle="eingabe" placeholder="6-stelliger Code" ' +
                    'aria-label="Code des anderen Handys">' +
-            '<button class="overlay-btn" data-rolle="koppeln-btn">Hinzufügen</button>' +
+            '<button class="btn-sekundaer" data-rolle="koppeln-btn">Hinzufügen</button>' +
           '</div>' +
 
           '<div class="einstellung-zeile">' +

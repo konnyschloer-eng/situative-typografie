@@ -34,7 +34,7 @@
     @font-face {
       font-family: 'Situra-Thin';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-thin.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-thin.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -42,7 +42,7 @@
     @font-face {
       font-family: 'Situra-Light';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-Light.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-Light.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -50,7 +50,7 @@
     @font-face {
       font-family: 'Situra-Regular';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-Regular.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-Regular.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -58,7 +58,7 @@
     @font-face {
       font-family: 'Situra-Medium';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-Medium.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-Medium.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -66,7 +66,7 @@
     @font-face {
       font-family: 'Situra-SemiBold';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -74,7 +74,7 @@
     @font-face {
       font-family: 'Situra-Bold';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-Bold.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-Bold.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -82,7 +82,7 @@
     @font-face {
       font-family: 'Situra-Black';
       src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.woff2') format('woff2'),
-           url('assets/fonts/Situra/OpenType-TT/Situra-Black.ttf') format('truetype');
+           url('assets/fonts/Situra/OpenType-TT/Situra-Black.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
@@ -632,36 +632,69 @@
       padding: 20px 26px 30px;
     }
 
-    #weiter-btn {
+    /* ══════════════════════════════════════════════════════════════
+       BUTTON-HIERARCHIE – dieselben drei Stufen wie in chat.html.
+       Werte bewusst identisch gehalten (46px Mindesthöhe, 14px
+       Schrift, 14px/22px Padding, Radius 999px), damit der Übergang
+       vom Onboarding in die App keinen Bruch zeigt.
+
+       Das Onboarding kennt nur den dunklen Modus, deshalb hier feste
+       Variablen (--btn-bg/--btn-text) statt des Modus-Paars aus
+       chat.html – die Wirkung ist dieselbe: gefüllt weiß auf schwarz.
+       ══════════════════════════════════════════════════════════════ */
+    .btn-primaer,
+    .btn-sekundaer {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       width: 100%;
+      min-height: 46px;
+      padding: 14px 22px;
+      border-radius: 999px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 14px;
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+      text-align: center;
+      cursor: pointer;
+      transition: opacity 0.2s ease, background-color 0.2s ease,
+                  border-color 0.2s ease, transform 0.15s ease;
+    }
+
+    .btn-primaer {
       background: var(--btn-bg);
       color: var(--btn-text);
       border: 1px solid var(--btn-rand);
-      border-radius: 999px;
-      font-family: 'Situra-Medium', 'Inter', sans-serif;
-      font-size: 15px;
-      letter-spacing: 0.01em;
-      padding: 15px 0;
-      cursor: pointer;
-      transition: opacity 0.2s ease, transform 0.15s ease;
     }
 
-    #weiter-btn:hover { opacity: 0.88; }
-    #weiter-btn:active { transform: scale(0.98); }
+    .btn-sekundaer {
+      background: none;
+      color: var(--text);
+      border: 1px solid var(--btn-rand);
+    }
 
-    /* Schlichter Text-Button (Überspringen / Später verbinden) */
-    .link-btn {
+    .btn-primaer:hover:not(:disabled)   { opacity: 0.88; }
+    .btn-sekundaer:hover:not(:disabled) { background: var(--karte-rand); }
+    .btn-primaer:active:not(:disabled),
+    .btn-sekundaer:active:not(:disabled) { transform: scale(0.98); }
+    .btn-primaer:disabled,
+    .btn-sekundaer:disabled { opacity: 0.4; cursor: default; }
+
+    /* Tertiär: Überspringen / Später verbinden. Kein Rahmen, keine
+       Fläche – erreichbar, aber ohne Vorschlagscharakter. */
+    .btn-tertiaer {
       background: none;
       border: none;
-      font-family: inherit;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
       font-size: 13px;
       color: var(--text-2);
       letter-spacing: 0.02em;
       cursor: pointer;
-      padding: 4px 2px;
+      padding: 8px 10px;
+      transition: color 0.2s ease;
     }
 
-    .link-btn:hover { color: var(--text); }
+    .btn-tertiaer:hover { color: var(--text); }
 
     /* ══════════════════════════════════════════════════════════════
        ZUSÄTZLICHER SCREEN – Gerät verbinden (nach dem letzten
@@ -1000,24 +1033,10 @@
     }
 
     /* Outline-Variante des primären Buttons. */
-    .bluetooth-btn {
-      width: 100%;
-      background: none;
-      border: 1px solid var(--btn-rand);
-      color: var(--text);
-      border-radius: 999px;
-      font-family: 'Situra-Medium', 'Inter', sans-serif;
-      font-size: 14px;
-      letter-spacing: 0.01em;
-      padding: 13px 0;
-      cursor: pointer;
-      transition: background-color 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
-    }
-
-    .bluetooth-btn:hover { background: var(--karte-rand); }
-    .bluetooth-btn:active { transform: scale(0.98); }
-    .bluetooth-btn:disabled { opacity: 0.4; cursor: default; }
-
+    /* Geometrie und Zustände kommen jetzt aus .btn-primaer (siehe
+       Button-Hierarchie oben) – "Armband verbinden" ist die Hauptaktion
+       dieses Screens, an derselben Stelle wie #weiter-btn in den
+       Schritten davor. Hier bleibt nur der Sonderzustand übrig. */
     .bluetooth-btn.verbunden {
       border-color: var(--punkt-aktiv);
       color: var(--punkt-aktiv);
@@ -1041,7 +1060,7 @@
       text-align: center;
     }
 
-    .bluetooth-view .onboarding-fuss .link-btn { align-self: center; }
+    .bluetooth-view .onboarding-fuss .btn-tertiaer { align-self: center; }
 
     /* Eigene Klasse statt .schritt/.schritt--aktiv: verhindert, dass
        dieser Screen versehentlich in die Tutorial-Schritt-Logik
@@ -1141,7 +1160,7 @@
       <span class="punkt" data-index="6"></span>
       <span class="punkt" data-index="7"></span>
     </div>
-    <button id="ueberspringen-btn" class="link-btn">Überspringen</button>
+    <button id="ueberspringen-btn" class="btn-tertiaer">Überspringen</button>
   </div>
 
   <div class="buehne" id="buehne">
@@ -1346,7 +1365,7 @@
   </div>
 
   <div class="onboarding-fuss">
-    <button id="weiter-btn">Weiter</button>
+    <button id="weiter-btn" class="btn-primaer">Weiter</button>
   </div>
 
   </div><!-- /.onboarding-view -->
@@ -1380,9 +1399,9 @@
          vorherigen Onboarding-Schritten (fester Fußbereich statt
          mitten in der Karte). -->
     <div class="onboarding-fuss">
-      <button class="bluetooth-btn" id="bt-armband-btn">Armband verbinden</button>
+      <button class="btn-primaer bluetooth-btn" id="bt-armband-btn">Armband verbinden</button>
       <p class="bluetooth-hinweis" id="bluetooth-hinweis"></p>
-      <button id="bt-spaeter-btn" class="link-btn">Später verbinden</button>
+      <button id="bt-spaeter-btn" class="btn-tertiaer">Später verbinden</button>
     </div>
 
   </div><!-- /.bluetooth-view -->
