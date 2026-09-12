@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Filmsequenz – Aufnahmefläche</title>
+
+<style>
+  /* ══════════════════════════════════════════════════════════════
+     SITURA – dieselben sieben Schnitte wie in chat.html, .woff2
+     zuerst (die .otf ist Rückfallebene, siehe Begründung dort).
+     ══════════════════════════════════════════════════════════════ */
+  @font-face { font-family:'Situra-Thin';     src:url('assets/fonts/Situra/OpenType-TT/Situra-thin.woff2') format('woff2'),     url('assets/fonts/Situra/OpenType-TT/Situra-thin.otf') format('opentype');     font-weight:400; font-style:normal; font-display:block; }
+  @font-face { font-family:'Situra-Light';    src:url('assets/fonts/Situra/OpenType-TT/Situra-Light.woff2') format('woff2'),    url('assets/fonts/Situra/OpenType-TT/Situra-Light.otf') format('opentype');    font-weight:400; font-style:normal; font-display:block; }
+  @font-face { font-family:'Situra-Regular';  src:url('assets/fonts/Situra/OpenType-TT/Situra-Regular.woff2') format('woff2'),  url('assets/fonts/Situra/OpenType-TT/Situra-Regular.otf') format('opentype');  font-weight:400; font-style:normal; font-display:block; }
+  @font-face { font-family:'Situra-Medium';   src:url('assets/fonts/Situra/OpenType-TT/Situra-Medium.woff2') format('woff2'),   url('assets/fonts/Situra/OpenType-TT/Situra-Medium.otf') format('opentype');   font-weight:400; font-style:normal; font-display:block; }
+  @font-face { font-family:'Situra-SemiBold'; src:url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.woff2') format('woff2'), url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.otf') format('opentype'); font-weight:400; font-style:normal; font-display:block; }
+  @font-face { font-family:'Situra-Bold';     src:url('assets/fonts/Situra/OpenType-TT/Situra-Bold.woff2') format('woff2'),     url('assets/fonts/Situra/OpenType-TT/Situra-Bold.otf') format('opentype');     font-weight:400; font-style:normal; font-display:block; }
+  @font-face { font-family:'Situra-Black';    src:url('assets/fonts/Situra/OpenType-TT/Situra-Black.woff2') format('woff2'),    url('assets/fonts/Situra/OpenType-TT/Situra-Black.otf') format('opentype');    font-weight:400; font-style:normal; font-display:block; }
+
+  /* font-display:block statt swap – auf einer Aufnahmefläche darf für
+     keinen Sekundenbruchteil eine Ersatzschrift zu sehen sein. */
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: #000000;
+    /* Reine Aufnahmefläche: keine Bedienelemente, keine Beschriftung,
+       kein Rahmen. Auch der Zeiger verschwindet, damit er nicht
+       versehentlich mit im Bild liegt. */
+    cursor: none;
+    overflow: hidden;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Äußere Bühne trägt die Grundgröße; das Wort selbst skaliert
+     relativ dazu (em), genau wie in der App: dort setzt stilAnwenden
+     element.style.fontSize = achsen.groesse + 'em'.
+
+     Die Grundgröße wird per JS gesetzt (siehe grundgroesseBerechnen):
+     Sie richtet sich nach dem BREITESTEN der sechs Zustände, damit das
+     Wort in keinem Schritt anstößt und die Größe während der Aufnahme
+     konstant bleibt. Der Wert hier ist nur die Rückfallebene, falls
+     das Skript nicht läuft. */
+  .buehne {
+    font-size: 200px;
+    line-height: 1.1;
+  }
+
+  .wort {
+    /* inline-block, NICHT block: Ein Block bekommt seine Breite vom
+       Elternelement, der negative Rand am Zeilenende (siehe
+       achsenAnwenden) bliebe dann wirkungslos. */
+    display: inline-block;
+    color: #ffffff;
+    font-family: 'Situra-Regular', sans-serif;
+    white-space: nowrap;
+    /* Kein CSS-transition: Sämtliche Übergänge laufen über die
+       Rohwerte (siehe uebergangStarten) und werden Bild für Bild neu
+       berechnet. Eine zusätzliche CSS-Interpolation würde die Werte
+       ein zweites Mal glätten und das Ergebnis verfälschen. */
+  }
+
+  /* Wie .zitter-buchstabe in chat.html: inline-block, damit transform
+     auf einzelne Buchstaben überhaupt wirkt. */
+  .zitter-buchstabe {
+    display: inline-block;
+    will-change: transform;
+  }
+</style>
+</head>
+<body>
+
+  <div class="buehne">
+    <span class="wort" id="wort">alles gut</span>
+  </div>
+
+  <!-- Nimmt die erzeugten Zitter-Keyframes auf (siehe zitterAnwenden). -->
+  <style id="zitter-stil"></style>
+
+<script>
+(function () {
+  'use strict';
+
+  // ══════════════════════════════════════════════════════════════
+  //  GESPIEGELT AUS chat.html – NICHT FREI GESTALTET
+  //
+  //  Alles unterhalb dieser Überschrift ist eine wortgleiche Kopie
+  //  aus chat.html (sensorZuSchriftAchse und die Konstanten, die sie
+  //  benutzt). Die Aufnahme soll zeigen, was das System tatsächlich
+  //  tut – nicht, was für den Film gut aussieht.
+  //
+  //  Diese Seite ist bewusst eigenständig; chat.html wurde nicht
+  //  angefasst. Der Preis dafür ist diese Kopie: Wird in chat.html
+  //  an den Werten nachjustiert, muss sie hier mitgezogen werden.
+  //  Stand: 09.09.2026.
+  // ══════════════════════════════════════════════════════════════
+  const SITURA_SCHRIFTSCHNITTE = [
+    'Situra-Thin', 'Situra-Light', 'Situra-Regular', 'Situra-Medium',
+    'Situra-SemiBold', 'Situra-Bold', 'Situra-Black'
+  ];
+
+  const SPACING_WEIT = 0.30;
+  const SPACING_ENG_PRO_SCHNITT = {
+    'Situra-Thin':     -0.100,
+    'Situra-Light':    -0.090,
+    'Situra-Regular':  -0.065,
+    'Situra-Medium':   -0.055,
+    'Situra-SemiBold': -0.045,
+    'Situra-Bold':     -0.035,
+    'Situra-Black':    -0.025
+  };
+  const SPACING_ENG_STANDARD = -0.025;
+
+  function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
+    return zuMin + (wert - vonMin) / (vonMax - vonMin) * (zuMax - zuMin);
+  }
+
+  function intensitaetZuSchriftschnitt(intensitaet) {
+    const stufenBreite = 800 / SITURA_SCHRIFTSCHNITTE.length;
+    const index = Math.min(
+      SITURA_SCHRIFTSCHNITTE.length - 1,
+      Math.max(0, Math.floor((intensitaet - 100) / stufenBreite))
+    );
+    return SITURA_SCHRIFTSCHNITTE[index];
+  }
+
+  function sensorZuSchriftAchse(rohwerte) {
+    const schriftschnitt = intensitaetZuSchriftschnitt(rohwerte.intensitaet);
+
+    const spacing = umrechnen(
+      rohwerte.tempo, 100, 900,
+      SPACING_WEIT,
+      SPACING_ENG_PRO_SCHNITT[schriftschnitt] != null
+        ? SPACING_ENG_PRO_SCHNITT[schriftschnitt]
+        : SPACING_ENG_STANDARD
+    );
+
+    const einblendDauer = umrechnen(rohwerte.tempo, 100, 900, 0.5, 0.06);
+
+    const WOBBLE_AMPLITUDE_MAX = 2.0;
+    const WOBBLE_TOTZONE_PX    = 0.4;
+    const wobbleRoh = umrechnen(rohwerte.stabilitaet, 100, 900, WOBBLE_AMPLITUDE_MAX, 0);
+    const wobble    = wobbleRoh < WOBBLE_TOTZONE_PX ? 0 : wobbleRoh;
+
+    const WOBBLE_ROT_MAX     = 2.5;
+    const WOBBLE_ROT_TOTZONE = 0.5;
+    const wobbleRotRoh = umrechnen(rohwerte.stabilitaet, 100, 900, WOBBLE_ROT_MAX, 0);
+    const wobbleRot    = wobbleRotRoh < WOBBLE_ROT_TOTZONE ? 0 : wobbleRotRoh;
+
+    const GROESSE_SPANNE = 0.12;
+    const temperaturWert = (rohwerte.tonalitaet != null) ? rohwerte.tonalitaet : 500;
+    const groesse = umrechnen(temperaturWert, 100, 900, 1 - GROESSE_SPANNE, 1 + GROESSE_SPANNE);
+
+    const BLUR_MAX = 1.4;
+    const schlafqualitaetWert = (rohwerte.schlafqualitaet != null) ? rohwerte.schlafqualitaet : 900;
+    const blur = umrechnen(schlafqualitaetWert, 100, 900, BLUR_MAX, 0);
+
+    const TRANSPARENZ_MIN = 0.35;
+    const transparenz = umrechnen(rohwerte.atemfrequenz, 100, 900, TRANSPARENZ_MIN, 1);
+
+    return { schriftschnitt, spacing, einblendDauer, wobble, wobbleRot, blur, transparenz, groesse };
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  ABLAUF – sechs Zustände, je EIN Rohwert ändert sich
+  //
+  //  Kumulativ: Jeder Schritt behält, was die vorherigen aufgebaut
+  //  haben, und legt eine Dimension darauf. So ist im Film jede
+  //  Veränderung eindeutig einer Größe zuzuordnen.
+  //
+  //  Die Zahlen sind Rohwerte der Sensor-Skala (100–900), also genau
+  //  das, was in der App aus Band und Tippverhalten entsteht. Die
+  //  typografischen Werte leitet sensorZuSchriftAchse daraus ab.
+  // ══════════════════════════════════════════════════════════════
+  const AUSGANG = {
+    intensitaet:     400,  // → Situra-Regular
+    tempo:           500,  // → mittlere Laufweite
+    stabilitaet:     900,  // → kein Zittern
+    tonalitaet:      500,  // → Größe 1.0
+    schlafqualitaet: 900,  // → keine Unschärfe
+    atemfrequenz:    900   // → volle Deckkraft
+  };
+
+  const SCHRITTE = [
+    { name: 'Ausgangszustand',              aenderung: {} },
+    { name: 'Strichstärke bis zum Maximum', aenderung: { intensitaet: 900 } },
+    { name: 'Laufweite eng',                aenderung: { tempo: 900 } },
+    { name: 'Laufweite weit',               aenderung: { tempo: 100 } },
+    { name: 'Zittern',                      aenderung: { stabilitaet: 100 } },
+    { name: 'Unschärfe',                    aenderung: { schlafqualitaet: 100 } }
+  ];
+
+  const UEBERGANG_MS = 2000;
+
+  // ══════════════════════════════════════════════════════════════
+  //  ZITTERN – gespiegelt aus erstelleZitterAnimation/
+  //  buchstabenAnimieren in chat.html
+  //
+  //  Unterschied zur App: Dort wird pro gesendeter Nachricht EINMAL
+  //  erzeugt und dann eingefroren. Hier läuft die Amplitude über zwei
+  //  Sekunden hoch, die Keyframes müssen also mitwachsen. Sie werden
+  //  neu geschrieben, sobald sich die Amplitude um mehr als
+  //  ZITTER_SCHWELLE geändert hat – nicht in jedem Bild, das würde die
+  //  Animation ständig neu starten lassen und ruckeln.
+  // ══════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════
+  //  EINZIGE ABWEICHUNG VON DEN APP-WERTEN – bewusst und benannt
+  //
+  //  Die App deckelt die Unschärfe bei BLUR_MAX = 1,4 px (siehe
+  //  sensorZuSchriftAchse oben, unverändert). Das ist für den Chat
+  //  richtig – dort steht der Text bei rund 30 px, und mehr wäre
+  //  unlesbar. Auf dieser Aufnahmefläche steht das Wort aber bei bis
+  //  zu 280 px: 1,4 px sind dort nicht wahrnehmbar.
+  //
+  //  Deshalb wird NUR die Stärke skaliert, nicht die Kurve: Der von
+  //  sensorZuSchriftAchse gelieferte Wert wird auf seinen eigenen
+  //  Maximalwert normiert (ergibt 0…1, exakt der Verlauf der App) und
+  //  dann als Anteil der TATSÄCHLICHEN Schriftgröße aufgetragen. So
+  //  wirkt die Unschärfe bei jeder Bildschirmgröße gleich weich,
+  //  statt bei großem Wort zu verschwinden.
+  //
+  //  0,05 em heißt: rund ein Drittel der Strichstärke von Situra-Black.
+  //  Spürbar weich, das Wort bleibt lesbar. Zum Nachjustieren genügt
+  //  diese eine Zahl.
+  //
+  //  WICHTIG für die Einordnung des Films: Schritt 6 zeigt damit den
+  //  Verlauf des Systems, aber nicht dessen absolute Stärke. Alle
+  //  übrigen fünf Schritte sind unverändert die echten App-Werte.
+  // ══════════════════════════════════════════════════════════════
+  const APP_BLUR_MAX     = 1.4;   // muss BLUR_MAX in sensorZuSchriftAchse entsprechen
+  const FILM_BLUR_MAX_EM = 0.05;  // ← nachjustieren: Unschärfe bei vollem Ausschlag
+
+  const ZITTER_SCHWELLE = 0.06; // px
+  const wortEl     = document.getElementById('wort');
+  const buehneEl   = document.querySelector('.buehne');
+  const zitterStil = document.getElementById('zitter-stil');
+  const WORT_TEXT  = wortEl.textContent;
+
+  // ══════════════════════════════════════════════════════════════
+  //  DASS NICHTS ÜBER DEN RAND LÄUFT – zwei getrennte Ursachen
+  //
+  //  1. NACHLAUFENDE LAUFWEITE
+  //     CSS setzt letter-spacing auch HINTER das letzte Zeichen. Die
+  //     Box des Wortes ist dadurch um genau eine Laufweite breiter als
+  //     die sichtbare Schrift. Beim Zentrieren wird diese Box mittig
+  //     gesetzt – die Schrift selbst sitzt also um die halbe Laufweite
+  //     zu weit links. Bei 0,300 em und 280 px Schrift sind das 84 px
+  //     Leerraum, die Schrift rutscht um 42 px aus der Mitte.
+  //     Ausgleich: margin-right um genau dieselbe Laufweite negativ.
+  //     Beide beziehen sich auf die Schriftgröße des Wortes, heben
+  //     sich also exakt auf – auch wenn groesse sich ändert.
+  //
+  //  2. ZU BREIT FÜR DEN BILDSCHIRM
+  //     Bei weitester Laufweite ist "alles gut" ein Vielfaches so
+  //     breit wie im Ausgangszustand. Eine feste Grundgröße kann
+  //     deshalb gar nicht für alle Zustände passen.
+  //     Lösung: die Grundgröße richtet sich nach dem BREITESTEN der
+  //     sechs Zustände. Sie wird EINMAL bestimmt und bleibt über den
+  //     ganzen Durchlauf konstant – nachträgliches Skalieren mitten in
+  //     der Aufnahme wäre schlimmer als ein etwas kleineres Wort.
+  // ══════════════════════════════════════════════════════════════
+  const RAND_ANTEIL      = 0.06;  // ← nachjustieren: Sicherheitsabstand je Seite
+  const GRUNDGROESSE_MAX = 280;   // px – darüber wird es auch auf großen Schirmen nicht nötig
+  const GRUNDGROESSE_MIN = 40;    // px – Untergrenze, damit nie etwas verschwindet
+
+  // Tatsächliche Ausdehnung des Wortes. Die Box von .wort ist dafür der
+  // richtige Maßstab: Der negative Rand am letzten Buchstaben hat die
+  // nachlaufende Laufweite bereits abgezogen, die Box entspricht also
+  // genau dem, was man sieht (nachgemessen: Box 857 px gegenüber 887 px
+  // Buchstaben-Ausdehnung bei 30 px Laufweite – die Differenz ist exakt
+  // die eine nachlaufende Laufweite).
+  function sichtbareAusdehnung() {
+    const r = wortEl.getBoundingClientRect();
+    return { breite: r.width, hoehe: r.height };
+  }
+
+  // Bestimmt die Grundgröße, indem jeder der sechs Zustände KURZ
+  // WIRKLICH GESETZT und ausgemessen wird.
+  //
+  // Ein früherer Versuch hat die Breite über ein unsichtbares Maßband
+  // vorhergesagt – und lag um rund 30 % daneben, worauf das Wort in
+  // den Schritten 2 und 4 aus dem Bild lief. Die echte Darstellung
+  // misst dagegen alles mit, was tatsächlich hineinspielt: Schnitt,
+  // Laufweite, negativer Rand am Zeilenende, Größenachse.
+  //
+  // Läuft einmal beim Start, bei unsichtbarem Wort – vor der Aufnahme,
+  // und ohne dass etwas davon zu sehen wäre.
+  function grundgroesseKalibrieren() {
+    const BEZUG = 100; // px, Referenzgröße für die Messung
+    const vorherRoh   = Object.assign({}, aktuelleRoh);
+    const vorherIndex = schrittIndex;
+
+    wortEl.style.visibility = 'hidden';
+    buehneEl.style.fontSize = BEZUG + 'px';
+
+    let maxBreite = 0, maxHoehe = 0;
+    for (let i = 0; i < SCHRITTE.length; i++) {
+      achsenAnwenden(sensorZuSchriftAchse(zielFuerSchritt(i)));
+      void wortEl.offsetWidth; // Layout erzwingen
+      const a = sichtbareAusdehnung();
+      if (a.breite > maxBreite) maxBreite = a.breite;
+      if (a.hoehe  > maxHoehe)  maxHoehe  = a.hoehe;
+    }
+
+    // Zittern verschiebt Buchstaben um bis zu WOBBLE_AMPLITUDE_MAX und
+    // dreht sie; die Unschärfe strahlt über die Glyphenkante hinaus.
+    // Beides ist klein gegenüber RAND_ANTEIL, aber es kostet nichts,
+    // etwas Luft dafür einzurechnen.
+    const ZUSCHLAG = 1.04;
+    maxBreite *= ZUSCHLAG;
+    maxHoehe  *= ZUSCHLAG;
+
+    const nutzbareBreite = window.innerWidth  * (1 - 2 * RAND_ANTEIL);
+    const nutzbareHoehe  = window.innerHeight * (1 - 2 * RAND_ANTEIL);
+
+    const ausBreite = maxBreite > 0 ? BEZUG * nutzbareBreite / maxBreite : GRUNDGROESSE_MAX;
+    const ausHoehe  = maxHoehe  > 0 ? BEZUG * nutzbareHoehe  / maxHoehe  : GRUNDGROESSE_MAX;
+
+    const groesse = Math.max(GRUNDGROESSE_MIN,
+                    Math.min(GRUNDGROESSE_MAX, ausBreite, ausHoehe));
+
+    // Ausgangslage wiederherstellen
+    aktuelleRoh  = vorherRoh;
+    schrittIndex = vorherIndex;
+    letzteZitterAmplitude = null;
+    wortEl.style.visibility = '';
+    return groesse;
+  }
+
+  // Grundgröße der Bühne in px – zugleich Bezug für die Unschärfe oben.
+  // Bei Größenänderung neu bestimmt, sonst konstant: ein
+  // getComputedStyle pro Bild würde ein Umlayouten erzwingen.
+  let buehneGroessePx = 200;
+  function grundgroesseAnwenden() {
+    buehneGroessePx = grundgroesseKalibrieren();
+    buehneEl.style.fontSize = buehneGroessePx.toFixed(1) + 'px';
+  }
+  window.addEventListener('resize', function () {
+    grundgroesseAnwenden();
+    achsenAnwenden(sensorZuSchriftAchse(aktuelleRoh));
+  });
+
+  let buchstaben = [];   // die einzelnen Spans, einmal aufgebaut
+  let letzteZitterAmplitude = null;
+
+  function buchstabenAufbauen() {
+    wortEl.textContent = '';
+    buchstaben = [];
+    for (const zeichen of WORT_TEXT) {
+      const span = document.createElement('span');
+      span.textContent = zeichen;
+      if (zeichen === ' ') {
+        // Leerzeichen bleibt ein normaler Textknoten-Träger: kein
+        // inline-block, sonst bricht die Laufweite an dieser Stelle
+        // anders um als in der App.
+        wortEl.appendChild(span);
+        continue;
+      }
+      span.className = 'zitter-buchstabe';
+      wortEl.appendChild(span);
+      buchstaben.push(span);
+    }
+  }
+
+  function zitterAnwenden(amplitude, rotAmplitude) {
+    if (amplitude <= 0) {
+      if (letzteZitterAmplitude === 0) return;
+      zitterStil.textContent = '';
+      buchstaben.forEach(function (s) { s.style.animation = ''; s.style.transform = ''; });
+      letzteZitterAmplitude = 0;
+      return;
+    }
+    if (letzteZitterAmplitude !== null &&
+        Math.abs(amplitude - letzteZitterAmplitude) < ZITTER_SCHWELLE) return;
+
+    // Stylesheet vollständig neu schreiben statt Regeln anzuhängen –
+    // sonst wüchse es über einen Durchlauf auf Tausende Regeln an.
+    let css = '';
+    buchstaben.forEach(function (span, i) {
+      const name = 'zb' + i;
+
+      // Unregelmäßige Zeitstempel für nervöses Timing (wie in der App)
+      const schritte = [0];
+      for (let k = 0; k < 5; k++) schritte.push(Math.round(10 + Math.random() * 78));
+      schritte.push(100);
+      schritte.sort(function (a, b) { return a - b; });
+
+      css += '@keyframes ' + name + '{';
+      schritte.forEach(function (pct) {
+        const x  = ((Math.random() * 2 - 1) * amplitude).toFixed(2);
+        const y  = ((Math.random() * 2 - 1) * amplitude * 0.8).toFixed(2);
+        const r  = ((Math.random() * 2 - 1) * rotAmplitude).toFixed(2);
+        const sx = (1 + (Math.random() * 2 - 1) * 0.04).toFixed(3);
+        const sy = (1 + (Math.random() * 2 - 1) * 0.04).toFixed(3);
+        css += pct + '%{transform:translate(' + x + 'px,' + y + 'px) rotate(' + r + 'deg) scale(' + sx + ',' + sy + ');}';
+      });
+      css += '}';
+
+      // Dauer und Startversatz nur EINMAL je Buchstabe festlegen: Ein
+      // Wechsel mitten im Lauf würde den Takt sichtbar zurücksetzen.
+      if (!span.dataset.dauer) {
+        span.dataset.dauer     = (0.25 + Math.random() * 0.9).toFixed(2);
+        span.dataset.verzoeger = (-Math.random() * 1.5).toFixed(2);
+      }
+      span.style.animation = name + ' ' + span.dataset.dauer + 's ease-in-out infinite ' + span.dataset.verzoeger + 's';
+    });
+
+    zitterStil.textContent = css;
+    letzteZitterAmplitude = amplitude;
+  }
+
+  // ── Achsen auf das Wort anwenden (wie stilAnwenden in chat.html) ──
+  function achsenAnwenden(achsen) {
+    wortEl.style.fontFamily    = "'" + achsen.schriftschnitt + "', sans-serif";
+    wortEl.style.letterSpacing = achsen.spacing.toFixed(3) + 'em';
+    wortEl.style.fontSize      = achsen.groesse.toFixed(3) + 'em';
+    // Hebt die nachlaufende Laufweite hinter dem letzten Zeichen auf –
+    // ohne das sitzt die Schrift um die halbe Laufweite zu weit links.
+    // MUSS am letzten BUCHSTABEN hängen, nicht am Wort: Am Wort selbst
+    // hat es nachweislich nichts bewirkt (gemessener Versatz blieb
+    // exakt die halbe Laufweite). Der Buchstabe ist inline-block, dort
+    // verkürzt der negative Rand die Zeile tatsächlich.
+    if (wortEl.lastElementChild) {
+      wortEl.lastElementChild.style.marginRight = (-achsen.spacing).toFixed(3) + 'em';
+    }
+    // Unschärfe: Verlauf aus der App, Stärke für den Film skaliert –
+    // siehe FILM_BLUR_MAX_EM oben für die Begründung.
+    const blurAnteil = achsen.blur / APP_BLUR_MAX;                       // 0…1, Kurve der App
+    const blurPx     = blurAnteil * FILM_BLUR_MAX_EM * buehneGroessePx * achsen.groesse;
+    wortEl.style.filter = blurPx > 0.05 ? 'blur(' + blurPx.toFixed(2) + 'px)' : 'none';
+    wortEl.style.opacity       = achsen.transparenz.toFixed(3);
+    zitterAnwenden(achsen.wobble, achsen.wobbleRot);
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  ÜBERGANG – die ROHWERTE werden interpoliert, nicht die Achsen
+  //
+  //  Das ist der entscheidende Punkt für die Echtheit der Aufnahme:
+  //  Würde man die fertigen typografischen Werte ineinander blenden,
+  //  entstünden Zwischenzustände, die es im System nicht gibt – etwa
+  //  eine halbe Strichstärke zwischen zwei Schnitten. Stattdessen
+  //  wandert der Rohwert, und sensorZuSchriftAchse leitet daraus in
+  //  jedem Bild neu ab. Der Schnittwechsel springt dadurch hart, so
+  //  wie er es in der App auch tut (sieben feste Dateien, keine
+  //  Variable-Font-Achse).
+  //
+  //  Linear und nicht beschleunigt: "gleichmäßig" wie gefordert – vor
+  //  der Kamera bleibt die Geschwindigkeit damit über die ganzen zwei
+  //  Sekunden ablesbar.
+  // ══════════════════════════════════════════════════════════════
+  let aktuelleRoh = Object.assign({}, AUSGANG);
+  let schrittIndex = 0;
+  let laufendeAnimation = null;
+
+  function uebergangStarten(zielRoh, dauerMs) {
+    if (laufendeAnimation) cancelAnimationFrame(laufendeAnimation);
+    const startRoh = Object.assign({}, aktuelleRoh);
+    const start = performance.now();
+
+    function bild(jetzt) {
+      const t = dauerMs <= 0 ? 1 : Math.min(1, (jetzt - start) / dauerMs);
+      const zwischen = {};
+      for (const schluessel in startRoh) {
+        zwischen[schluessel] = startRoh[schluessel] + (zielRoh[schluessel] - startRoh[schluessel]) * t;
+      }
+      aktuelleRoh = zwischen;
+      achsenAnwenden(sensorZuSchriftAchse(zwischen));
+      if (t < 1) laufendeAnimation = requestAnimationFrame(bild);
+      else laufendeAnimation = null;
+    }
+    laufendeAnimation = requestAnimationFrame(bild);
+  }
+
+  function zielFuerSchritt(index) {
+    // Kumulativ: alle Änderungen bis einschließlich index anwenden
+    const roh = Object.assign({}, AUSGANG);
+    for (let i = 0; i <= index; i++) Object.assign(roh, SCHRITTE[i].aenderung);
+    return roh;
+  }
+
+  function weiter() {
+    if (schrittIndex >= SCHRITTE.length - 1) return;
+    schrittIndex++;
+    uebergangStarten(zielFuerSchritt(schrittIndex), UEBERGANG_MS);
+  }
+
+  function zuruecksetzen() {
+    if (laufendeAnimation) cancelAnimationFrame(laufendeAnimation);
+    laufendeAnimation = null;
+    schrittIndex = 0;
+    aktuelleRoh = Object.assign({}, AUSGANG);
+    letzteZitterAmplitude = null;
+    buchstaben.forEach(function (s) { delete s.dataset.dauer; delete s.dataset.verzoeger; });
+    achsenAnwenden(sensorZuSchriftAchse(aktuelleRoh));
+  }
+
+  // ── Steuerung ──────────────────────────────────────────────
+  // Leertaste (und Pfeil rechts) = nächster Schritt, R = zurücksetzen.
+  // Bewusst nur Tastatur: Ein Klick würde bei manchen Aufnahme-
+  // programmen einen Zeiger einblenden.
+  document.addEventListener('keydown', function (e) {
+    if (e.code === 'Space' || e.code === 'ArrowRight' || e.code === 'Enter') {
+      e.preventDefault();
+      weiter();
+    } else if (e.code === 'KeyR' || e.code === 'Backspace' || e.code === 'ArrowLeft') {
+      e.preventDefault();
+      zuruecksetzen();
+    }
+  });
+
+  // ── Start ──────────────────────────────────────────────────
+  // Erst wenn die Schriften wirklich geladen sind: Ein Umspringen von
+  // der Ersatzschrift auf Situra im ersten Bild wäre in der Aufnahme.
+  buchstabenAufbauen();
+
+  // ALLE sieben Schnitte ausdrücklich anfordern, bevor gemessen wird.
+  //
+  // document.fonts.ready allein genügt hier NICHT: Es wartet nur auf
+  // Schriften, die zu dem Zeitpunkt bereits BENUTZT werden. Beim Start
+  // steht das Wort in Regular – Black und die übrigen Schnitte wären
+  // noch gar nicht angefordert. Die Kalibrierung hat sie deshalb mit
+  // der (schmaleren) Ersatzschrift vermessen und das Wort um rund 27 %
+  // zu groß gelassen; in den Schritten 2 und 4 lief es dadurch aus dem
+  // Bild. Nachgemessen und behoben.
+  Promise.all(SITURA_SCHRIFTSCHNITTE.map(function (schnitt) {
+    return document.fonts.load('100px "' + schnitt + '"', WORT_TEXT);
+  })).then(function () {
+    return document.fonts.ready;
+  }).then(function () {
+    // Reihenfolge ist wichtig: erst messen, dann anzeigen.
+    grundgroesseAnwenden();
+    achsenAnwenden(sensorZuSchriftAchse(aktuelleRoh));
+  });
+
+  // Für eine Kontrolle von außen (Konsole), nicht für die Aufnahme.
+  // springeZu(n) setzt einen Zustand OHNE Übergang – praktisch, um vor
+  // der Aufnahme den Bildausschnitt am breitesten Schritt einzurichten,
+  // und für die Prüfung, dass nichts über den Rand läuft.
+  window.__film = {
+    schritt: function () { return SCHRITTE[schrittIndex].name; },
+    rohwerte: function () { return aktuelleRoh; },
+    achsen: function () { return sensorZuSchriftAchse(aktuelleRoh); },
+    weiter: weiter,
+    zuruecksetzen: zuruecksetzen,
+    springeZu: function (index) {
+      if (laufendeAnimation) cancelAnimationFrame(laufendeAnimation);
+      laufendeAnimation = null;
+      schrittIndex = Math.max(0, Math.min(SCHRITTE.length - 1, index));
+      aktuelleRoh = zielFuerSchritt(schrittIndex);
+      letzteZitterAmplitude = null;
+      achsenAnwenden(sensorZuSchriftAchse(aktuelleRoh));
+      return SCHRITTE[schrittIndex].name;
+    },
+    grundgroesse: function () { return buehneGroessePx; },
+    schritte: SCHRITTE
+  };
+})();
+</script>
+</body>
+</html>

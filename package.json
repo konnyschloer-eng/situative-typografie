@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "sync-web": "npm run fonts:woff2 && node scripts/sync-web.js",
     "cap:sync": "npm run sync-web && npx cap sync android",
-    "fonts:woff2": "node scripts/fonts-woff2.js"
+    "fonts:woff2": "node scripts/fonts-woff2.js",
+    "mockup": "node scripts/build-mockup.js"
   },
   "repository": {
     "type": "git",

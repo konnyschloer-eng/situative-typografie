@@ -1,0 +1,4772 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup – Einzelchat</title>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ERZEUGT von scripts/build-mockup.js aus chat.html.
+     NICHT von Hand bearbeiten – Änderungen gehen beim nächsten Lauf
+     verloren. Inhalt und Werte stehen in scripts/mockup-inhalt.js,
+     Aussehen und Rechenkette kommen wörtlich aus chat.html.
+     Neu erzeugen:  npm run mockup
+     ══════════════════════════════════════════════════════════════ -->
+
+<style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ══════════════════════════════════════════════════════════════
+       PULS-SCHRIFTSCHNITTE – 7 statische Situra-Schnitte (kein
+       Variable Font). Jeder Schnitt hat einen eigenen font-family-
+       Namen und wird bewusst mit font-weight:400 registriert, damit
+       kein Browser versucht, zusätzlich synthetisch fett/kursiv zu
+       rendern – der jeweilige Schnitt selbst trägt die Strichstärke.
+       Reihenfolge dünn → fett, siehe intensitaetZuSchriftschnitt()
+       weiter unten im Script.
+
+       KORREKTUR (Browser-Kompatibilität, Safari) – .woff2 zusätzlich
+       zur bisherigen .ttf erzeugt und in src ZUERST gelistet: Server
+       wie GitHub Pages liefern .ttf teils ohne korrekten Font-MIME-Typ
+       (application/octet-stream) aus, was Safari beim @font-face-Laden
+       ablehnt. .woff2 ist praktisch immer korrekt typisiert und wird
+       von jedem aktuellen Browser bevorzugt geladen (erste unterstützte
+       Quelle in src gewinnt) – .ttf bleibt als Fallback für den
+       (unwahrscheinlichen) Fall eines noch älteren Browsers ohne
+       WOFF2-Unterstützung. Nebeneffekt: die .woff2-Dateien sind rund
+       ein Drittel so groß, die Schrift steht also schneller.
+       Identisch in onboarding.html und situra-slider.html.
+       ══════════════════════════════════════════════════════════════ */
+    @font-face {
+      font-family: 'Situra-Thin';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-thin.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Light';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Light.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Regular';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Regular.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Medium';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Medium.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-SemiBold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Bold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Bold.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Black';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Black.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       FARBWELTEN – als CSS-Custom-Properties auf .phone-frame
+       Zum Anpassen: nur die Werte hier ändern, der Rest folgt.
+
+       NEUTRAL (Emotion AUS): kühl, sachlich, nüchtern
+       DUNKEL  (Emotion AN):  invertiert, schwarz, direkt
+       ══════════════════════════════════════════════════════════════ */
+
+    .phone-frame {
+      /* ── Neutral (Standardzustand, Emotion AUS) ── */
+      --bg:           #ffffff;   /* Haupthintergrund */
+      --bg-surface:   #eceae7;   /* Header, Footer, Flächen */
+      --bg-hover:     #e8e5e1;   /* Hover auf Listenelementen */
+      --border:       #d6d3cc;   /* Kräftigere Linien */
+      --border-light: #e4e1da;   /* Feine Linien (Diagramm-Gitter, dezente Rahmen) */
+      --text-2:       #888888;   /* Sekundärtext */
+      --text-3:       #aaaaaa;   /* Labels, schwacher Text */
+      --text-4:       #bbbbbb;   /* Sehr schwacher Text, Wertanzeigen */
+      --accent:       #555555;   /* Slider-Thumb, Fortschrittsbalken */
+      --placeholder:  #c0bdb8;   /* Eingabefeld-Platzhalter */
+      --bubble-outline: rgba(0, 0, 0, 0.75);   /* Sprechblasen-Outline, heller Modus */
+      --scrollbar-farbe: rgba(0, 0, 0, 0.22);  /* Scroll-Indikator, heller Modus */
+      --emotion-karte-bg: rgba(0, 0, 0, 0.85); /* Karte hinter dem Emotion-Schalter, heller Modus */
+      --ring-ungesehen: #000000; /* "Ungesehen"-Ring um Moment-Kreise, heller Modus – bei hellem
+                                     Hintergrund verschwindet ein fest weißer Ring sonst spurlos */
+      /* Emotion-Schalter AN: volle Füllung statt nur Farbwechsel der
+         Schiene (siehe .schalter-visuell) – Kontrastfarbe zur Schrift
+         des Modus, --schalter-fuellung-kontrast ist die Thumb-Farbe
+         AUF der Füllung. In der Karte hinter dem Schalter (schwebend/
+         Chat-Fußleiste, siehe --emotion-karte-bg) unten überschrieben,
+         weil die Karte dort in BEIDEN Modi dunkel ist. */
+      --schalter-fuellung:           #000000;
+      --schalter-fuellung-kontrast:  #ffffff;
+      --fokus:        #000000;   /* Tastatur-Fokusrahmen, siehe FOKUS-Abschnitt */
+    }
+
+    .phone-frame.emotion-an {
+      /* ── Invertiert/Dunkel (Emotion AN) ── */
+      --bg:           #000000;   /* Haupthintergrund */
+      --bg-surface:   #1a1a1a;   /* Header, Footer, Flächen */
+      --bg-hover:     #222222;   /* Hover auf Listenelementen */
+      --border:       #383838;   /* Kräftigere Linien */
+      --border-light: #2a2a2a;   /* Feine Linien (Diagramm-Gitter, dezente Rahmen) */
+      --text-2:       #999999;   /* Sekundärtext */
+      --text-3:       #666666;   /* Labels, schwacher Text */
+      --text-4:       #505050;   /* Sehr schwacher Text, Wertanzeigen */
+      --accent:       #888888;   /* Slider-Thumb, Fortschrittsbalken */
+      --placeholder:  #484848;   /* Eingabefeld-Platzhalter */
+      /* Stand vorher auf var(--bubble-outline) – also auf SICH SELBST.
+         Eine Custom Property darf sich nicht selbst referenzieren; die
+         Deklaration ist dadurch ungültig, und der einzige Nutzer
+         (.avatar, border) bekam im dunklen Modus gar keine Rahmenfarbe.
+         Avatar-Kreise ohne Foto waren deshalb unsichtbar – im Profil
+         schwebte nur der Buchstabe. Wert analog zum hellen Modus
+         gespiegelt, wie bei --scrollbar-farbe eine Zeile darunter. */
+      --bubble-outline: rgba(255, 255, 255, 0.75); /* Sprechblasen-Outline, dunkler Modus */
+      --scrollbar-farbe: rgba(255, 255, 255, 0.22); /* Scroll-Indikator, dunkler Modus */
+      --emotion-karte-bg: rgba(255, 255, 255, 0.10); /* Karte hinter dem Emotion-Schalter, dunkler Modus */
+      --ring-ungesehen: #ffffff; /* "Ungesehen"-Ring um Moment-Kreise, dunkler Modus */
+      --schalter-fuellung:           #ffffff;
+      --schalter-fuellung-kontrast:  #000000;
+      --fokus:        #ffffff;   /* Tastatur-Fokusrahmen, siehe FOKUS-Abschnitt */
+    }
+
+
+    /* ══════════════════════════════════════════════════════════════
+       FOKUS & ANTIPP-MARKIERUNG – schwarzweiß statt Systemblau
+
+       Zwei verschiedene Dinge, die oft verwechselt werden:
+
+       1. TAP-HIGHLIGHT: Die blaue Fläche, die Android/iOS beim
+          Berühren über ein Element legen. Rein kosmetisch, gehört
+          weder zum Fokus noch zum Klick – lässt sich folgenlos
+          abschalten.
+
+       2. FOKUS-OUTLINE: Der Rahmen, der zeigt, WO man gerade ist.
+          Für Tastaturbedienung unverzichtbar. Deshalb wird er hier
+          NICHT entfernt, sondern in Schwarz/Weiß neu gezeichnet.
+
+       :focus-visible statt :focus ist der Kern der Lösung: der
+       Browser zeigt den Rahmen damit bei Tastatur/Tab, aber NICHT
+       bei Maus- oder Fingertipp. Genau das, was gewünscht ist –
+       beim Antippen nichts, beim Tabben ein klarer Rahmen.
+
+       Spezifität bewusst (0,2,0) über den Nachfahren-Selektor:
+       damit gewinnt die Regel gegen die acht outline:none-Regeln
+       weiter unten (je (0,1,0)) – unabhängig von der Reihenfolge im
+       Stylesheet und auch dann noch, wenn dort später etwas
+       dazukommt. Vier dieser acht hatten bisher gar keinen Ersatz
+       (.profil-name-eingabe, .tagebuch-eingabe und die beiden
+       Regler) – die waren per Tastatur schlicht unauffindbar.
+
+       outline-offset hält den Rahmen AUSSERHALB des Elements. Das
+       ist wichtig, weil manche Flächen selbst schwarz sind (Senden-
+       Knopf): ein schwarzer Rahmen direkt darauf wäre unsichtbar,
+       zwei Pixel daneben auf dem hellen Grund dagegen deutlich.
+       ══════════════════════════════════════════════════════════════ */
+
+    * { -webkit-tap-highlight-color: transparent; }
+
+    /* Textauswahl: ebenfalls systemblau, wenn man sie nicht setzt.
+       Invertiert statt blau – Vordergrund und Hintergrund tauschen
+       die Rollen, dadurch passt es in beiden Modi. */
+    .phone-frame ::selection { background: var(--fokus); color: var(--bg); }
+
+    .phone-frame :focus-visible {
+      outline: 2px solid var(--fokus);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    /* Regler: der Rahmen soll den Griff umfassen, nicht die 2px dünne
+       Schiene – sonst sieht er aus wie ein verrutschter Strich.
+
+       outline wird hier WIEDERHOLT, nicht nur outline-offset gesetzt:
+       .testregler-regler-zeile input[type="range"] ist (0,2,1) und
+       schlägt damit .phone-frame :focus-visible (0,2,0). Ohne eigenes
+       outline bliebe dort das outline:none stehen und der Regler wäre
+       per Tastatur unsichtbar. Diese Regel ist (0,3,1) und gewinnt. */
+    .phone-frame input[type="range"]:focus-visible {
+      outline: 2px solid var(--fokus);
+      outline-offset: 6px;
+    }
+
+    /* #eingabe (Chat-Eingabefeld) setzt outline:none über eine ID –
+       (1,0,0) schlägt jede Klassenregel. Deshalb hier ebenfalls über
+       die ID, sonst bliebe ausgerechnet das meistgenutzte Feld der
+       App ohne sichtbaren Tastaturfokus. */
+    #eingabe:focus-visible {
+      outline: 2px solid var(--fokus);
+      outline-offset: 2px;
+    }
+
+
+    /* ══════════════════════════════════════════════════════════════
+       SCROLLBALKEN – einheitlicher, dezenter Stil für ALLE
+       scrollbaren Bereiche der App (Kontaktliste, Chat-Verlauf,
+       Eingabefeld, Overlay-Karten inkl. Kontaktauswahl in "Neue
+       Gruppe" und Story-Ansicht, Tagebuch-Liste/-Monatsansicht).
+       Schmale Linie statt System-Balken, kein sichtbarer Track,
+       abgerundete Enden, Farbe folgt dem aktuellen Modus über
+       --scrollbar-farbe (siehe oben). Rein optisch – betrifft keine
+       Typografie-/Zustandslogik.
+       WICHTIG: scrollbar-width/-color (Standard-Properties, nur für
+       Browser ohne ::-webkit-scrollbar-Unterstützung wie Firefox)
+       ausdrücklich in @supports not selector(::-webkit-scrollbar)
+       gekapselt – neuere Chromium-Versionen kennen inzwischen BEIDE
+       Property-Familien, und wenn scrollbar-width/-color gesetzt
+       sind, rendern sie dort ihren nativen "thin"-Balken (klobiger,
+       sichtbarer Track, keine abgerundeten Enden) statt unser
+       exaktes ::-webkit-scrollbar-thumb-Styling zu übernehmen – genau
+       der Fall, der die dezente Optik "regressieren" ließ. Mit dem
+       @supports-Gate bekommt jede Engine nur genau einen der beiden
+       Mechanismen. ══════════════════════════════════════════════════ */
+    @supports not selector(::-webkit-scrollbar) {
+      .gespraechs-liste,
+      .chat-bereich,
+      .overlay-karte,
+      .moment-ansicht-karte,
+      .kontakt-auswahl-liste,
+      .tagebuch-liste,
+      .tagebuch-monat,
+      .moment-feed,
+      .moment-kommentar-liste,
+      #tab-profil,
+      #eingabe,
+      .raum-zone-nachrichten {
+        scrollbar-width: thin;                              /* Firefox */
+        scrollbar-color: var(--scrollbar-farbe) transparent; /* Firefox */
+      }
+    }
+
+    .gespraechs-liste::-webkit-scrollbar,
+    .chat-bereich::-webkit-scrollbar,
+    .overlay-karte::-webkit-scrollbar,
+    .moment-ansicht-karte::-webkit-scrollbar,
+    .kontakt-auswahl-liste::-webkit-scrollbar,
+    .tagebuch-liste::-webkit-scrollbar,
+    .tagebuch-monat::-webkit-scrollbar,
+    .moment-feed::-webkit-scrollbar,
+    .moment-kommentar-liste::-webkit-scrollbar,
+    #tab-profil::-webkit-scrollbar,
+    #eingabe::-webkit-scrollbar,
+    .raum-zone-nachrichten::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .gespraechs-liste::-webkit-scrollbar-track,
+    .chat-bereich::-webkit-scrollbar-track,
+    .overlay-karte::-webkit-scrollbar-track,
+    .moment-ansicht-karte::-webkit-scrollbar-track,
+    .kontakt-auswahl-liste::-webkit-scrollbar-track,
+    .tagebuch-liste::-webkit-scrollbar-track,
+    .tagebuch-monat::-webkit-scrollbar-track,
+    .moment-feed::-webkit-scrollbar-track,
+    .moment-kommentar-liste::-webkit-scrollbar-track,
+    #tab-profil::-webkit-scrollbar-track,
+    #eingabe::-webkit-scrollbar-track,
+    .raum-zone-nachrichten::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .gespraechs-liste::-webkit-scrollbar-thumb,
+    .chat-bereich::-webkit-scrollbar-thumb,
+    .overlay-karte::-webkit-scrollbar-thumb,
+    .moment-ansicht-karte::-webkit-scrollbar-thumb,
+    .kontakt-auswahl-liste::-webkit-scrollbar-thumb,
+    .tagebuch-liste::-webkit-scrollbar-thumb,
+    .tagebuch-monat::-webkit-scrollbar-thumb,
+    .moment-feed::-webkit-scrollbar-thumb,
+    .moment-kommentar-liste::-webkit-scrollbar-thumb,
+    #tab-profil::-webkit-scrollbar-thumb,
+    #eingabe::-webkit-scrollbar-thumb,
+    .raum-zone-nachrichten::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-farbe);
+      border-radius: 999px;
+    }
+
+    .gespraechs-liste::-webkit-scrollbar-button,
+    .chat-bereich::-webkit-scrollbar-button,
+    .overlay-karte::-webkit-scrollbar-button,
+    .moment-ansicht-karte::-webkit-scrollbar-button,
+    .kontakt-auswahl-liste::-webkit-scrollbar-button,
+    .tagebuch-liste::-webkit-scrollbar-button,
+    .tagebuch-monat::-webkit-scrollbar-button,
+    .moment-feed::-webkit-scrollbar-button,
+    .moment-kommentar-liste::-webkit-scrollbar-button,
+    #tab-profil::-webkit-scrollbar-button,
+    #eingabe::-webkit-scrollbar-button,
+    .raum-zone-nachrichten::-webkit-scrollbar-button {
+      display: none;
+    }
+
+
+    /* ── Äußerer Rahmen ───────────────────────────────── */
+    body {
+      background: #e8e6e1;  /* bleibt konstant (außerhalb des Frames) */
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100dvh;
+    }
+
+    /* ── Phone-Frame ──────────────────────────────────── */
+    .phone-frame {
+      position: relative;
+      width: 390px;
+      height: 844px;
+      max-height: 100dvh;
+      background: var(--bg);
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,.12);
+    }
+
+    @media (max-width: 440px) {
+      body { background: var(--bg); }
+      .phone-frame { width: 100%; height: 100dvh; box-shadow: none; }
+    }
+
+    /* ── Ansichten (Übersicht / Chat) ─────────────────── */
+    .ansicht {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      transition: opacity 0.2s ease;
+    }
+
+    .ansicht--versteckt {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+
+    /* ══════════════════════════════════════════════════════
+       ANSICHT 1 – GESPRÄCHSÜBERSICHT
+       ══════════════════════════════════════════════════════ */
+
+    /* ── App-Kopfzeile: Name/Logo-Platzhalter + Menü-Symbol ──────
+       Oberste Zeile der Übersicht, sitzt über der bestehenden
+       Chats/Gruppen-Titelzeile. Rein strukturell/Platzhalter –
+       Menü-Button hat bewusst keine Funktion hinterlegt. ── */
+    .app-kopfzeile {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px 6px;
+    }
+
+    .app-logo {
+      height: 20px;
+      width: auto;
+      display: block;
+    }
+
+    .menu-btn {
+      flex-shrink: 0;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: none;
+      background: none;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .menu-btn:hover { background: var(--bg-hover); color: #000000; }
+
+    .menu-btn svg { width: 18px; height: 18px; }
+
+    /* ── Suchfeld: schlicht, Outline, keine Farbe ────────────── */
+    .suche-bereich {
+      flex-shrink: 0;
+      padding: 10px 20px;
+    }
+
+    /* Punkt 2: 13 → 14px Schrift, Polsterung 7/10 → 11/13px. Damit
+       wächst das Feld von rund 30px auf 40px Höhe – näher an einer
+       bequemen Tippfläche, ohne die Liste darunter zu verdrängen. */
+    .suche-eingabe {
+      width: 100%;
+      background: none;
+      border: 1px solid var(--border);
+      outline: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 14px;
+      color: #000000;
+      padding: 11px 13px;
+    }
+
+    .suche-eingabe:focus { border-color: var(--text-2); }
+
+    .suche-eingabe::placeholder { color: var(--placeholder); }
+
+    /* ── Filter-Chips: Outline-Pillen, aktiver Chip gefüllt ──────
+       Rein schwarz/weiß-basiert (var(--accent) / var(--bg)) –
+       kein Grün, keine fremde Markenfarbe. ── */
+    .filter-leiste {
+      flex-shrink: 0;
+      display: flex;
+      gap: 8px;
+      padding: 12px 20px 10px;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       "+"-ZEICHEN OPTISCH ZENTRIEREN
+       Alle Plus-Kreise stehen bereits auf display:flex mit
+       align-items/justify-content:center – rechnerisch also mittig.
+       Trotzdem sitzt das Zeichen sichtbar zu hoch, denn Flexbox
+       zentriert die ZEILENBOX, nicht die Glyphe. Die Zeilenbox reicht
+       von der Oberkante der Versalien bis zur Unterlänge; das "+" hat
+       aber weder Ober- noch Unterlänge und liegt in Situra oberhalb
+       der Boxmitte.
+
+       Am Bildschirm nachgemessen, mit einer 0x0-Sonde auf der
+       Grundlinie (erfasst das Half-Leading mit) gegen die Tintenkanten
+       aus dem Canvas: Die Tintenmitte lag 2,09px über der Kreismitte,
+       bei 22px Schrift also 0,095em. Ein erster Versuch mit 0,08em
+       ließ noch 0,33px Rest stehen – deshalb 0,095em.
+
+       em-relativ statt in Pixeln, damit die Korrektur in jeder Größe
+       stimmt: Der Versatz wächst proportional zur Schriftgröße.
+
+       Horizontal ist keine Korrektur nötig: Das "+" ist symmetrisch,
+       gemessene Abweichung 0,01px. */
+    .plus-zeichen {
+      display: block;
+      transform: translateY(0.095em);
+    }
+
+    .filter-chip {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      /* Punkt 2: 11 → 12px, Polsterung 5/12 → 7/14px. Chips werden
+         regelmäßig bedient; die Tippfläche wächst damit von rund
+         23px auf 29px Höhe, ohne dass sie laut werden. */
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      text-align: center;
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .filter-chip:hover { border-color: var(--text-2); }
+
+    .filter-chip--aktiv {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+    }
+
+    .filter-chip--aktiv:hover { border-color: var(--accent); }
+
+    /* ── Tab-Panels: Chats / Gruppen ──────────────────────────────
+       Jeweils genau eines der beiden Panels ist sichtbar; beide sind
+       selbst flex-column-Container, damit ihre Listen (flex:1,
+       overflow-y:auto) wie gehabt scrollen. ── */
+    .tab-inhalt {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .tab-inhalt.aktiv { display: flex; }
+
+    /* Profil-Tab scrollt als GANZES (Foto/Name/Werte/Schlafgraph/
+       Tagebuch zusammen) statt nur eines einzelnen Unterbereichs –
+       siehe .tagebuch-liste/.tagebuch-monat oben, die bewusst KEIN
+       eigenes overflow-y mehr haben, damit nicht zwei verschachtelte
+       Scrollbereiche entstehen. */
+    #tab-profil { overflow-y: auto; }
+
+    /* ── Tab-Leiste: Chats / Gruppen (unten, wie Bottom-Nav) ──────── */
+    .tab-leiste {
+      flex-shrink: 0;
+      display: flex;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       TAB-LEISTE – zentrales Navigationselement, deshalb etwas
+       präsenter als zuvor (11px Schrift, 12px Padding, Leiste rund
+       37px hoch – für den Daumen knapp und für die Bedeutung zu leise).
+       Der aktive Reiter unterschied sich zudem AUSSCHLIESSLICH durch
+       die Farbe; die Schriftfamilie war ausdrücklich dieselbe.
+
+       Neu: 56px Leistenhöhe. Das ist genau die Konvention beider
+       Plattformen (Android 56dp, iOS 49pt) und liegt über den 48dp,
+       die als Mindestmaß für eine Tippfläche gelten.
+
+       Nicht zu dominant: Die Beschriftung bleibt mit 12px klein –
+       gegenüber 30px Nachrichtentext ist das Verhältnis rund 1:2,5.
+       Die Leiste gewinnt also über die FLÄCHE an Präsenz, nicht über
+       die Schriftgröße. Der Inhalt darüber bleibt das Lauteste.
+       ══════════════════════════════════════════════════════════════ */
+    /* Höhe der Leiste als Variable, NICHT als Zahl in zwei Regeln.
+       Genau daran ist es zuvor gescheitert: Der schwebende
+       Emotions-Schalter stand auf bottom:54px – ein Wert, der zur
+       damaligen ~37px-Leiste passte. Als die Leiste auf 56px wuchs,
+       ragte der Schalter 3px in sie hinein (am Bildschirm nachgemessen).
+       Zwei unabhängige Zahlen für dieselbe Kante laufen früher oder
+       später auseinander; über die Variable können sie das nicht mehr.
+       Wer die Leistenhöhe ändert, verschiebt den Schalter automatisch
+       mit – siehe .emotion-schalter--schwebend. */
+    .phone-frame { --tab-leiste-hoehe: 56px; }
+
+    .tab-btn {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: var(--tab-leiste-hoehe);
+      background: none;
+      border: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      padding: 0 4px;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .tab-btn:hover { color: var(--text-2); }
+
+    /* Drei Unterschiede statt einem: voller Kontrast, kräftigerer
+       Schnitt und ein kurzer Strich an der Oberkante. Farbe allein
+       trug zu wenig – besonders im dunklen Modus, wo --text-3 (#666)
+       und Weiß auf kleiner Schrift nah beieinanderliegen. */
+    .tab-btn--aktiv {
+      color: #000000;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+    }
+
+    .phone-frame.emotion-an .tab-btn--aktiv { color: #ffffff; }
+
+    /* Kurzer Indikator auf der Trennlinie der Leiste (top:-1px deckt
+       den 1px-Rand von .tab-leiste ab). Bewusst nur 28px breit statt
+       über die volle Reiterbreite: markiert, ohne einen zweiten
+       kräftigen Balken durchs Bild zu ziehen.
+
+       3px statt der zunächst gewählten 2px: Am Bildschirm geprüft war
+       ein 2px-Strich am äußersten Rand der Leiste kaum wahrnehmbar –
+       technisch vorhanden, aber als Unterscheidungsmerkmal wertlos. */
+    .tab-btn--aktiv::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 3px;
+      border-radius: 0 0 2px 2px;
+      background: currentColor;
+    }
+
+    /* ── Gruppen-Kopf: Titel + "+"-Button ──────────────────────── */
+    .gruppen-kopf {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+    }
+
+    .gruppen-kopf-label {
+      font-size: 12px;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .neue-gruppe-btn {
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--text-2);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .neue-gruppe-btn:hover { border-color: var(--text-2); }
+
+    /* ── Overlay: Neue Gruppe erstellen ──────────────────────────
+       Schlichtes Bottom-Sheet innerhalb des Phone-Frames, passend
+       zum reduzierten Look – keine Farbverläufe, nur Outline. ── */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 30;
+    }
+
+    .overlay.sichtbar { display: flex; }
+
+    .overlay-karte {
+      width: 100%;
+      max-height: 78%;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 16px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+    }
+
+    .overlay-kopf {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .overlay-titel {
+      font-size: 12px;
+      color: var(--text-3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .overlay-schliessen {
+      background: none;
+      border: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 20px;
+      line-height: 1;
+      color: var(--text-3);
+      cursor: pointer;
+    }
+
+    .overlay-schliessen:hover { color: var(--text-2); }
+
+    .kontakt-auswahl-liste {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid var(--border-light);
+    }
+
+    .kontakt-auswahl-eintrag {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text-2);
+      cursor: pointer;
+    }
+
+    .kontakt-auswahl-eintrag:hover { background: var(--bg-hover); }
+
+    .kontakt-auswahl-eintrag input[type="checkbox"] {
+      width: 14px; height: 14px;
+      accent-color: var(--accent);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       BUTTON-HIERARCHIE – drei Stufen, app-weit
+       ──────────────────────────────────────────────────────────────
+       Vorher gab es .overlay-btn: EINE flache Variante (Outline,
+       13px, 10px Padding, kein Radius) für acht sehr verschiedene
+       Aktionen – "Gruppe erstellen" sah aus wie "Abbrechen". Genau
+       daher rührte der Eindruck, alles sei gleichwertig.
+
+       Vorbild ist das Onboarding, wo die Unterscheidung schon
+       bestand (#weiter-btn gefüllt, .bluetooth-btn Outline,
+       .link-btn nur Text). Diese drei Stufen sind hier
+       verallgemeinert und heißen überall gleich.
+
+         Stufe        Fläche          Rahmen        Form
+         ──────────── ─────────────── ───────────── ──────────────
+         primär       gefüllt         wie Fläche    Pille, 46px
+         sekundär     keine           1px --border  Pille, 46px
+         tertiär      keine           keiner        nur Text
+
+       Primär und sekundär teilen sich ABSICHTLICH exakt dieselbe
+       Geometrie – sie unterscheiden sich nur durch die Füllung, wie
+       gefordert. Dadurch bleibt eine Reihe aus beiden ruhig.
+
+       Die Füllung nutzt --schalter-fuellung/-kontrast (siehe
+       Modus-Variablen ganz oben): dunkler Modus weiße Fläche mit
+       schwarzer Schrift, heller Modus umgekehrt. Diese beiden
+       Variablen existierten bereits für den Emotion-Schalter und
+       bedeuten exakt das – kein neues Farbpaar nötig.
+
+       KOMPAKTE VARIANTE (.btn--kompakt): für die Composer-Zeilen in
+       Tagebuch und Moment, wo der Knopf neben einem Eingabefeld in
+       einer schmalen Zeile sitzt. Gleiche Form und Rangfolge, nur
+       kleiner – eine 46px-Pille über die volle Breite würde die
+       Zeile dort sprengen.
+       ══════════════════════════════════════════════════════════════ */
+    .btn-primaer,
+    .btn-sekundaer {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 14px 22px;
+      border-radius: 999px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 14px;
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+      text-align: center;
+      cursor: pointer;
+      transition: opacity 0.2s ease, background-color 0.2s ease,
+                  border-color 0.2s ease, transform 0.15s ease;
+    }
+
+    .btn-primaer {
+      background: var(--schalter-fuellung);
+      color: var(--schalter-fuellung-kontrast);
+      border: 1px solid var(--schalter-fuellung);
+    }
+
+    /* Primärtext hat in dieser App keine eigene Variable (siehe
+       Modus-Block oben: es gibt --text-2/-3/-4, aber kein --text) –
+       deshalb wie überall sonst das Paar #000000 / .emotion-an #ffffff. */
+    .btn-sekundaer {
+      background: none;
+      border: 1px solid var(--border);
+      color: #000000;
+    }
+    .phone-frame.emotion-an .btn-sekundaer { color: #ffffff; }
+
+    .btn-primaer:hover:not(:disabled)   { opacity: 0.86; }
+    .btn-sekundaer:hover:not(:disabled) { border-color: var(--schalter-fuellung); }
+    .btn-primaer:active:not(:disabled),
+    .btn-sekundaer:active:not(:disabled) { transform: scale(0.98); }
+
+    /* Gesperrt, z. B. solange die Anmeldung beim Server nicht bestätigt
+       ist (siehe overlayKnoepfeAktualisieren im Abschnitt VERBINDUNG). */
+    .btn-primaer:disabled,
+    .btn-sekundaer:disabled { opacity: 0.3; cursor: default; }
+
+    /* Tertiär: Abbrechen, Überspringen, Zurück. Kein Rahmen, keine
+       Fläche, kleiner – soll erreichbar sein, aber nichts vorschlagen. */
+    .btn-tertiaer {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      padding: 8px 10px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+    .btn-tertiaer:hover { color: #000000; }
+    .phone-frame.emotion-an .btn-tertiaer:hover { color: #ffffff; }
+
+    .btn--kompakt {
+      flex-shrink: 0; /* stand vorher auf .moment-senden-btn/.tagebuch-speichern-btn */
+      min-height: 36px;
+      padding: 9px 16px;
+      font-size: 13px;
+    }
+
+    /* Die globale Fokusregel (.phone-frame :focus-visible, siehe
+       FOKUS-Abschnitt) setzt border-radius:2px und ist mit (0,2,0)
+       stärker als diese Klassen (0,1,0) – ohne diese Zeile würden die
+       Pillen beim Tabben rechteckig. Spezifität hier (0,3,0). */
+    .phone-frame .btn-primaer:focus-visible,
+    .phone-frame .btn-sekundaer:focus-visible { border-radius: 999px; }
+
+    /* Über die volle Breite, wenn der Knopf direkt in einer Overlay-
+       Karte steht – die stapelt ihre Kinder ohnehin untereinander.
+       Als Container-Regel statt als Zusatzklasse an jedem Knopf: so
+       kann keiner vergessen werden. */
+    .overlay-karte > .btn-primaer,
+    .overlay-karte > .btn-sekundaer,
+    .kopplung-seite > .btn-primaer,
+    .kopplung-seite > .btn-sekundaer { width: 100%; }
+
+    /* Destruktive Aktion (z. B. "Gruppe löschen"): dünne rote Outline
+       statt schwarz/weiß, signalisiert Endgültigkeit – bewusst die
+       einzige Farbabweichung vom sonst rein monochromen Look. Wirkt auf
+       BEIDE Stufen, damit eine gefährliche Aktion primär ODER sekundär
+       sein kann, je nachdem wie leicht sie erreichbar sein soll. */
+    .btn--gefahr {
+      border-color: rgba(196, 60, 48, 0.55);
+      color: rgba(196, 60, 48, 0.9);
+    }
+    .phone-frame.emotion-an .btn-sekundaer.btn--gefahr { color: rgba(224, 96, 84, 0.95); }
+    .btn-primaer.btn--gefahr {
+      background: rgba(196, 60, 48, 0.9);
+      border-color: rgba(196, 60, 48, 0.9);
+      color: #ffffff;
+    }
+
+    /* ── Menü (Hamburger) + Einstellungen + Infos ────────────────── */
+    .menu-eintrag {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border-light);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--text-2);
+      padding: 14px 2px;
+      cursor: pointer;
+    }
+
+    .menu-eintrag:last-child { border-bottom: none; }
+    .menu-eintrag:hover { color: #000000; }
+    .phone-frame.emotion-an .menu-eintrag:hover { color: #ffffff; }
+
+    .einstellung-zeile {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 2px;
+    }
+
+    .einstellung-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .einstellung-label {
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .einstellung-hinweis {
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       KOPPLUNG – Overlay zum Verbinden zweier Handys (siehe Abschnitt
+       VERBINDUNG im Script). Baut bewusst auf denselben Bausteinen auf
+       wie Menü und Einstellungen (.overlay/.overlay-karte/
+       .einstellung-zeile/.overlay-btn) – deren Farben liegen auf
+       --bg/--border/--text-2/--text-3 und schalten damit im
+       Emotion-Modus von selbst mit. Eigene Regeln braucht es nur für
+       die zwei Elemente, die es sonst nirgends gibt.
+
+       WICHTIG: Das Overlay MUSS innerhalb von .phone-frame hängen –
+       sämtliche CSS-Variablen sind dort definiert. An document.body
+       gehängt fiele jedes var(--…) aus, und die emotion-an-Regeln
+       unten griffen nie (der Fehler, an dem die erste Fassung scheiterte).
+
+       Primärtext wird wie überall in dieser Datei als #000000 gesetzt
+       und per .phone-frame.emotion-an auf #ffffff gedreht – es gibt
+       bewusst KEINE --text-Variable, siehe .gespraechs-name.
+       ══════════════════════════════════════════════════════════════ */
+    /* "Kontakt hinzufügen" – steht dauerhaft ganz oben in der Liste
+       und ist kein Mensch: gestrichelter Kreis statt der durchgezogenen
+       Avatar-Kontur, damit er sich auf einen Blick von den Kontakten
+       darunter abhebt, ohne eine neue Farbe einzuführen. */
+    .gespraechs-eintrag--hinzufuegen .avatar {
+      border-style: dashed;
+      font-size: 22px;
+    }
+
+    .gespraechs-eintrag--hinzufuegen .gespraechs-name {
+      color: var(--text-2);
+    }
+
+    .kopplung-code {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 26px;
+      letter-spacing: 0.22em;
+      line-height: 1.2;
+      color: #000000;
+    }
+
+    /* Kopplungscode vom globalen Farbübergang ausnehmen.
+       ".phone-frame *" (MODUSWECHSEL-TRANSITION weiter unten) blendet
+       color über 0,4 s. Beim Wechsel aus dem "noch nicht erzeugt"-
+       Zustand blieb dieser Übergang hängen – die Ziffern standen
+       dauerhaft im Grau des Hinweistextes statt in Vordergrundfarbe.
+       Ein Kopplungscode soll ohnehin sofort dastehen, nicht einblenden.
+
+       Der Vorsatz ".phone-frame " ist notwendig, nicht Zierde: Die
+       globale Regel steht bewusst als LETZTE im Stylesheet (siehe
+       Kommentar dort) und hat mit (0,1,0) dieselbe Spezifität wie
+       ".kopplung-code" allein – bei Gleichstand gewinnt die spätere.
+       Mit (0,2,0) gewinnt diese hier unabhängig von der Reihenfolge. */
+    .phone-frame .kopplung-code {
+      transition: none;
+    }
+
+    .phone-frame.emotion-an .kopplung-code { color: #ffffff; }
+
+    /* Zustand "noch kein Code erzeugt": liest sich als Hinweis, nicht
+       als Zahl – deshalb zurück auf die Hinweis-Typografie. */
+    .kopplung-code--leer {
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: normal;
+      color: var(--text-3);
+    }
+
+    .phone-frame.emotion-an .kopplung-code--leer { color: var(--text-3); }
+
+    .kopplung-eingabe {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: #000000;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 20px;
+      letter-spacing: 0.25em;
+      text-align: center;
+    }
+
+    .phone-frame.emotion-an .kopplung-eingabe { color: #ffffff; }
+
+    .kopplung-eingabe::placeholder {
+      color: var(--placeholder);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 13px;
+      letter-spacing: normal;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       KOPPLUNG – zwei Modi: "Mein Code" und "Code scannen"
+
+       Bewusst getrennt statt untereinander: Wer koppeln will, ist immer
+       auf genau EINER Seite des Vorgangs – entweder man zeigt seinen
+       Code oder man liest den fremden. Beides gleichzeitig zu sehen
+       erzeugt nur die Frage, was man jetzt tun soll.
+
+       Der Umschalter übernimmt Form und Maße vom Tagebuch-Umschalter
+       (.tagebuch-ansicht-umschalter weiter oben) – dieselbe Bedeutung,
+       dieselbe Gestalt, keine zweite Erfindung. Farben durchweg aus den
+       vorhandenen Tokens, damit beide Modi der App folgen.
+       ══════════════════════════════════════════════════════════════ */
+    .kopplung-modus-umschalter {
+      display: flex;
+      gap: 2px;
+      width: fit-content;
+      margin: 0 auto 4px;
+      padding: 2px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+
+    .kopplung-modus-btn {
+      background: none;
+      border: none;
+      color: var(--text-3);
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      padding: 5px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .kopplung-modus-btn--aktiv,
+    .kopplung-modus-btn--aktiv:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .kopplung-seite[hidden] { display: none; }
+
+    .kopplung-seite {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      /* Beide Seiten gleich hoch halten, damit die Karte beim Umschalten
+         nicht springt. Der QR-Code (200px + Rand) gibt das Maß vor; die
+         Scan-Seite hat seit dem Entfernen der leeren Vorschaufläche
+         weniger Inhalt und verteilt den Rest gleichmäßig. */
+      min-height: 268px;
+      justify-content: center;
+    }
+
+    /* "oder eintippen" trennt die beiden Wege im Scan-Modus, ohne eine
+       Linie zu ziehen – zurückhaltend, aber deutlich genug, dass das
+       Eingabefeld nicht wie ein Anhängsel des Knopfes wirkt. */
+    .kopplung-trenner {
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 11px;
+      color: var(--text-3);
+      margin-top: 4px;
+    }
+
+    /* Der QR-Code braucht IMMER dunkle Module auf hellem Grund, auch im
+       invertierten Modus – Scanner erwarten diese Polarität, und eine
+       Umkehrung machte den Code für manche Lesegeräte unbrauchbar.
+       Deshalb hier bewusst feste Farben statt --bg/--text. */
+    .kopplung-qr {
+      width: 200px;
+      height: 200px;
+      padding: 12px;
+      background: #ffffff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .kopplung-qr svg { width: 100%; height: 100%; display: block; }
+
+    /* Platzhalter, solange kein Code erzeugt wurde */
+    .kopplung-qr--leer {
+      background: none;
+      border: 1px dashed var(--border);
+      color: var(--text-3);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 11px;
+      text-align: center;
+      padding: 20px;
+    }
+
+
+    /* Während der native Scanner läuft, muss die WebView durchsichtig
+       sein, sonst verdeckt sie das Kamerabild. */
+    .phone-frame.kamera-laeuft,
+    .phone-frame.kamera-laeuft .overlay,
+    .phone-frame.kamera-laeuft .overlay-karte { background: transparent; }
+    .phone-frame.kamera-laeuft .ansicht,
+    .phone-frame.kamera-laeuft .einstellung-zeile,
+    .phone-frame.kamera-laeuft .kopplung-modus-umschalter { visibility: hidden; }
+
+    .infos-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-2);
+    }
+
+    .infos-liste {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      list-style: none;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-2);
+    }
+
+    .infos-liste strong { color: #000000; }
+    .phone-frame.emotion-an .infos-liste strong { color: #ffffff; }
+
+    /* ── Testregler (Infos-Overlay): derselbe kombinierte Regler-Block
+       wie situra-slider.html ("Kombiniert") und der Onboarding-Schritt
+       "Probier's selbst" – hier als Abschluss der Infos-Karte, nutzt
+       dieselben --text/--text-2/--text-3/--border-Variablen wie der Rest
+       des Menüs, damit Licht-/Dunkelmodus automatisch mitgeht. ── */
+    .testregler-trenner {
+      border-top: 1px solid var(--border-light);
+      margin-top: 4px;
+    }
+
+    .testregler-buehne {
+      min-height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 0 4px;
+    }
+
+    .testregler-wort {
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 2.4rem;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      color: #000000;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    /* Fällt Temperatur aus (siehe testreglerAchseEinrichten, JS), wird
+       die per JS gesetzte Inline-Farbe entfernt und dieser CSS-Default
+       greift wieder – WICHTIG: chat.html hat (anders als onboarding.html)
+       keine --text-Variable, nur feste #000000/#ffffff je Modus (wie bei
+       .tagebuch-tag) – sonst bleibt das Wort im Emotion-Modus (dunkler
+       Hintergrund) unsichtbar schwarz-auf-schwarz statt weiß. */
+    .phone-frame.emotion-an .testregler-wort { color: #ffffff; }
+
+    @keyframes situraZittern {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25%      { transform: translate(var(--amp, 0px), calc(var(--amp, 0px) * -1)) rotate(calc(var(--rot, 0deg) * -1)); }
+      50%      { transform: translate(calc(var(--amp, 0px) * -1), var(--amp, 0px)) rotate(var(--rot, 0deg)); }
+      75%      { transform: translate(var(--amp, 0px), var(--amp, 0px)) rotate(calc(var(--rot, 0deg) * -1)); }
+    }
+
+    .testregler-achsen {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .testregler-achse { display: flex; flex-direction: column; gap: 8px; }
+
+    .testregler-achse-kopf { display: flex; align-items: center; gap: 10px; }
+
+    .testregler-achse-label {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      color: #000000;
+      transition: color 0.25s ease;
+    }
+
+    .phone-frame.emotion-an .testregler-achse-label { color: #ffffff; }
+    .testregler-achse--aus .testregler-achse-label { color: var(--text-3); }
+    .testregler-achse--aus .testregler-regler-zeile { opacity: 0.35; }
+
+    .testregler-schalter { flex-shrink: 0; display: inline-flex; cursor: pointer; }
+    .testregler-schalter input { display: none; }
+
+    .testregler-schalter-visuell {
+      width: 32px; height: 18px;
+      background: transparent;
+      border: 1.5px solid var(--text-3);
+      border-radius: 9px;
+      position: relative;
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .testregler-schalter-visuell::after {
+      content: '';
+      position: absolute;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--text-3);
+      top: 1.5px; left: 1.5px;
+      transition: transform 0.25s ease, background-color 0.25s ease;
+    }
+
+    .testregler-schalter input:checked + .testregler-schalter-visuell {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .testregler-schalter input:checked + .testregler-schalter-visuell::after {
+      transform: translateX(14px);
+      background: var(--bg);
+    }
+
+    .testregler-regler-zeile { display: flex; align-items: center; gap: 12px; }
+
+    .testregler-regler-zeile input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      min-width: 0;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .testregler-regler-zeile input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+
+    .testregler-regler-zeile input[type="range"]::-moz-range-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      cursor: pointer;
+    }
+
+    .testregler-wert {
+      flex-shrink: 0;
+      min-width: 13ch;
+      text-align: right;
+      font-size: 11px;
+      color: var(--text-2);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+
+    .testregler-wert strong {
+      color: #000000;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-weight: normal;
+    }
+
+    .phone-frame.emotion-an .testregler-wert strong { color: #ffffff; }
+
+    /* ── Gruppeninfo: Mitgliederzeile mit Entfernen-"×" ──────────── */
+    .gruppenmitglied-zeile {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .gruppenmitglied-entfernen-btn {
+      background: none;
+      border: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: 4px 6px;
+    }
+
+    .gruppenmitglied-entfernen-btn:hover { color: var(--text-2); }
+
+    /* ── Bestätigungs-Dialog: zentriert statt Bottom-Sheet ───────── */
+    .overlay--zentriert {
+      align-items: center;
+    }
+
+    .bestaetigung-karte {
+      width: 260px;
+      max-width: 82%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .bestaetigung-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-2);
+      text-align: center;
+    }
+
+    .bestaetigung-aktionen {
+      display: flex;
+      gap: 10px;
+    }
+
+    .bestaetigung-aktionen .btn-primaer { flex: 1; }
+
+    /* ══════════════════════════════════════════════════════════════
+       MOMENT – horizontale Story-Leiste + Composer (versteckt hinter
+       dem eigenen Kreis) + Feed der Momente anderer + Story-Ansicht.
+       Separater Bereich: rein visuell eigenständig, die eigentliche
+       Wort-Einfrier-Logik lebt im JS-Abschnitt "MOMENT" und rührt
+       nicht an der Chat-Logik. Keine eigene "Moment"-Überschrift mehr
+       (weder die geteilte Kopfzeile noch ein lokales Label) – der
+       Bereich ist über die Tab-Leiste unten bereits eindeutig benannt,
+       siehe tabAnzeigen (JS). ══════════════════════════════════ */
+    .moment-leiste {
+      flex-shrink: 0;
+      display: flex;
+      gap: 18px;
+      padding: 20px 20px 18px;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    /* Siehe Kommentar beim großen Scrollbalken-Block oben – dasselbe
+       @supports-Gate, damit Chromium-Versionen mit Unterstützung für
+       BEIDE Property-Familien nicht den klobigeren nativen "thin"-
+       Balken statt unseres ::-webkit-scrollbar-Thumb zeigen. */
+    @supports not selector(::-webkit-scrollbar) {
+      .moment-leiste {
+        scrollbar-width: thin;
+        scrollbar-color: var(--scrollbar-farbe) transparent;
+      }
+    }
+
+    .moment-leiste::-webkit-scrollbar { height: 4px; }
+    .moment-leiste::-webkit-scrollbar-track { background: transparent; }
+    .moment-leiste::-webkit-scrollbar-thumb { background: var(--scrollbar-farbe); border-radius: 999px; }
+    .moment-leiste::-webkit-scrollbar-button { display: none; }
+
+    .moment-kreis-wrapper {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 74px; /* breiter als vorher (60px) – Platz für den deutlich größeren Namen darunter */
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    /* Größere Variante des bestehenden Profilbild-Kreises für die
+       Story-Leiste – reine Größen-/Layoutanpassung, die Strichstärke
+       (font-family) wird weiterhin vom bestehenden Profilbild-System
+       gesetzt (siehe avatarDarstellungAktualisieren), da hier wie in
+       der Kontaktliste dieselbe data-name-Selektorlogik greift. */
+    .avatar--moment {
+      width: 54px; height: 54px;
+      font-size: 19px;
+    }
+
+    /* Ungesehener Moment: dünner Ring um den Kreis, per box-shadow (kein
+       zusätzlicher Platzverbrauch/Layout-Shift). KORREKTUR – war fest
+       weiß: bei ausgeschaltetem Emotion-Modus (heller Hintergrund)
+       verschwand der Ring dadurch praktisch unsichtbar. --ring-ungesehen
+       folgt jetzt demselben modusabhängigen Variablen-Muster wie --bg/
+       --text-2/etc. (siehe .phone-frame/.phone-frame.emotion-an oben):
+       schwarz im hellen, weiß im dunklen Modus. */
+    .avatar--moment-ungesehen {
+      box-shadow: 0 0 0 2px var(--ring-ungesehen);
+    }
+
+    /* Eigener Kreis: Profilbild (falls vorhanden) statt Buchstabe,
+       plus kleines "+"-Badge unten rechts – derselbe Aufbau wie der
+       Stift-Button auf dem Profilbild im PROFIL-Tab (position:relative
+       Wrapper + absolut positioniertes Badge), zum Wiedererkennen. */
+    .moment-kreis-du {
+      position: relative;
+    }
+
+    .moment-kreis-plus {
+      position: absolute;
+      right: -2px; bottom: -2px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 13px;
+      line-height: 1;
+      pointer-events: none; /* Klick soll den ganzen Kreis treffen, nicht nur das kleine Badge */
+    }
+
+    /* Deutlich größer als vorher (11px) – dieselbe Idee wie bei
+       .gespraechs-name in der Kontaktliste: der Name ist der Ort, an
+       dem die typografische Charakteristik der Person sichtbar wird. */
+    .moment-kreis-name {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 15px;
+      color: var(--text-2);
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Composer: standardmäßig verborgen, öffnet sich erst durch Tippen
+       auf den eigenen Kreis (siehe momentOeffnen/momentComposerOffen,
+       JS) – kein dauerhaft sichtbares Eingabefeld mehr. */
+    .moment-composer {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+    }
+
+    .moment-composer[hidden] { display: none; }
+
+    .moment-eingabe {
+      flex: 1;
+      min-width: 0;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      outline: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 14px;
+      color: #000000;
+      padding: 6px 0;
+    }
+
+    .moment-eingabe:focus { border-bottom-color: var(--text-2); }
+
+    .moment-eingabe::placeholder { color: var(--placeholder); }
+
+    /* ── Feed: Momente der anderen Personen als große Karten ─────────
+       Füllt den vormals leeren Bereich unterhalb der Kreis-Leiste. Der
+       gepostete Satz (momentTextRendern – UNVERÄNDERTE reagierende
+       Wort-für-Wort-Typografie, exakt wie in der Story-Ansicht/im Chat)
+       ist bewusst das dominante, große Element; Profilbild + Name
+       bilden nur eine kleine, zurückhaltende Kopfzeile darüber. "Du"
+       taucht hier nie auf – der eigene Moment lebt im Kreis mit "+"
+       bzw. in der Story-Ansicht (siehe momentOeffnen). ── */
+    .moment-feed {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 20px 24px;
+    }
+
+    .moment-karte {
+      padding: 26px 0;
+    }
+
+    .moment-karte-kopf {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .avatar--moment-karte {
+      width: 30px; height: 30px;
+      font-size: 12px;
+    }
+
+    .moment-karte-name {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 13px;
+      color: var(--text-2);
+      letter-spacing: 0.02em;
+    }
+
+    .moment-karte-text {
+      font-size: 24px;
+      line-height: 1.35;
+      color: #000000;
+      overflow-wrap: break-word;
+    }
+
+    .phone-frame.emotion-an .moment-karte-text { color: #ffffff; }
+
+    /* ── Like-Leiste unter jeder Moment-Karte ─────────────────────── */
+    .moment-karte-footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 14px;
+    }
+
+    .moment-like-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px; height: 30px;
+      padding: 0;
+      background: none;
+      border: none;
+      color: var(--text-2);
+      font-size: 19px;
+      line-height: 1;
+      cursor: pointer;
+      transition: color 0.2s ease, transform 0.15s ease;
+    }
+
+    .moment-like-btn:active { transform: scale(0.9); }
+
+    .moment-like-btn--aktiv { color: var(--accent); }
+
+    .moment-like-zaehler {
+      font-size: 12px;
+      color: var(--text-2);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .moment-feed-leer {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-3);
+      font-style: italic;
+      padding: 20px 0;
+    }
+
+    /* ── Story-Ansicht: großer, eingefrorener Text – dieselbe
+       typografische Sprache wie die Chat-Nachrichten (30px, zentriert),
+       aber als eigene Karte statt Sprechblase. ── */
+    .moment-ansicht-overlay .overlay-schliessen { margin-left: auto; }
+
+    /* Bildschirmfüllend statt zentrierter Karte: überschreibt
+       .overlay--zentriert (align-items/justify-content) – die Karte
+       selbst (.moment-ansicht-karte oben) hat width/height:100% und
+       füllt den so entstehenden Platz komplett aus. Eigene Hintergrund-
+       farbe statt der abgedunkelten Overlay-Fläche, weil die Karte
+       jetzt ohnehin alles verdeckt. */
+    .moment-ansicht-overlay {
+      background: var(--bg);
+      align-items: stretch;
+      justify-content: stretch;
+    }
+
+    /* ── Story-Fortschrittsbalken (Instagram-artig): ein Segment pro
+       Person mit Moment, das aktuelle Segment füllt sich von links
+       nach rechts über MOMENT_STORY_DAUER, danach automatisch der
+       nächste Moment. Farbe wie .moment-ansicht-text (schwarz/weiß je
+       Modus statt fest "weiß"), damit der Balken auf hellem UND
+       dunklem Kartenhintergrund sichtbar bleibt. ── */
+    .moment-story-balken {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .moment-story-segment {
+      flex: 1;
+      height: 2px;
+      background: rgba(128, 128, 128, 0.35);
+      border-radius: 1px;
+      overflow: hidden;
+    }
+
+    .moment-story-segment-fill {
+      height: 100%;
+      width: 0%;
+      background: #000000;
+    }
+
+    .phone-frame.emotion-an .moment-story-segment-fill { background: #ffffff; }
+
+    /* Bildschirmfüllend statt kleiner Karte (wie eine Instagram-Story):
+       .moment-ansicht-overlay bekommt dafür weiter unten ebenfalls
+       align-items/justify-content:stretch statt center, damit die
+       Karte den kompletten Phone-Frame ausfüllt statt darin zu
+       schweben. */
+    .moment-ansicht-karte {
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+      max-height: 100%;
+      background: var(--bg);
+      border: none;
+      padding: 20px 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+    }
+
+    .moment-ansicht-kopf {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .moment-ansicht-name {
+      font-size: 13px;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      color: var(--text-2);
+      letter-spacing: 0.02em;
+    }
+
+    /* Vertikal mittig zwischen Kopf (oben) und Footer (unten) – wie bei
+       Instagram-Storys der Haupt-"Inhalt". WICHTIG: KEIN display:flex
+       hier (das war der Bug) – .moment-ansicht-text enthält Wort-Spans
+       UND Leerzeichen-Textknoten als direkte Kinder (siehe
+       momentTextRendern/JS), die in einem Flex-Container zu
+       Flex-Items würden: dadurch verschwand der Zeilenumbruch
+       (nowrap-Reihe statt normalem Textfluss) und die Wortabstände
+       schrumpften sichtbar zusammen (flex-shrink drückt Wörter/
+       Leerzeichen zusammen). margin:auto in einem Flex-COLUMN-Eltern
+       (.moment-ansicht-karte) zentriert den ganzen Absatz vertikal,
+       OHNE dass der Absatz selbst zum Flex-Container wird – Wort-Spans
+       bleiben normale inline-block-Elemente mit normalem Zeilenumbruch
+       und normalen Leerzeichen. */
+    .moment-ansicht-text {
+      margin-top: auto;
+      margin-bottom: auto;
+      font-size: 36px;
+      line-height: 1.35;
+      /* Linksbündig wie der Chat-Text. Die vertikale Zentrierung des
+         ganzen Absatzes in der Karte bleibt (margin-top/bottom:auto
+         oben) – hier geht es nur um die Zeilenausrichtung darin. */
+      text-align: left;
+      color: #000000;
+      overflow-wrap: break-word;
+    }
+
+    .phone-frame.emotion-an .moment-ansicht-text { color: #ffffff; }
+
+    /* ── Footer der Story-Ansicht: Like (wiederverwendet
+       .moment-karte-footer/.moment-like-*, siehe MOMENT-Feed weiter
+       unten) + Kommentare. ── */
+    .moment-ansicht-footer {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .moment-kommentar-liste {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .moment-kommentar-eintrag {
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--text-2);
+    }
+
+    .moment-kommentar-eintrag strong {
+      color: #000000;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-weight: normal;
+      margin-right: 5px;
+    }
+
+    .phone-frame.emotion-an .moment-kommentar-eintrag strong { color: #ffffff; }
+
+    .moment-kommentar-leer {
+      font-size: 12px;
+      color: var(--text-3);
+      font-style: italic;
+    }
+
+    .moment-kommentar-eingabe-zeile {
+      display: flex;
+      gap: 8px;
+    }
+
+    .moment-kommentar-eingabe {
+      flex: 1;
+      min-width: 0;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      outline: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 13px;
+      color: #000000;
+      padding: 4px 0;
+    }
+
+    .phone-frame.emotion-an .moment-kommentar-eingabe { color: #ffffff; }
+    .moment-kommentar-eingabe:focus { border-bottom-color: var(--text-2); }
+    .moment-kommentar-eingabe::placeholder { color: var(--placeholder); }
+
+    .moment-kommentar-senden-btn {
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    .moment-kommentar-senden-btn:hover { border-color: var(--text-2); color: #000000; }
+    .phone-frame.emotion-an .moment-kommentar-senden-btn:hover { color: #ffffff; }
+
+
+    /* ══════════════════════════════════════════════════════════════
+       PROFIL – eigener Profilbereich (Foto, Name, aktuelle Werte)
+       + TAGEBUCH (eigenständige, dauerhafte Einträge, im Unterschied
+       zu MOMENT: kein 24h-Limit, kein "einmal pro Tag"). Gleicher
+       reduzierter Look wie der Rest der App (Outline-Stil, Situra).
+       ══════════════════════════════════════════════════════════════ */
+    /* Mittig statt am linken Rand, mit mehr Luft rundherum – Avatar
+       über dem Namen statt nebeneinander, damit der Bereich weniger
+       gedrängt wirkt. */
+    /* ── Hierarchie im Profilbereich ──────────────────────────────
+       Vorher lagen Name (20px), Graph-Titel (12px), Werte (10px) und
+       Namens-Hinweis (10px) so dicht beieinander, dass keine Rangfolge
+       ablesbar war – alles wirkte gleichwertig. Die Abstände zwischen
+       den Abschnitten (14–24px) waren zudem kaum größer als die
+       Abstände INNERHALB eines Abschnitts, wodurch die Bereiche
+       ineinander liefen.
+
+       Neue Staffelung, drei klar getrennte Ebenen:
+         1. Identität   Foto 112px, Name 32px      ← dominant
+         2. Inhalt      Graph-Titel 12px, Tagebuch
+         3. Beiwerk     Werte-Labels 9px, Werte 11px, Hinweis 11px
+
+       Der Sprung von 32px auf 11px ist bewusst groß: Ein Verhältnis
+       von rund 3:1 liest sich als Rangfolge, die bisherigen 2:1
+       (20px zu 10px) taten das nicht.
+
+       ABSCHNITTSABSTAND: einheitlich 40px zwischen den Bereichen
+       (--profil-abschnitt), gegenüber 6–10px innerhalb eines Bereichs.
+       Erst dieses Verhältnis macht sichtbar, dass es verschiedene
+       Bereiche sind – dafür braucht es keine Trennlinien, die dem
+       reduzierten Schwarz/Weiß-Ansatz widersprächen. */
+    .tab-inhalt#tab-profil { --profil-abschnitt: 40px; }
+
+    .profil-kopf {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 18px;
+      padding: 44px 24px var(--profil-abschnitt);
+    }
+
+    /* Größere Variante des bestehenden .avatar-Kreises (siehe dort) –
+       gleicher Aufbau (Outline, Foto überschreibt Buchstaben), nur
+       größer.
+
+       DOPPELTE KLASSE (.avatar.avatar--profil) ist hier notwendig, nicht
+       Kosmetik: Die Basisregel .avatar steht im Stylesheet WEITER UNTEN
+       (bei den Kontaktlisten) und hat dieselbe Spezifität wie
+       .avatar--profil allein – bei Gleichstand gewinnt die spätere
+       Regel. Die 72px kamen dadurch nie an, alle drei Verwendungen
+       (Profil, Neue Gruppe, Gruppeninfo) rendern bis heute mit den
+       42px der Basisregel. Mit zwei Klassen (0-2-0 statt 0-1-0)
+       gewinnt diese Regel unabhängig von der Reihenfolge. */
+    .avatar.avatar--profil {
+      width: 72px; height: 72px;
+      font-size: 26px;
+    }
+
+    /* Nur der Profil-Tab: 112px statt 72px. Das Foto soll das Erste
+       sein, was man wahrnimmt, nicht ein Element unter vielen. Bewusst
+       NUR hier – in den beiden Overlays (Neue Gruppe, Gruppeninfo)
+       wäre ein 112px-Kreis für den knappen Platz dort zu groß. */
+    #profil-avatar.avatar--profil {
+      width: 112px; height: 112px;
+      font-size: 40px;
+    }
+
+    /* Mitwachsen mit dem größeren Kreis – ein 22px-Stift an einem
+       112px-Kreis wirkte verloren. */
+    #profil-avatar + .profil-foto-upload-btn {
+      width: 28px; height: 28px;
+      font-size: 13px;
+    }
+
+    .profil-foto-wrapper {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    /* Zentriert den (generischen, s. o.) Foto-Wrapper in Kontexten ohne
+       eigenes align-items:center – Neue-Gruppe- und Gruppeninfo-
+       Overlay (.overlay-karte ist display:flex ohne align-items,
+       Kinder würden sonst über die volle Breite gestreckt). */
+    .gruppe-foto-zeile {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Kleiner Stift-Button, unten rechts über dem Foto-Kreis –
+       öffnet den unsichtbaren Datei-Dialog (siehe #profil-foto-input). */
+    .profil-foto-upload-btn {
+      position: absolute;
+      right: -2px; bottom: -2px;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .profil-foto-upload-btn:hover { color: #000000; }
+    .phone-frame.emotion-an .profil-foto-upload-btn:hover { color: #ffffff; }
+
+    .profil-info { width: 100%; min-width: 0; }
+
+    /* Eigener Name: kein Rahmen, sieht wie normaler Fließtext aus,
+       trotzdem editierbar (Klick hinein zum Umbenennen). Schriftschnitt
+       wird per JS gesetzt (profilNameSchriftAktualisieren) – zeigt den
+       tatsächlichen, aus echten Messdaten gemittelten Zustand, siehe
+       eigenerMittelwertAktualisieren weiter unten (JS). */
+    .profil-name-eingabe {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      outline: none;
+      text-align: center;
+      /* 32px statt 20px – zusammen mit dem 112px-Foto die dominante
+         Ebene. Bei sehr langen Namen (maxlength 24) scrollt das
+         Eingabefeld horizontal, wie schon vorher, nur früher. */
+      font-size: 32px;
+      line-height: 1.15;
+      color: #000000;
+      padding: 0 0 6px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif; /* Fallback, bis JS den echten Schnitt setzt */
+    }
+
+    .phone-frame.emotion-an .profil-name-eingabe { color: #ffffff; }
+
+    .profil-name-hinweis {
+      font-size: 11px;
+      line-height: 1.45;
+      color: var(--text-3);
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Tagebuch ─────────────────────────────────────────────────
+       Aktuelle Werte (Puls/Schlaf) liegen bewusst VOR der "Tagebuch"-
+       Überschrift (ganz oben im Profilbereich, direkt unter Foto/
+       Name) – die Überschrift steht direkt über den Einträgen/der
+       Ansicht, wie gefordert. Zwei Ansichten (Liste/Monat) über einen
+       dezenten Pillen-Umschalter (gleiche Optik wie .filter-chip).
+       Kopfzeile mit dezentem "+"-Button (öffnet den Composer, sonst
+       verborgen), Einträge im Editorial-Stil (großes Datum links,
+       Text rechts, statt Kästen).
+       Schriftschnitt: alle UI-Texte hier in Situra-Medium – AUSNAHME
+       ist das große Datum (Situra-Black, siehe .tagebuch-tag). NICHT
+       betroffen ist .tagebuch-text (der eigentliche Eintragstext):
+       der bleibt vollständig der reagierenden Wort-für-Wort-Typografie
+       überlassen (momentTextRendern/stilAnwenden) – hier absichtlich
+       kein statischer font-family-Wert gesetzt. ── */
+    /* Werte-Gruppe: drei gleich gebaute Zellen nebeneinander. Damit sie
+       als EINE Gruppe lesbar ist, bekommt jede Zelle dieselbe
+       Beschriftungsgröße, denselben Innenabstand und dieselbe Breite
+       (flex:1) – Unterschiede zwischen den Zellen wären sonst
+       Bedeutungsträger, obwohl keiner gemeint ist. */
+    .tagebuch-werte {
+      flex-shrink: 0;
+      display: flex;
+      gap: 16px;
+      padding: 0 20px var(--profil-abschnitt);
+    }
+
+    .tagebuch-werte .sensor-dimension { flex: 1; min-width: 0; gap: 0; }
+
+    /* Gestapelt statt nebeneinander: Bei drei Zellen in einer schmalen
+       Spalte stünden Label und Wert sonst gedrängt auf einer Zeile
+       (space-between). Übereinander liest sich jede Zelle als Einheit,
+       und alle drei Zellen sehen identisch aus. */
+    .tagebuch-werte .dimension-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .tagebuch-werte .dimension-label,
+    .tagebuch-werte .dimension-wert {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+    }
+
+    /* Zusatzinformation, nicht gleichrangiger Block: Beide Zeilen
+       kleiner als bisher (Label 10→9, Wert bleibt klein) und deutlich
+       unter dem 32px-Namen. Der Wert steht etwas größer und heller als
+       sein Label, damit innerhalb der Zelle die Zahl das Inhaltliche
+       ist – zwischen den Zellen bleibt aber alles gleich. */
+    .tagebuch-werte .dimension-label {
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      color: var(--text-3);
+    }
+
+    .tagebuch-werte .dimension-wert {
+      font-size: 11px;
+      color: var(--text-2);
+    }
+
+    /* Kein zusätzlicher Abstand nach oben: Den liefert bereits das
+       padding-bottom des Schlafgraphen darüber (--profil-abschnitt).
+       Beides zu setzen ergäbe 80px und risse den Bereich auseinander.
+
+       KLEBEND am oberen Rand des Scrollbereichs (#tab-profil hat
+       overflow-y:auto, ist also selbst der Container): Das löst die
+       Überlappung mit dem schwebenden Emotions-Schalter, der unten
+       rechts sitzt – sobald die Kopfzeile oben klebt, sind die beiden
+       an entgegengesetzten Rändern und können sich nicht mehr
+       begegnen. Nebeneffekt, der hier erwünscht ist: Die Hauptaktion
+       des Bereichs ("+" für einen neuen Eintrag) bleibt beim Scrollen
+       durch lange Tagebuchlisten sichtbar.
+
+       Eigener Hintergrund ist Pflicht, sonst scheinen die Einträge
+       beim Vorbeiscrollen durch die Kopfzeile hindurch. padding-top
+       ersetzt den Abstand, den vorher der Schlafgraph darüber lieferte
+       – im geklebten Zustand liegt darüber nichts mehr.
+
+       z-index:4 hält sie über dem scrollenden Inhalt, aber unter dem
+       Emotions-Schalter (z-index:5): Falls sich die beiden doch
+       einmal berühren, verdeckt die Kopfzeile den Schalter nicht –
+       er trägt das Kernprinzip der App und muss sichtbar bleiben. */
+    .tagebuch-kopf {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      /* Label und "+" beieinander am LINKEN Rand statt auseinander-
+         gezogen (vorher space-between). Damit verlässt die Hauptaktion
+         des Bereichs die rechte Spalte, in der der schwebende
+         Emotions-Schalter sitzt – gemessen war das "+" dort an der
+         Startansicht nicht anklickbar, weil der Schalter die Klicks
+         abfing. Die klebende Kopfzeile allein löste das nicht: Bei
+         Scrollposition 0 steht sie naturgemäß tief, also genau in der
+         Zone des Schalters. */
+      justify-content: flex-start;
+      gap: 14px;
+      padding: 10px 20px;
+      background: var(--bg);
+    }
+
+    .tagebuch-kopf-label {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* Wiederverwendet exakt dieselbe Optik wie der bestehende
+       "+"-Button für neue Gruppen (.neue-gruppe-btn) – dezenter
+       Outline-Kreis mit zentriertem "+" statt auffälligem
+       Eingabe-Kasten oder freistehendem Symbol. */
+    /* Punkt 3: Das Anlegen eines Eintrags ist die Hauptinteraktion
+       des Tagebuchs – 26px waren dafür zu leise. Jetzt 40px Kreis mit
+       22px Zeichen und voller Kontrastfarbe statt --text-2. Bewusst
+       weiterhin Outline und nicht gefüllt: gefüllt wäre ein primärer
+       Button (siehe Button-Hierarchie), und der steht in diesem
+       Bereich dem "Eintragen" im Composer zu. */
+    .tagebuch-neu-btn {
+      flex-shrink: 0;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: none;
+      color: #000000;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s ease;
+    }
+
+    .phone-frame.emotion-an .tagebuch-neu-btn { color: #ffffff; }
+
+    .tagebuch-neu-btn:hover { border-color: var(--text-2); }
+
+    /* [hidden] MUSS hier explizit gewinnen: display:flex oben hat
+       dieselbe Spezifität wie die UA-Regel "[hidden] { display:none }"
+       und würde sie sonst durch die Reihenfolge im Stylesheet
+       überschreiben – der Button bliebe trotz .hidden = true sichtbar. */
+    .tagebuch-neu-btn[hidden] { display: none; }
+
+    /* ── Ansicht-Umschalter: Liste / Monat ────────────────────────
+       Zusammenhängende Segmented-Control in derselben Pillen-Optik
+       wie .filter-chip (Outline-Rahmen, aktiv = gefüllt), nur dezenter
+       dimensioniert – passt in die schmale Kopfzeile. ── */
+    .tagebuch-ansicht-umschalter {
+      flex-shrink: 0;
+      display: flex;
+      gap: 2px;
+      width: fit-content;
+      margin: 0 20px 16px;
+      padding: 2px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+
+    .tagebuch-ansicht-btn {
+      background: none;
+      border: none;
+      color: var(--text-3);
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      padding: 5px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .tagebuch-ansicht-btn:hover { color: var(--text-2); }
+
+    .tagebuch-ansicht-btn--aktiv,
+    .tagebuch-ansicht-btn--aktiv:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .tagebuch-composer {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 0 20px 16px;
+    }
+
+    /* Siehe Kommentar bei .tagebuch-neu-btn[hidden] oben – derselbe
+       Spezifitäts-Konflikt, hier für den Composer. */
+    .tagebuch-composer[hidden] { display: none; }
+
+    .tagebuch-eingabe {
+      width: 100%;
+      resize: none;
+      background: none;
+      border: 1px solid var(--border);
+      outline: none;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 14px;
+      color: #000000;
+      padding: 8px 10px;
+    }
+
+    .phone-frame.emotion-an .tagebuch-eingabe { color: #ffffff; }
+
+    .tagebuch-composer-aktionen {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .tagebuch-mehr-btn {
+      display: block;
+      width: 100%;
+      margin-top: 4px;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 12px;
+      text-align: center;
+      padding: 9px 0;
+      cursor: pointer;
+    }
+
+    .tagebuch-mehr-btn:hover { border-color: var(--text-2); color: #000000; }
+    .phone-frame.emotion-an .tagebuch-mehr-btn:hover { color: #ffffff; }
+
+    .tagebuch-liste {
+      padding: 4px 20px 20px;
+    }
+
+    .tagebuch-liste[hidden] { display: none; }
+
+    /* Editorial-Layout statt Kästen: Datum groß links, Text rechts. */
+    .tagebuch-eintrag {
+      display: flex;
+      gap: 16px;
+      padding: 20px 0;
+    }
+
+    .tagebuch-datum-spalte {
+      flex-shrink: 0;
+      width: 76px; /* Platz für zweistellige Tage bei 42px Situra-Black, siehe .tagebuch-tag */
+      text-align: center;
+    }
+
+    /* Situra-Black (fettester Schnitt) – Datum als klarer Ankerpunkt,
+       wie gefordert; einzige Ausnahme von Situra-Medium im Tagebuch-
+       Bereich. Reine Darstellung eines gespeicherten Zeitstempels,
+       KEIN reaktiver/eingefrorener Zustand – rührt nicht an der
+       Wort-für-Wort-Typografie des Eintragstexts daneben.
+       WICHTIG zur Größe: Situra-Black ist ein derart extrem fetter
+       Schnitt, dass die Ziffern-Innenräume (z. B. bei 0/8) bei kleiner
+       Schriftgröße fast vollständig zulaufen und kaum noch
+       unterscheidbar sind (im Browser mit vergrößerter Darstellung
+       geprüft) – 26px war praktisch unlesbar. 42px ist ein
+       Kompromiss: deutlich lesbarer, ohne die Datumsspalte
+       unverhältnismäßig groß wirken zu lassen. Der volle Zeitstempel
+       bleibt zusätzlich als title-Tooltip erhalten (siehe
+       tagebuchEintragRendern, JS). */
+    .tagebuch-tag {
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: 42px;
+      line-height: 1;
+      color: #000000;
+    }
+
+    .phone-frame.emotion-an .tagebuch-tag { color: #ffffff; }
+
+    .tagebuch-wochentag {
+      margin-top: 3px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .tagebuch-text {
+      flex: 1;
+      min-width: 0;
+      padding-top: 2px;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #000000;
+      overflow-wrap: break-word;
+    }
+
+    .phone-frame.emotion-an .tagebuch-text { color: #ffffff; }
+
+    /* Kleiner Hinweis über dem Eintragstext, wenn er bereits in den
+       Moment-Bereich geteilt wurde (siehe tagebuchEintragTeilen, JS) –
+       rein darstellend, keine reaktive Typografie. */
+    .tagebuch-geteilt-hinweis {
+      display: block;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 5px;
+    }
+
+    /* Teilen-Button: outline = noch nicht geteilt, gefüllt = bereits
+       geteilt – dieselbe Filled/Outline-Konvention wie der Emotion-
+       Schalter an anderer Stelle der App. */
+    .tagebuch-teilen-btn {
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin-top: 2px;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 1.5px solid var(--text-3);
+      background: transparent;
+      color: var(--text-3);
+      font-size: 12px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .tagebuch-teilen-btn:hover { border-color: var(--text-2); color: var(--text-2); }
+
+    .tagebuch-teilen-btn--aktiv {
+      background: #000000;
+      border-color: #000000;
+      color: #ffffff;
+    }
+
+    .phone-frame.emotion-an .tagebuch-teilen-btn--aktiv {
+      background: #ffffff;
+      border-color: #ffffff;
+      color: #000000;
+    }
+
+    .tagebuch-leer-hinweis {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-3);
+      font-style: italic;
+      padding: 8px 0;
+    }
+
+    /* ── Schlaf-Verlauf: dauerhaft sichtbar OBERHALB des Tagebuch-
+       Bereichs (über der "Tagebuch"-Überschrift), keine der beiden
+       Umschalt-Ansichten. Schlichte, handgebaute Linien-Grafik (kein
+       Chart-Framework): eine geschwungene SVG-Kurve (Catmull-Rom-
+       Glättung, siehe glatterSvgPfad in JS) über kontinuierliche
+       Werte 0–100 ("Schlaftiefe/-qualität"), Y-Achse links, X-Achse
+       unten, keine Flächenfüllung/Balken/Farbe außer der bestehenden
+       Schwarz/Weiß-Palette. Bis genug echte Nächte ausgewertet sind
+       (schlafVerlaufLaden), werden die übrigen Tage mit deterministi-
+       schen Platzhalterwerten aufgefüllt (tagebuchSchlafPlatzhalter-
+       Serie, JS) – jeder bereits ausgewertete echte Tag ersetzt den
+       Platzhalter an exakt seinem Datum, die Grafik wächst also
+       nahtlos in echte Werte hinein. ── */
+    .tagebuch-schlafgraph {
+      flex-shrink: 0;
+      padding: 0 20px var(--profil-abschnitt);
+    }
+
+    .tagebuch-graph-titel {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-2);
+      margin-bottom: 8px;
+    }
+
+    .tagebuch-graph-karte {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tagebuch-graph-y-achse {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 2px 0;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .tagebuch-graph-plot {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tagebuch-graph-svg {
+      display: block;
+      width: 100%;
+      height: 64px;
+    }
+
+    .tagebuch-graph-gitter {
+      stroke: var(--border-light);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .tagebuch-graph-linie {
+      fill: none;
+      stroke: #000000;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .phone-frame.emotion-an .tagebuch-graph-linie { stroke: #ffffff; }
+
+    /* Fläche unter der Linie: siehe linearGradient in
+       tagebuchSchlafGraphRendern (JS) – dezent getönt oben, zu 0
+       Deckkraft unten, damit sie weich in den Hintergrund ausfadet. */
+    .tagebuch-graph-flaeche-start { stop-color: #000000; stop-opacity: 0.16; }
+    .tagebuch-graph-flaeche-ende  { stop-color: #000000; stop-opacity: 0; }
+    .phone-frame.emotion-an .tagebuch-graph-flaeche-start { stop-color: #ffffff; stop-opacity: 0.16; }
+    .phone-frame.emotion-an .tagebuch-graph-flaeche-ende  { stop-color: #ffffff; stop-opacity: 0; }
+
+    .tagebuch-graph-x-achse {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 9px;
+      color: var(--text-3);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Monatsübersicht: Kalender-Raster der Tagebucheinträge ───────
+       Klassische Monatsansicht (Wochentage Mo–So als Spalten, aktueller
+       Kalendermonat). Tage mit mindestens einem Eintrag sind über
+       .tagebuch-kalender-tag--belegt markiert (Punkt unter der Zahl,
+       siehe .tagebuch-kalender-punkt) und klickbar – tagebuchZuEintrag-
+       Springen (JS) wechselt dafür in die Listenansicht und scrollt
+       zum ersten Eintrag dieses Tages. Rein Schwarz/Weiß, keine
+       Flächenfarbe außer der bestehenden --bg-hover beim Hover. ── */
+    .tagebuch-monat {
+      padding: 12px 20px 20px;
+    }
+
+    .tagebuch-monat[hidden] { display: none; }
+
+    .tagebuch-kalender-titel {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      color: var(--text-2);
+      text-transform: capitalize;
+      margin-bottom: 10px;
+    }
+
+    .tagebuch-kalender-kopf,
+    .tagebuch-kalender-raster {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .tagebuch-kalender-kopf {
+      margin-bottom: 6px;
+    }
+
+    .tagebuch-kalender-kopf span {
+      text-align: center;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    .tagebuch-kalender-raster { gap: 2px 0; }
+
+    .tagebuch-kalender-tag {
+      height: 34px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      border-radius: 50%;
+      color: var(--text-3);
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 13px;
+      cursor: default;
+    }
+
+    .tagebuch-kalender-tag--leer { visibility: hidden; }
+
+    .tagebuch-kalender-tag--heute { box-shadow: inset 0 0 0 1px var(--border); }
+
+    .tagebuch-kalender-tag--belegt {
+      color: #000000;
+      cursor: pointer;
+    }
+
+    .phone-frame.emotion-an .tagebuch-kalender-tag--belegt { color: #ffffff; }
+
+    .tagebuch-kalender-tag--belegt:hover { background: var(--bg-hover); }
+
+    .tagebuch-kalender-punkt {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* Kurzes, dezentes Aufblitzen, wenn tagebuchZuEintragSpringen
+       (JS) per Kalendertag zu einem Eintrag scrollt – reine visuelle
+       Orientierungshilfe, keine Zustandsänderung. */
+    .tagebuch-eintrag--hervorgehoben { background: var(--bg-hover); }
+
+    .gespraechs-liste {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .gespraechs-eintrag {
+      display: flex;
+      /* center statt stretch: .gespraechs-info enthält jetzt nur noch
+         eine Zeile (Name, keine Nachrichtenvorschau mehr) – der Avatar
+         bleibt der Höhen-Anker der Zeile, Name + Meta-Spalte werden
+         daran vertikal zentriert statt künstlich gestreckt. */
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px; /* etwas mehr Luft für die jetzt einzeilige, größere Namenszeile */
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .gespraechs-eintrag:hover,
+    .gespraechs-eintrag:active {
+      background: var(--bg-hover);
+    }
+
+    /* ── Profilbild: Kreis mit Anfangsbuchstabe ──────────────────
+       Keine Farbe, kein Foto – nur Outline (passend zum Bubble-Look)
+       und der Buchstabe. Der Situra-Schnitt (font-family) wird per JS
+       gesetzt: er zeigt den auf die 7 Stufen gerundeten, gleitenden
+       Mittelwert der für diese Person erfassten Puls-/Zustandswerte,
+       nicht den aktuellen Moment. Fallback unten = Wert 500 (Medium). ── */
+    .avatar {
+      flex-shrink: 0;
+      align-self: center; /* bleibt vertikal zentriert, unabhängig vom stretch der Zeile */
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #444;
+      background: transparent;
+      border: 1px solid var(--bubble-outline);
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      transition: border-color 0.4s ease, color 0.4s ease;
+    }
+
+    /* Kleinere Variante für die Chat-Kopfzeile */
+    .avatar--chat {
+      width: 28px; height: 28px;
+      font-size: 12px;
+      margin-right: 2px;
+    }
+
+    /* Profilfoto statt Buchstabe: nur gesetzt, wenn für die Person
+       eine Datei aus avatars-manifest.json geladen werden konnte
+       (siehe avatarFotoAktualisieren). Ohne Treffer bleibt der
+       Buchstaben-Kreis unverändert. !important nötig, weil sonst die
+       spezifischere .phone-frame.emotion-an .avatar-Regel weiter
+       unten Buchstabe + Outline auch über dem Foto sichtbar färben
+       würde. */
+    .avatar--foto {
+      background-size: cover;
+      background-position: center;
+      color: transparent !important;
+      border-color: transparent !important;
+    }
+
+    .gespraechs-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      /* flex:1 1 0 statt nur min-width:0 – füllt IMMER exakt den
+         verbleibenden Platz zwischen Avatar und Meta-Spalte, unabhängig
+         von der Textlänge. Dadurch endet .gespraechs-meta in jeder
+         Zeile an derselben rechten Kante statt je nach Inhalt zu
+         schwanken. */
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    .gespraechs-name {
+      /* Deutlich größer (vorher 14px) – der Name ist jetzt das
+         zentrale Element der Zeile: die typografische Charakteristik
+         der Person (Strichstärke/Schnitt per JS, Zittern, Unschärfe
+         bei Demo-Kontakten) soll klar im Vordergrund stehen, statt
+         von einer Nachrichtenvorschau in den Hintergrund gedrängt zu
+         werden. Reagierende Typografie-Logik selbst unverändert –
+         reine Größenänderung. */
+      font-size: 22px;
+      line-height: 1.15;
+      color: #000000; /* bleibt konstant – Lesbarkeit */
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+    }
+
+    /* Nachrichtenvorschau: nur noch für GRUPPEN in Gebrauch (zeigt dort
+       die Mitgliederliste statt einer Nachricht, siehe
+       gruppenEintragErstellen) – für 1:1-Kontakte wurde das Element
+       komplett entfernt (kein CSS-Verstecken nötig), siehe
+       kontaktEintragErstellen weiter unten und die feste HTML-Liste
+       oben. */
+    .gespraechs-vorschau {
+      font-size: 13px;
+      color: var(--text-3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Rechte Spalte: Uhrzeit der letzten Nachricht + Ungelesen-
+       Punkt darunter, dezent (kleine Schrift/Punkt, gedeckte Farbe)
+       und knapp gruppiert, damit sie den nun deutlich größeren Namen
+       nicht überstrahlen. flex-shrink:0 hält die Spalte auf fester
+       Breite. Durch align-items:center auf .gespraechs-eintrag (s.o.)
+       wird die ganze Spalte (statt einzelner Kinder per space-between)
+       vertikal zum Avatar zentriert. ── */
+    .gespraechs-meta {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 7px;
+    }
+
+    .gespraechs-zeit {
+      font-size: 11px;
+      color: var(--text-3);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Ungelesen-Indikator: statt eines Punkts bekommt die ganze Zeile
+       einen Farbverlauf. Heller Modus: bewusst NICHT var(--border) (die
+       ist dort warm/beige für echte Trennlinien und ließ den Verlauf
+       bräunlich wirken) – stattdessen reines, neutrales Schwarz mit
+       sinkender Deckkraft über das ebenfalls neutrale --bg, Richtung
+       dunkel (links) → hell (rechts). Dunkler Modus: unverändert, dort
+       ist --border bereits neutral (kein Farbstich). */
+    .gespraechs-eintrag[data-ungelesen] {
+      background: linear-gradient(to right, rgba(0, 0, 0, 0.16), var(--bg));
+    }
+
+    .phone-frame.emotion-an .gespraechs-eintrag[data-ungelesen] {
+      background: linear-gradient(to left, var(--border), var(--bg));
+    }
+
+    /* Die Uhrzeit sitzt rechts, also genau im hellsten Teil des
+       Verlaufs (Hellmodus) bzw. im dunkelsten Teil (Dunkelmodus) – das
+       normale var(--text-3) (bewusst blass) ist dort zu kontrastarm.
+       Feste, starke Kontrastfarbe je Modus statt der blassen Variable. */
+    .gespraechs-eintrag[data-ungelesen] .gespraechs-zeit { color: #000000; }
+    .phone-frame.emotion-an .gespraechs-eintrag[data-ungelesen] .gespraechs-zeit { color: #ffffff; }
+
+
+    /* ══════════════════════════════════════════════════════
+       ANSICHT 2 – CHAT
+       ══════════════════════════════════════════════════════ */
+
+    .kopfzeile {
+      flex-shrink: 0;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px 12px;
+    }
+
+    .kopfzeile-titelzeile {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px; /* knapper, damit Sensor-Anzeige sichtbar UNTER "Band verbinden" gruppiert wirkt */
+    }
+
+    .kopfzeile-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .zurueck-btn {
+      background: none;
+      border: none;
+      padding: 0 8px 0 0;
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--text-3);
+      line-height: 1;
+      font-family: inherit;
+    }
+
+    .zurueck-btn:hover { color: var(--text-2); }
+
+    .kopfzeile-titel {
+      font-size: 12px;
+      color: var(--text-3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* Avatar + Name als ein tippbares Element – öffnet bei Gruppen
+       die Gruppeninfo; bei 1:1-Chats rein visuell (kein Cursor/Hover). */
+    .chat-partner-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: inherit;
+      cursor: default;
+    }
+
+    .chat-partner-btn--gruppe { cursor: pointer; }
+    .chat-partner-btn--gruppe:hover .kopfzeile-titel { color: var(--text-2); }
+
+    .sensor-hinweis {
+      font-size: 10px;
+      color: var(--text-4);
+      letter-spacing: 0.04em;
+      font-style: italic;
+    }
+
+    /* 2×2-Raster für die 4 Dimensionen */
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 18px;
+    }
+
+    .sensor-dimension { display: flex; flex-direction: column; gap: 3px; }
+
+    .dimension-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .dimension-label {
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .dimension-label--live { color: var(--text-2); }
+
+    .dimension-label--live::before {
+      content: '';
+      display: inline-block;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--text-3);
+      margin-right: 4px;
+      vertical-align: middle;
+      animation: pulsieren 2s ease-in-out infinite;
+    }
+
+    @keyframes pulsieren {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.25; }
+    }
+
+    .dimension-wert {
+      font-size: 10px;
+      color: var(--text-4);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dimension-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%; height: 2px;
+      background: var(--border);
+      border-radius: 1px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .dimension-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+
+    .dimension-slider::-moz-range-thumb {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      cursor: pointer;
+    }
+
+    .dimension-balken-spur {
+      width: 100%; height: 2px;
+      background: var(--border-light);
+      border-radius: 1px;
+      overflow: hidden;
+    }
+
+    .dimension-balken {
+      height: 100%; width: 0%;
+      background: var(--accent);
+      border-radius: 1px;
+      transition: width 0.15s ease;
+    }
+
+    .dimension-endpunkte {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: var(--text-4);
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Sensor-Anzeige (Intensität/Tempo/Stabilität/Temperatur):
+       ein-/ausfahrbar an derselben Stelle statt dauerhaft sichtbar –
+       exakt dieselbe Auf-/Zuklapp-Mechanik wie .test-drawer unten
+       (grid-template-rows 0fr → 1fr), nur eigene Klassen, damit beide
+       Schubladen unabhängig voneinander auf-/zuklappen. Standardmäßig
+       eingeklappt, nur der Griff ist sichtbar. ── */
+    /* Rechtsbündig statt zentriert: steht dadurch klein und sichtbar
+       direkt UNTER dem "Band verbinden"-Button (der ebenfalls rechts
+       sitzt, siehe .band-steuerung), statt als eigene, mittige Zeile
+       über die ganze Kopfzeilenbreite zu wirken. */
+    .info-drawer-griff {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 5px;
+      width: 100%;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: 3px 0;
+    }
+
+    .info-drawer-griff:hover { color: var(--text-2); }
+
+    /* Auf-/Zuklapp-Pfeil als reines Schriftzeichen (Situra, wie der
+       übrige Text) statt SVG-Chevron – konsequent zum Konzept "Typografie
+       statt Icons". ">" liegend (90°) zeigt geschlossen nach unten
+       ("aufklappen"), gedreht (-90°) im offenen Zustand nach oben
+       ("zuklappen") – exakt dieselbe Zeigerichtung/Animation wie zuvor
+       der um 180° gedrehte SVG-Chevron. */
+    .info-drawer-pfeil {
+      display: inline-block;
+      transform: rotate(90deg);
+      transition: transform 0.4s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .info-drawer.offen .info-drawer-pfeil {
+      transform: rotate(-90deg);
+    }
+
+    .info-drawer-inhalt {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.45s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .info-drawer.offen .info-drawer-inhalt {
+      grid-template-rows: 1fr;
+    }
+
+    .info-drawer-inneres {
+      min-height: 0;
+      overflow: hidden;
+      padding-top: 10px;
+    }
+
+    /* ── Test-/Demo-Panel: ein-/ausfahrbares Dropdown ──────────
+       Liegt bewusst INNERHALB der Sensor-Anzeige (siehe HTML –
+       .test-drawer ist Kind von .info-drawer-inneres), nicht mehr
+       als eigenständiger, immer sichtbarer Griff daneben: der
+       Test-Eingaben-Griff selbst wird erst sichtbar, wenn die
+       Sensor-Anzeige aufgeklappt ist. Standardmäßig trotzdem
+       zusätzlich eingeklappt (eigener .offen-Zustand). Das Panel
+       fährt von oben (unterhalb des Griffs) sanft nach unten aus
+       (grid-template-rows 0fr → 1fr = flüssige Höhen-Animation ohne
+       feste Pixel-Höhe). ── */
+    .test-drawer {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .test-drawer-griff {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      width: 100%;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: 3px 0;
+    }
+
+    .test-drawer-griff:hover { color: var(--text-2); }
+
+    /* Reines Schriftzeichen statt SVG-Chevron – siehe Kommentar bei
+       .info-drawer-pfeil weiter oben, identisches Prinzip. */
+    .test-drawer-pfeil {
+      display: inline-block;
+      transform: rotate(90deg);
+      transition: transform 0.4s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .test-drawer.offen .test-drawer-pfeil {
+      transform: rotate(-90deg);
+    }
+
+    .test-drawer-inhalt {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.45s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .test-drawer.offen .test-drawer-inhalt {
+      grid-template-rows: 1fr;
+    }
+
+    /* min-height:0 ist nötig, damit das Grid-Kind auf 0 kollabieren
+       kann (sonst verhindert der Inhalt selbst das Zuklappen). */
+    .test-drawer-inneres {
+      min-height: 0;
+      overflow: hidden;
+      padding-top: 12px;
+    }
+
+    .test-panel-label {
+      display: block;
+      font-size: 9px;
+      color: var(--text-4);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+
+    .test-badge {
+      font-style: italic;
+      font-size: 9px;
+      color: var(--text-4);
+      text-transform: none;
+      letter-spacing: 0;
+      margin-left: 4px;
+    }
+
+    /* ── "Neue Person": setzt beide Grundlinien zurück ──
+       Bewusst zurückhaltend statt als Gefahren-Knopf: Der Vorgang ist
+       nicht zerstörerisch, die Grundlinien bauen sich in rund vier
+       Minuten neu auf. */
+    .test-neue-person-hinweis {
+      display: block;
+      font-size: 9px;
+      color: var(--text-4);
+      font-style: italic;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    /* ── Chat-Verlauf ─────────────────────────────────── */
+    .chat-bereich {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: safe center;
+      align-items: center;
+      gap: 24px;
+    }
+
+    /* Gleiche Spezifität wie die UA-Regel "[hidden] { display:none }"
+       (siehe Kommentar bei .tagebuch-neu-btn[hidden] weiter unten) –
+       erst durch den räumlichen Gruppenraum wird #chat überhaupt per
+       hidden-Attribut umgeschaltet (siehe zeigeChat/zeigeGruppenChat,
+       JS), vorher bestand diese Lücke nie sichtbar. */
+    .chat-bereich[hidden] { display: none; }
+
+    .nachricht {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
+      /* --einblenden-dauer wird per JS auf eigene Nachrichten gesetzt (Tempo) */
+      animation: einblenden var(--einblenden-dauer, 0.5s) ease-out forwards;
+    }
+
+    /* Einzelne Buchstaben im Zitter-Modus benötigen inline-block,
+       damit transform darauf wirkt (inline-Elemente ignorieren transform). */
+    .zitter-buchstabe {
+      display: inline-block;
+    }
+
+    /* ── Blase als EINE durchgehende Kontur (Körper + Spitze) ──────────
+       KORREKTUR (Umbau von border+Dreieck-Pseudoelement auf clip-path):
+       die alte Technik zeichnete den Blasenkörper über "border" und die
+       Spitze über ein zusätzliches, separat positioniertes Dreieckspaar
+       (::before/::after) – zwei GRUNDVERSCHIEDENE Zeichenwege, die an der
+       Nahtstelle (Übergang Rundung → Spitze) nie exakt zusammenfinden;
+       in Vergrößerung war dort immer ein sichtbarer Versatz/Ansatz zu
+       erkennen. Neue Lösung, identisch zum bereits bewährten Muster im
+       Gruppenraum (siehe .raum-nachricht weiter unten, ausführliche
+       Herleitung dort): GENAU EIN clip-path je Ebene bildet Körper UND
+       Spitze als einzige, zusammenhängende Silhouette. Zwei ineinander-
+       liegende Ebenen (::before außen in Kontur-Farbe, ::after 1px
+       kleiner innen in Hintergrundfarbe) ergeben zusammen den 1px-Strich,
+       der der GESAMTEN Form folgt statt nur dem rechteckigen Blasenkörper.
+       .text selbst bleibt unsichtbar (reine Text-Ebene) – border/
+       border-radius entfallen deshalb komplett, z-index:0 öffnet einen
+       eigenen Stapelkontext, damit die negativ gestapelten Ebenen INNER-
+       HALB dieser Blase bleiben statt hinter einen entfernteren Vorfahren
+       zu "entkommen" (siehe ausführliche Begründung bei .raum-nachricht).
+
+       KORREKTUR (echte Rundungen statt Facetten): clip-path: polygon()
+       kennt NUR gerade Linien zwischen den Punkten – die vorherige
+       4-Punkte-Viertelkreis-Näherung pro Ecke war deshalb in Wirklichkeit
+       ein Achteck-Ausschnitt und zeigte bei genauerem Hinsehen sichtbar
+       ABGESCHRÄGTE statt weich gerundete Ecken. clip-path: path(...) MIT
+       echten Kurvenbefehlen (hier: quadratische Bézier "Q") behebt das –
+       kann aber nur ABSOLUTE Pixel-Koordinaten (keine Prozente/calc()),
+       muss die tatsächliche, erst zur Laufzeit bekannte Blasengröße also
+       aus JS bekommen: --blase-radius/--blase-spitze/--blase-versatz
+       (Design-Token-Variablen, siehe unten) legen die ZIEL-Maße fest,
+       blasenKonturAktualisieren (JS, siehe dort) liest sie aus, misst die
+       tatsächlich gerenderte Blasengröße (ResizeObserver hält das bei
+       jeder Größenänderung – z. B. während der font-size-Transition beim
+       Moduswechsel einer großen Gruppen-Zone – synchron) und schreibt
+       den fertigen SVG-Pfad in --blase-aussen/--blase-innen (per
+       CSS-Variable statt style-Zugriff, weil ::before/::after aus JS
+       nicht direkt ansprechbar sind – Custom Properties vererben sich
+       aber normal an Pseudoelemente). Dieselbe Funktion fixiert im
+       selben Aufwasch auch die max-width jeder einzelnen .wort-Spanne in
+       echten Pixeln (siehe .wort, CSS, und die Funktion selbst für die
+       Begründung – behebt das separate "Wort bricht mitten im Wort um"-
+       Problem). --andere und --ich teilen sich jetzt dieselben Regeln
+       (kein eigener gespiegelter Punktesatz mehr nötig): die Spiegelung
+       steckt in der von JS berechneten Pfad-STRING selbst. */
+    .nachricht-andere .text,
+    .nachricht-ich .text {
+      --blase-radius: 18px;
+      --blase-spitze: 12px;
+      --blase-versatz: 16px;
+      color: #000000; /* wie eigene Nachrichten – nur die Outline unterscheidet den Absender */
+      font-variation-settings: 'wght' 400;
+      display: inline-block;
+      max-width: 88%;
+      background: transparent;
+      padding: 18px 24px;
+      position: relative;
+      z-index: 0;
+    }
+
+    /* Gemeinsamer Ebenen-Reset für beide Konturen (Absender-Richtung
+       steckt nur noch im per JS berechneten Pfad, nicht mehr in eigenen
+       Rand-Eigenschaften). transition hier (nicht am Elternelement,
+       siehe .nachricht-andere/.nachricht-ich .text oben): Pseudoelemente
+       erben KEINE transition-Deklaration ihres Elternelements und werden
+       von der globalen ".phone-frame *"-Regel (MODUSWECHSEL-TRANSITION,
+       siehe dort) NICHT erfasst (der Universalselektor "*" matcht nur
+       echte Elemente) – ohne diese eigene Zeile würde die Konturfarbe
+       beim Emotion-Moduswechsel abrupt statt weich umspringen. */
+    /* ══════════════════════════════════════════════════════════════
+       SPRECHBLASEN-KONTUR – ein einziger gestrichener SVG-Pfad.
+
+       Erzeugt in blasenKonturAktualisieren (JS, siehe dort für die
+       ausführliche Begründung). Ersetzt die frühere Konstruktion aus
+       zwei clip-path-Ebenen, bei der die Unterkante rechnerisch 0px
+       statt 1px breit war.
+
+       fill übernimmt die Aufgabe der früheren inneren Ebene (Blasen-
+       Hintergrund), stroke die der äußeren (Kontur) – EIN Element
+       statt zwei Pseudoelementen.
+
+       overflow: visible, weil der Strich mittig auf der Kurve liegt
+       und damit ein halbes Pixel über die viewBox hinausragt.
+       ══════════════════════════════════════════════════════════════ */
+    .phone-frame { --blase-strich: rgba(0, 0, 0, 0.7); }
+    .phone-frame.emotion-an { --blase-strich: rgba(255, 255, 255, 0.7); }
+
+    .blase-kontur {
+      position: absolute;
+      left: 0; top: 0;
+      overflow: visible;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .blase-kontur path {
+      fill: var(--bg);
+      stroke: var(--blase-strich);
+      stroke-width: 1;
+      /* Hält die Strichstärke unabhängig von einer etwaigen Skalierung
+         der viewBox exakt bei 1px – hier ist die Abbildung zwar 1:1,
+         aber die Blase wird bei Moduswechseln in Gruppen-Zonen per
+         font-size-Transition umgerechnet. */
+      vector-effect: non-scaling-stroke;
+      /* Runde Ecke an der Spitze: Ein spitzer Winkel würde mit dem
+         Standard-Verbinder (miter) einen langen Dorn erzeugen. */
+      stroke-linejoin: round;
+      transition: fill 0.4s ease, stroke 0.4s ease;
+    }
+
+
+
+    /* Zeilenumbruch + große zentrale Darstellung.
+       KORREKTUR ("Hallo" bricht mitten im Wort um, obwohl reichlich Platz
+       da wäre): word-break:break-word entfernt – per Spezifikation ist
+       das NICHT dasselbe wie overflow-wrap:break-word, sondern entspricht
+       word-break:normal + overflow-wrap:ANYWHERE. "anywhere" fließt (im
+       Gegensatz zu "break-word", das nachweislich nur als allerletzter
+       Ausweg greift) in die INTRINSISCHE Breitenberechnung mit ein – der
+       Browser darf die Wort-Box dadurch schon beim Ermitteln ihrer
+       bevorzugten (shrink-to-fit-)Breite kleiner ansetzen, als sie
+       eigentlich bräuchte, weil er ein Umbrechen "irgendwo" jederzeit für
+       zulässig hält. word-break ist zudem eine VERERBTE Eigenschaft und
+       wirkte dadurch bis auf .wort weiter (siehe .wort, CSS) – genau dort
+       sollte ausschließlich das eigene, bewusst zurückhaltende
+       overflow-wrap:break-word gelten (nur allerletzter Ausweg bei
+       einem einzelnen, wirklich zu langen Wort). overflow-wrap:break-word
+       hier allein reicht als Sicherheitsnetz für den Fallback-Textpfad
+       ohne .wort-Spans (siehe nachrichtElementErstellen, JS) bereits aus. */
+    .nachricht .text {
+      font-size: 30px;
+      line-height: 1.35;
+      /* Linksbündig, nicht zentriert: Bei mehrzeiligen Nachrichten
+         erzeugt Zentrierung unruhige Zeilenanfänge, und eine letzte
+         Zeile mit nur einem Wort steht verloren in der Mitte. Die BLASE
+         bleibt davon unberührt – sie ist inline-block mit
+         shrink-to-fit, ihre Breite ergibt sich aus der längsten Zeile
+         und ändert sich durch die Ausrichtung des Inhalts nicht. Auch
+         die Kontur (siehe .blase-kontur) wird aus der gemessenen
+         Blasengeometrie gezeichnet, nicht aus den Zeilen. */
+      text-align: left;
+      overflow-wrap: break-word;
+      min-width: 0;
+    }
+
+    /* Jedes Wort als eigene Box: trägt seinen EIGENEN eingefrorenen
+       Dimensions-Zustand (siehe JS: wortZustaende). inline-block hält
+       das Wort als Einheit zusammen; bricht nur um, wenn es selbst
+       breiter als die verfügbare Zeile ist (z. B. sehr lange Wörter).
+       KORREKTUR ("Wort bricht mitten im Wort um, obwohl reichlich Platz
+       da wäre"): max-width:100% hier ist nur der FALLBACK, bevor JS
+       läuft. Ein Prozentwert gegen ein Elternelement, dessen eigene
+       Breite selbst per shrink-to-fit (inline-block ohne explizite
+       Breite, siehe .text/.raum-nachricht) aus IHREM Inhalt berechnet
+       wird, löst Chromium beim ERSTEN Layout nach einem Größensprung
+       (z. B. Wachsen einer Zone zur großen Bühnen-Blase) nachweislich
+       nicht zuverlässig neu auf – der Prozentsatz blieb dabei am alten,
+       zu schmalen Wert hängen, sichtbar als Wort, das mitten im Wort
+       umbricht. blasenKonturAktualisieren (JS, siehe dort) überschreibt
+       max-width hier deshalb IMMER per Inline-Style mit einem echten
+       Pixelwert (= tatsächliche Content-Breite der Blase), sobald die
+       Blase im DOM steht bzw. sich ihre Größe ändert – Inline-Style
+       gewinnt automatisch gegen diese Klassenregel, keine !important
+       nötig. */
+    .wort {
+      display: inline-block;
+      max-width: 100%;
+      overflow-wrap: break-word;
+      /* Explizit gegen ein evtl. geerbtes word-break:break-word eines
+         Vorfahren (siehe Korrektur bei .nachricht .text) abgesichert –
+         DAS entspricht per Spezifikation overflow-wrap:ANYWHERE (bricht
+         schon bei der Breitenberechnung, nicht erst als letzter Ausweg)
+         und würde hier genau das ungewollte "bricht mitten im Wort trotz
+         Platz"-Verhalten auslösen. Nur das eigene, bewusst zurück-
+         haltende overflow-wrap:break-word oben soll hier je greifen. */
+      word-break: normal;
+    }
+
+    /* Absender-Label oberhalb der Nachricht */
+    .nachricht-absender {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 10px;
+      user-select: none;
+    }
+
+    /* Dezenter Status-Indikator unterhalb jeder eigenen Nachricht.
+       "e" = emotionale Typografie war beim Senden aktiv.
+       Leer = neutral/leblos gesendet (Abwesenheit ist das Signal). */
+    .nachricht-status {
+      font-size: 13px;
+      line-height: 1;
+      margin-top: 16px;
+      color: var(--text-2);          /* sichtbar in beiden Farbmodi */
+      font-style: italic;            /* kleines "e" wirkt leichter als Regular */
+      letter-spacing: 0;
+      user-select: none;
+    }
+
+    .nachricht-ich .nachricht-status { text-align: center; }
+
+    /* Empfangene Nachrichten: Kennzeichen linksbündig unter der Blase,
+       passend zur Ausrichtung der Nachricht selbst. */
+    .nachricht-andere .nachricht-status { text-align: left; }
+
+    @keyframes einblenden {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Zitter-Keyframes werden dynamisch per JS erzeugt (ein Keyframe pro
+       Buchstabe, zufällige Werte). Kein statischer @keyframes-Block nötig. */
+
+    /* ══════════════════════════════════════════════════════════════
+       GRUPPEN-RAUM – räumliche Darstellung des Gruppenchats (siehe
+       JS-Abschnitt "GRUPPEN-RAUM" weiter unten). Komplett eigener
+       Selektor-Namensraum (.raum-*) – überschneidet sich mit keiner
+       bestehenden .nachricht- bzw. .chat-bereich-Regel oben, der
+       1:1-Chat bleibt davon unberührt. .wort/.zitter-buchstabe (siehe
+       oben) werden von der reagierenden Typografie unverändert
+       wiederverwendet. ══════════════════════════════════════════ */
+    .raum-bereich {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--bg);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Gleiche Spezifität wie die UA-Regel "[hidden] { display:none }"
+       (siehe Kommentar bei .tagebuch-neu-btn[hidden] weiter unten) –
+       muss hier explizit gewinnen, sonst bliebe der Raum trotz
+       hidden-Attribut als Flex-Spalte sichtbar. */
+    .raum-bereich[hidden] { display: none; }
+
+    /* Eine "Zeile" der räumlichen Anordnung (siehe raumZeilenAufbauen, JS)
+       – ein horizontaler Flex-Container mit einer festen Teilmenge der
+       Zonen. Jede Zeile ist ein UNABHÄNGIGER Flex-Kontext (Spalten
+       müssen sich nicht über Zeilen hinweg ausrichten). --zeilen-gewicht
+       (Default 1 = neutral) steuert die HÖHE dieser Zeile relativ zu den
+       übrigen Zeilen (siehe raumZeilenGewichteSetzen, JS): die Zeile mit
+       dem Verschmelzungs-Container (siehe .raum-merge weiter unten)
+       bekommt ein größeres Gewicht, alle reinen Einzelzonen-Zeilen ein
+       kleineres – dadurch wird der gemeinsame Gesprächsraum groß, der
+       Rest schrumpft entsprechend (Punkt 3 der Anforderung). transition
+       NACH der MODUSWECHSEL-TRANSITION-Regel notiert (siehe dort). */
+    .raum-zeile {
+      display: flex;
+      flex-direction: row;
+      flex: var(--zeilen-gewicht, 1) 1 0;
+      min-height: 0;
+      gap: 1px;
+    }
+
+    .raum-zone {
+      background: var(--bg);
+      /* Trennlinie zwischen den Zonen sitzt als Inset-Schatten AUF der
+         Zone selbst (statt als Hintergrundfarbe auf .raum-bereich/
+         .raum-zeile) – so bleibt sie exakt 1px fein, unabhängig von der
+         tatsächlichen Zonengröße. Sprechen zwei (oder mehr) Personen
+         miteinander, gibt es zwischen ihnen gar keine zwei Zonen mehr,
+         die sich eine Kante teilen könnten – sie sind dann EIN einziges
+         .raum-merge-Element (siehe dort) – die Trennlinie "verschwindet"
+         dadurch automatisch, ganz ohne eigene Ein-/Ausblend-Regel. */
+      box-shadow: inset 0 0 0 1px var(--border-light);
+      display: flex;
+      flex-direction: column;
+      /* Alle Zonen EINER Zeile teilen sich den verfügbaren Platz gleich
+         (die Größen-Hervorhebung sitzt jetzt auf der Zeile, siehe
+         .raum-zeile --zeilen-gewicht oben, nicht mehr pro Zone). */
+      flex: 1 1 0;
+      /* Mindestgröße (passive Zonen dürfen nicht faktisch verschwinden):
+         Flexbox unterschreitet min-width/-height nicht, auch wenn eine
+         geschrumpfte Zeile rechnerisch eine kleinere Höhe ergäbe – Name
+         und mindestens eine verkleinerte Nachricht bleiben dadurch immer
+         erkennbar. */
+      min-width: 96px;
+      min-height: 72px;
+      padding: 10px 12px;
+      overflow: hidden;
+      position: relative;
+      /* Bezugsrahmen für die cqw-Schriftskalierung in .raum-nachricht/
+         .raum-zone-name (Schrift soll proportional zur TATSÄCHLICHEN
+         Zonengröße wachsen/schrumpfen – dadurch wächst die Schrift im
+         Verschmelzungs-Container ganz von selbst mit, sobald die Zeile
+         größer wird, ohne eigene Regel dafür). */
+      container-type: inline-size;
+    }
+
+    /* Frisch erzeugte Zonen/Verschmelzungs-Container (siehe raumZone-
+       Erzeugen/raumMergeErzeugen, JS) starten unsichtbar und blenden
+       sich erst NACH einem gerenderten Frame ein (Klasse wird dann per
+       JS entfernt) – ohne diesen Zwischenschritt hätte die opacity-
+       transition (siehe .raum-zone weiter unten, MODUSWECHSEL-Block)
+       keinen "Vorher"-Wert, von dem sie interpolieren könnte, und das
+       Erscheinen wäre abrupt statt weich. */
+    .raum-eintretend { opacity: 0; }
+
+    /* "Du" landet unabhängig von Personenzahl immer in der letzten
+       Zeile (siehe raumZonenAufbauen, JS: füllt die letzte Mitglieder-
+       Zeile auf oder bekommt eine eigene) und dort rechtsbündig. */
+    .raum-zone--du {
+      align-items: flex-end;
+      text-align: right;
+    }
+
+    .raum-zone-name {
+      flex-shrink: 0;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+
+    .raum-zone-nachrichten {
+      flex: 1;
+      /* Korrektur – MUSS unabhängig vom align-items der Zone immer die
+         volle Zonenbreite bekommen (align-self überschreibt gezielt nur
+         dieses eine Element): .raum-zone--du setzt zonenweit align-
+         items:flex-end (rechtsbündige Namens-Ausrichtung) – ohne dieses
+         align-self würde dieser Nachrichten-Stapel dadurch NICHT mehr
+         gestreckt, sondern schrumpfte auf die Breite seines eigenen
+         Inhalts (Fit-Content) und würde rechtsbündig verankert. Damit
+         hätte max-width:100% in .raum-nachricht keine definite Bezugs-
+         breite mehr zum Umbrechen – eine lange Nachricht bliebe einzeilig
+         und ragte, da rechts verankert, weit über den LINKEN Zonenrand
+         hinaus (genau der gemeldete "Nachricht ragt heraus"-Fehler, hier
+         zusätzlich zur Ursache in .raum-zone--du sichtbar geworden). */
+      align-self: stretch;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      /* Korrektur – KEIN justify-content:flex-end mehr: überschreitet
+         der Inhalt (z. B. zwei lange Testnachrichten in einer schmalen
+         Zone) die verfügbare Höhe, hängt bei flex-end-Ausrichtung der
+         Überlauf am ANFANG (oben) – das ragte dort sichtbar über den
+         Zonenrand hinaus. Stattdessen normale Lesereihenfolge (älteste
+         oben) + Scroll-zum-Ende in raumNachrichtHinzufuegen (JS, analog
+         zum bestehenden "chat.scrollTop = chat.scrollHeight" im
+         1:1-Chat) – dadurch bleibt IMMER die neueste Nachricht sichtbar,
+         und bei Überlauf ist die ältere per Scroll (overflow-y:auto
+         unten) trotzdem vollständig erreichbar statt einfach
+         abgeschnitten oder herausragend. */
+      /* flex-start (Default) nötig, seit .raum-nachricht eine sichtbare
+         Sprechblasen-Outline hat (siehe unten) – sonst würde die Blase
+         auf die volle Zonenbreite gestreckt, unabhängig von der
+         tatsächlichen Textlänge. Bei reinem Text (vorher) fiel das
+         mangels sichtbarem Rand nicht auf. */
+      align-items: flex-start;
+      gap: 6px;
+      /* Korrektur – Nachrichten dürfen nie aus der Zone herausragen:
+         übersteigt der Inhalt (z. B. ein langer Testtext in einer
+         kleinen/klein gewichteten Zone) die verfügbare Höhe, wird HIER
+         gescrollt statt dass .raum-zone (overflow:hidden) den Text
+         sichtbar abschneidet – bleibt so immer vollständig lesbar, ohne
+         die Zonengröße selbst zu sprengen. Scrollbalken-Optik siehe
+         gemeinsamer SCROLLBALKEN-Block ganz oben (.raum-zone-nachrichten
+         dort mit aufgenommen). overflow-x explizit hidden (nicht default
+         "visible" belassen): wird nur overflow-y gesetzt, rechnet der
+         Browser das offene overflow-x automatisch zu "auto" um (CSS-
+         Overflow-Spezifikation). Exakt dasselbe Muster wie .chat-bereich
+         im 1:1-Chat. */
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .raum-zone--du .raum-zone-nachrichten { align-items: flex-end; }
+
+    /* Große Zone (aktive Person solo ODER gemeinsamer Verschmelzungs-Raum,
+       siehe raumGrossEl/.raum-zone--gross, JS): Nachrichten sollen nicht
+       weiter oben in der Zeilenreihenfolge/unten in der Ecke kleben,
+       sondern vertikal MITTIG im jetzt großen, verfügbaren Raum stehen –
+       "safe center" fällt automatisch auf normalen Scroll-Start zurück,
+       sobald mehr Nachrichten da sind, als vertikal hineinpassen (exakt
+       dasselbe Muster wie .chat-bereich im 1:1-Chat, siehe dort), statt
+       wie reines "center" den Anfang UND das Ende abzuschneiden. Gilt für
+       BEIDE große Formen (Solo-Zone wie Verschmelzungs-Raum) – betrifft
+       nur die VERTIKALE Verteilung des gesamten Nachrichten-Stapels; die
+       links/rechts-Unterscheidung PRO einzelner Nachricht (wer spricht,
+       siehe .raum-eintrag--ich/--andere weiter unten) bleibt im
+       Verschmelzungs-Raum davon unberührt. */
+    .raum-zone--gross .raum-zone-nachrichten { justify-content: safe center; }
+
+    /* Nur in der SOLO großen Zone (ein einzelner Absender, kein
+       gemeinsamer Raum – :not(.raum-merge) grenzt das ab) zusätzlich
+       horizontal zentriert, ganz analog zum 1:1-Chat (siehe .chat-bereich
+       weiter oben): Typografie soll dort das dominante Element sein.
+       Höhere Spezifität als .raum-zone--du .raum-zone-nachrichten oben
+       (3 statt 2 Klassen), gewinnt daher auch für die eigene ("Du")
+       große Solo-Zone. Im Verschmelzungs-Raum bleibt links/rechts bewusst
+       erhalten (einzige Unterscheidung, wer spricht, siehe Kommentar
+       oben) – text-align:center für BEIDE großen Formen gemeinsam sitzt
+       bei .raum-zone--gross .raum-nachricht weiter unten (die Blase
+       selbst ist dort ohnehin für Solo UND Verschmelzungs-Raum gleich
+       groß, siehe dort). */
+    .raum-zone--gross:not(.raum-merge) .raum-zone-nachrichten { align-items: center; }
+
+    /* Verschmelzungs-Container (siehe .raum-merge weiter unten): hier
+       sprechen mehrere Personen im selben Bereich, jede Nachricht muss
+       sich EINZELN nach links oder rechts ausrichten (siehe .raum-
+       eintrag--ich/--andere unten, align-self) statt einheitlich wie in
+       einer Einzelzone – deshalb hier NEUTRAL "stretch" statt flex-start/
+       -end. Nach .raum-zone-nachrichten notiert, gewinnt bei gleicher
+       Spezifität (beide Klassen sitzen gemeinsam auf demselben Element,
+       siehe raumMergeErzeugen, JS) durch die spätere Stelle im
+       Stylesheet. */
+    .raum-merge-nachrichten {
+      align-items: stretch;
+      /* KORREKTUR – Blasen überlappten sich: die geerbte gap:6px (siehe
+         .raum-zone-nachrichten weiter oben) war für die kompakte Zonen-
+         Darstellung bemessen. Im Verschmelzungs-Raum ragt die Spitze
+         jeder großen Blase 12px nach unten heraus (siehe .raum-merge-
+         nachrichten .raum-nachricht weiter unten) – 6px Abstand reichte
+         dadurch nicht, die zweite Blase lag über der Spitze der ersten.
+         28px = 12px Spitzenlänge + spürbarer Rest-Abstand, verhindert
+         jede Überschneidung unabhängig von der tatsächlichen Bläschen-
+         höhe (variiert durch unterschiedlich langen Text). */
+      gap: 28px;
+    }
+
+    /* Ein "Eintrag" bündelt optionales Absender-Label + Sprechblase
+       (siehe raumNachrichtHinzufuegen, JS) und ist selbst das Element,
+       das sich ausrichtet – in einer Einzelzone übernimmt es einfach die
+       align-items-Ausrichtung der Zone (s.o.), im Verschmelzungs-
+       Container richtet sich dagegen JEDER Eintrag EINZELN aus: "Du"
+       rechts, alle anderen links – exakt dasselbe Links/Rechts-Prinzip
+       wie .raum-zone--du vs. übrige Zonen, nur jetzt pro Nachricht statt
+       pro Zone, weil mehrere Personen denselben Bereich teilen. */
+    .raum-eintrag {
+      display: flex;
+      flex-direction: column;
+      max-width: 100%;
+    }
+    .raum-eintrag--ich    { align-self: flex-end;   align-items: flex-end; }
+    .raum-eintrag--andere { align-self: flex-start; align-items: flex-start; }
+
+    /* In der großen SOLO-Zone (siehe .raum-zone--gross weiter oben) trägt
+       nur eine einzige Person vor – "Du" links/rechts zu unterscheiden
+       gibt es dort nichts, deshalb hier bewusst zentriert statt des
+       links/rechts-Prinzips von .raum-eintrag--ich/--andere oben (das
+       bleibt für den Verschmelzungs-Raum unverändert bestehen, siehe
+       :not(.raum-merge) unten). align-self auf .raum-eintrag selbst
+       überschreibt sonst IMMER das align-items der Zone (s.o.) – ohne
+       diese Regel bliebe die Nachricht trotz zentrierter Zone optisch in
+       der rechten/linken Ecke hängen.
+       KORREKTUR ("Wort bricht mitten im Wort um") – width:100% hier
+       ergänzt (exakt wie beim gleich gelagerten .raum-merge-nachrichten
+       .raum-eintrag--ich/--andere weiter unten, das dieses Problem nie
+       hatte): OHNE eine feste Breite ist .raum-eintrag hier selbst
+       shrink-to-fit (align-items:center statt stretch) und übernimmt
+       dabei die Breite der Blase – die Blase wiederum begrenzt sich
+       selbst auf max-width:88% GENAU DIESES .raum-eintrag (siehe
+       .raum-zone--gross .raum-nachricht weiter unten). Zwei ineinander
+       verschachtelte shrink-to-fit-Elemente, deren Breiten sich
+       GEGENSEITIG über einen Prozentsatz < 100% begrenzen, haben
+       rechnerisch nur EINEN stabilen Fixpunkt: 0 – jede Neuberechnung
+       (z. B. durch den ResizeObserver in blasenKonturAktualisieren, JS)
+       konvergiert dadurch schrittweise gegen immer schmalere Werte, bis
+       Wörter mitten im Wort umbrechen. width:100% macht .raum-eintrag
+       stattdessen zu einer FESTEN Bezugsgröße (100% der stabilen,
+       tatsächlichen Zonenbreite) – die 88%-Grenze der Blase hat dann
+       einen echten, nicht-zirkulären Bezugspunkt. */
+    .raum-zone--gross:not(.raum-merge) .raum-eintrag--ich,
+    .raum-zone--gross:not(.raum-merge) .raum-eintrag--andere {
+      align-self: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    /* Absender-Name über einer Nachricht – NUR im Verschmelzungs-
+       Container gesetzt, und dort auch nur, sobald mehr als zwei
+       Personen mitreden (siehe raumNachrichtHinzufuegen, JS): bei genau
+       zwei Personen ist die Zuordnung durch links/rechts bereits
+       eindeutig (identisch zum bisherigen Zonen-Prinzip), ein Name wäre
+       dort nur redundant. */
+    .raum-eintrag-sender {
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 2px;
+    }
+
+    /* "e"-Kennzeichen unter eigenen Nachrichten ("Du"), analog zu
+       .nachricht-status im 1:1-Chat (siehe dort für die vollständige
+       Begründung) – fehlte im Gruppenraum komplett. Gleiche Bedeutung:
+       "e" sichtbar = emotionale Typografie war beim Senden aktiv, leer =
+       neutral/leblos gesendet (Abwesenheit ist das Signal, siehe JS,
+       raumNachrichtHinzufuegen). Sitzt als eigenes Element NACH der
+       Blase im selben .raum-eintrag-Wrapper – align-items der Zone/des
+       Verschmelzungs-Containers (siehe .raum-eintrag--ich weiter oben
+       bzw. .raum-merge-nachrichten .raum-eintrag--ich weiter unten)
+       positioniert es dadurch automatisch passend (rechtsbündig in der
+       Einzelzone, mittig im Verschmelzungs-Raum) – keine eigene
+       text-align-Regel nötig. */
+    .raum-eintrag-status {
+      font-size: 13px;
+      line-height: 1;
+      /* 10px Abstand zur LAYOUT-Kante der Blase – die Spitze selbst ragt
+         absolut positioniert darüber hinaus (siehe .raum-nachricht--ich/
+         --andere::before weiter unten, beeinflusst die Layout-Höhe der
+         Blase NICHT) und würde bei zu knappem Abstand hier optisch mit
+         dem Kennzeichen kollidieren. In der großen Zone (Solo ODER
+         Verschmelzungs-Raum, 12px lange Spitze statt 7px) per eigener
+         Regel weiter unten zusätzlich vergrößert. */
+      margin-top: 10px;
+      color: var(--text-2);
+      font-style: italic;
+      user-select: none;
+    }
+
+    /* ── Einzelne Nachricht als EINE durchgehende Kontur (Körper +
+       Spitze) ───────────────────────────────────────────────────────
+       Exakt dieselbe Zwei-Ebenen-clip-path-Technik wie beim 1:1-Chat
+       (siehe .nachricht-andere/.nachricht-ich .text weiter oben, dort
+       auch die ausführliche Herleitung/Begründung) – hier nur kompakter
+       dimensioniert (R=14px/Spitze 7px statt 18px/12px), damit mehrere
+       Zonen nebeneinander Platz haben. .raum-nachricht selbst bleibt
+       unsichtbar (reine Text-Ebene, kein border/box-shadow/border-radius
+       mehr), z-index:0 öffnet dafür den eigenen Stapelkontext (siehe
+       ausführliche Begründung weiter unten). Eine GROSSE Zone (Solo ODER
+       Verschmelzungs-Raum, siehe .raum-zone--gross weiter unten)
+       überschreibt Größe UND Konturmaße auf dieselben 18px/12px-Werte
+       wie der 1:1-Chat – "vergleichbar mit dem Einzelchat", nicht nur
+       hochskalierte Miniatur-Maße. */
+    .raum-nachricht {
+      --blase-radius: 14px;
+      --blase-spitze: 7px;
+      --blase-versatz: 10px;
+      display: inline-block;
+      max-width: 100%;
+      font-size: 14px; /* Fallback für Browser ohne Container-Query-Einheiten, siehe Regel direkt darunter */
+      line-height: 1.35;
+      /* Nachrichtentext immer linksbündig, wie im 1:1-Chat (siehe
+         .nachricht .text). MUSS hier ausdrücklich stehen: Die Zone der
+         eigenen Person setzt text-align:right (siehe .raum-zone--du),
+         und das VERERBT sich in die Blase hinein – der Text darin stand
+         dadurch rechtsbündig. Die Blase selbst bleibt rechts, dafür
+         sorgt align-items:flex-end der Zone, nicht diese Eigenschaft. */
+      text-align: left;
+      overflow-wrap: break-word;
+      color: #000000;
+      background: transparent;
+      padding: 9px 13px;
+      position: relative;
+      /* Eigener Stapelkontext für die negativ gestapelten Konturebenen
+         (siehe ::before/::after weiter unten): ohne eigenen z-index
+         "entkommen" negative z-index-Kinder bis zum nächsten Vorfahren,
+         der tatsächlich einen Stapelkontext eröffnet, und landen dort
+         HINTER dessen eigenem (undurchsichtigem) Hintergrund – z. B.
+         hinter .raum-zone { background: var(--bg) }, komplett unsichtbar. */
+      z-index: 0;
+    }
+
+    /* Schriftgröße skaliert PROPORTIONAL zur tatsächlichen Zonenbreite
+       (cqw = 1% der Inline-Größe von .raum-zone, siehe dort "container-
+       type: inline-size") – dadurch wächst die Schrift von selbst mit,
+       sobald die Zone größer wird. clamp() sorgt für eine lesbare
+       Untergrenze in der kleinsten (Mindestgröße-)Zone und eine
+       Obergrenze, die nicht größer wirkt als nötig. Gilt nur für
+       NICHT-große Zonen – eine GROSSE Zone (siehe .raum-zone--gross
+       weiter unten) überschreibt das auf eine feste Größe wie im
+       1:1-Chat. Als EIGENE, zweite font-size-Deklaration notiert (nicht
+       die einzige): unterstützt ein Browser cqw nicht, ist nur diese
+       eine Deklaration ungültig und fällt auf den 14px-Fallback direkt
+       darüber zurück, statt ganz ohne font-size dazustehen. */
+    .raum-nachricht { font-size: clamp(9px, 9cqw, 34px); }
+
+    .phone-frame.emotion-an .raum-nachricht { color: #ffffff; }
+
+
+
+
+
+    /* ── Große Zone (Solo ODER gemeinsamer Verschmelzungs-Raum): große,
+       mittige Bühnen-Darstellung ──────────────────────────────────────
+       Bühne für die reagierende Typografie statt Nachrichtenprotokoll –
+       Nachrichten hier wie im 1:1-Chat groß und MITTIG (siehe .nachricht-
+       andere/.nachricht-ich .text weiter oben), nicht klein/links-rechts
+       aufgereiht wie in kompakten Zonen. Alle Selektoren hier mit
+       .raum-zone--gross als Präfix notiert (sitzt sowohl auf dem
+       Verschmelzungs-Container als auch auf der großen Solo-Zone, siehe
+       raumGrossEl, JS) – dadurch automatisch höhere Spezifität als die
+       kompakten Basis-Regeln oben, kleine Zonen (kein aktiver großer
+       Raum) bleiben davon unberührt. */
+    .raum-merge-nachrichten .raum-eintrag--ich,
+    .raum-merge-nachrichten .raum-eintrag--andere {
+      align-self: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    /* "e"-Kennzeichen (siehe .raum-eintrag-status weiter oben) braucht
+       hier mehr Abstand zur Blasen-Layout-Kante: die Spitze ist in der
+       großen Zone 12px lang statt 7px in einer kompakten Zone. */
+    .raum-zone--gross .raum-eintrag-status { margin-top: 18px; }
+
+    /* ── Kontur EINE durchgehende Form (Blase + Spitze) ───────────────
+       Dieselbe Zwei-Ebenen-clip-path: path(...)-Technik wie beim 1:1-Chat
+       und den kompakten Zonen (siehe .nachricht-andere/.nachricht-ich
+       .text bzw. .raum-nachricht--andere/--ich weiter oben für die
+       vollständige Herleitung, inkl. Begründung für echte Bézier-Kurven
+       statt polygon()-Facetten) – hier mit denselben Maßen wie der
+       1:1-Chat (Radius 18px/17px, Spitze 12px/11px): eine große Zone
+       soll "vergleichbar mit dem Einzelchat" wirken, nicht wie eine
+       hochskalierte Miniatur. */
+    .raum-zone--gross .raum-nachricht {
+      --blase-radius: 18px;
+      --blase-spitze: 12px;
+      --blase-versatz: 16px;
+      max-width: 88%;
+      font-size: 30px;
+      padding: 18px 24px;
+      /* Linksbündig wie überall sonst – die große Zone ist derselbe
+         Nachrichtentext, nur größer gesetzt. Die Blase bleibt mittig,
+         dafür sorgt align-items:center von
+         .raum-zone--gross:not(.raum-merge) .raum-zone-nachrichten. */
+      text-align: left;
+      background: transparent;
+      z-index: 0;
+    }
+
+
+
+
+
+    /* Verblassen: max. 2 gleichzeitig sichtbare Nachrichten pro Liste,
+       einheitlich Einzelzone wie gemeinsamer Verschmelzungs-Container
+       (siehe raumNachrichtHinzufuegen, JS – der frühere Sonderfall "3 im
+       Raum" aus Zeiten kompakter Blasen entfällt, seit dort dieselben
+       großen Bühnen-Blasen wie im 1:1-Chat stehen, siehe .raum-zone--
+       gross .raum-nachricht weiter oben) – die älteste bekommt
+       diese Klasse, blendet sich weich aus und wird danach per Timer
+       entfernt, statt abrupt zu verschwinden. Im gemeinsamen Raum läuft
+       davor zusätzlich eine Mindest-Lesezeit (siehe raumEintragVerblassen
+       Planen, JS), bevor diese Klasse überhaupt gesetzt wird. Sitzt auf
+       dem .raum-eintrag-Wrapper (nicht der Blase direkt), damit auch ein
+       eventuelles Absender-Label (.raum-eintrag-sender) mit ausblendet. */
+    .raum-eintrag.raum-eintrag--verblasst {
+      opacity: 0;
+    }
+
+    /* Kurzer Puls auf der gerade eingefügten Nachricht, solange sie Teil
+       eines aktiven Verschmelzungs-Raums ist (siehe raumNachrichtSenden,
+       JS) – bewusst kein Farbwechsel (monochromes Prinzip der App, siehe
+       Kommentar bei sensorZuSchriftAchse/Temperatur), sondern ein
+       kurzes Glühen in der jeweils aktuellen Textfarbe. */
+    @keyframes raum-echo-puls {
+      0%, 100% { text-shadow: none; }
+      30%      { text-shadow: 0 0 10px currentColor; }
+    }
+
+    .raum-nachricht--echo {
+      animation: raum-echo-puls 1.2s ease;
+    }
+
+    /* ── Eingabebereich ───────────────────────────────── */
+    .eingabe-bereich {
+      flex-shrink: 0;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+      padding: 10px 14px;
+    }
+
+    .eingabe-innen {
+      display: flex;
+      align-items: flex-end; /* Button + Toggle bleiben unten, wenn Feld wächst */
+      gap: 10px;
+    }
+
+    #antwort-btn {
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-3);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 7px 10px;
+      cursor: pointer;
+    }
+
+    #antwort-btn:hover:not(:disabled) {
+      border-color: var(--text-3);
+      color: var(--text-2);
+    }
+
+    #antwort-btn:disabled { opacity: 0.3; cursor: default; }
+
+    /* Freigestellter Kasten statt nur einer Unterstreichung – Absenden
+       geschieht per ENTER (siehe #eingabe keydown-Handler, JS), es
+       gibt bewusst keinen sichtbaren Sende-Button mehr daneben. */
+    #eingabe {
+      flex: 1;
+      min-width: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      outline: none;
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.5;       /* explizit – Basis für die Höhenberechnung */
+      color: #000000;            /* bleibt konstant */
+      padding: 9px 14px;
+      resize: none;           /* kein manuelles Ziehen */
+      overflow-y: hidden;     /* wird per JS auf auto gesetzt, wenn Max-Höhe erreicht */
+    }
+
+    #eingabe:focus { border-color: var(--text-2); }
+
+    #eingabe::placeholder { color: var(--placeholder); }
+
+    /* Scrollbalken im Eingabefeld (nur sichtbar, wenn der Text die
+       Max-Höhe übersteigt): siehe einheitlichen SCROLLBALKEN-Block
+       oben – #eingabe ist dort mit den übrigen scrollbaren Bereichen
+       zusammengefasst. */
+
+    /* ── Emotion-Toggle ───────────────────────────────── */
+    .emotion-schalter {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .emotion-schalter input[type="checkbox"] { display: none; }
+
+    /* Klar unterscheidbarer AN/AUS-Zustand statt nur eines dezenten
+       Farbwechsels der Schiene: AUS = nur Umriss, keine Füllung; AN =
+       voll gefüllt (--schalter-fuellung, siehe Modus-Variablen oben –
+       in der Karte hinter dem Schalter unten per Klassen-Selektor
+       überschrieben, weil diese Karte in BEIDEN Modi dunkel ist). Die
+       eigentliche Übergangs-Animation kommt von der globalen
+       MODUSWECHSEL-TRANSITION-Regel weiter unten (gilt für background-
+       color/border-color auf allen Elementen im Frame), hier daher
+       bewusst keine eigene, u. U. kollidierende transition-Angabe. */
+    .schalter-visuell {
+      width: 34px; height: 19px;
+      background: transparent;
+      border: 1.5px solid var(--text-3);
+      border-radius: 10px;
+      position: relative;
+    }
+
+    .schalter-visuell::after {
+      content: '';
+      position: absolute;
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      background: var(--text-3);
+      top: 1.5px; left: 1.5px;
+      /* transition steht bewusst NICHT hier, siehe Regel nach
+         MODUSWECHSEL-TRANSITION weiter unten (::after wird von der
+         globalen Transition-Regel nicht erfasst, braucht also ohnehin
+         eine eigene – die aber an der richtigen Stelle im Stylesheet
+         stehen muss). */
+    }
+
+    /* Klassenbasiert statt #emotion-toggle: es gibt drei Schalter (Fuß-
+       leiste im Chat + schwebender Schalter der Übersicht +
+       Einstellungen-Overlay), die denselben globalen Zustand spiegeln –
+       siehe emotionModusSetzen (JS). */
+    .emotion-schalter input:checked + .schalter-visuell {
+      background: var(--schalter-fuellung);
+      border-color: var(--schalter-fuellung);
+    }
+
+    .emotion-schalter input:checked + .schalter-visuell::after {
+      transform: translateX(15px);
+      background: var(--schalter-fuellung-kontrast);
+    }
+
+    .schalter-label {
+      font-size: 9px;
+      color: var(--text-3);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    /* Beide Emotion-Schalter (Chat-Fußleiste + schwebender Schalter der
+       Übersicht) bekommen dieselbe Karte als Hintergrund, damit sie als
+       feststehendes Element über dem jeweiligen Inhalt erkennbar
+       bleiben. Farbe folgt dem Modus wie --scrollbar-farbe oben. */
+    .eingabe-innen .emotion-schalter,
+    .emotion-schalter--schwebend {
+      background: var(--emotion-karte-bg);
+      padding: 6px 10px;
+      border-radius: 12px;
+      /* Diese Karte ist in BEIDEN App-Modi dunkel (siehe --emotion-
+         karte-bg oben – im hellen Modus fast schwarz, im dunklen Modus
+         nur ein dezent hellerer Grauton auf Schwarz). Die AN-Füllung
+         des Schalters muss deshalb IMMER hell sein, unabhängig vom
+         App-Modus – sonst wäre sie im hellen Modus (schwarze Füllung
+         auf fast schwarzer Karte) praktisch unsichtbar. */
+      --schalter-fuellung:          #ffffff;
+      --schalter-fuellung-kontrast: #000000;
+    }
+
+    /* Übersicht (Chats/Gruppen/Moment/Profil): der Schalter schwebt
+       unten rechts über der Tab-Leiste, statt oben in der Kopfzeile zu
+       stehen. position:absolute ist relativ zu #ansicht-uebersicht
+       (selbst position:absolute, siehe .ansicht) – dadurch bleibt er
+       beim Scrollen der Listen/des Feeds fest an Ort und Stelle, ganz
+       unabhängig davon, welcher Tab gerade aktiv ist. */
+    /* Sitzt vollständig ÜBER der Tab-Leiste, mit sichtbarem Abstand.
+       Der Bezugsrahmen (#ansicht-uebersicht) reicht bis zur Unterkante
+       des Frames, also HINTER die Leiste – deshalb muss der Abstand
+       deren volle Höhe mit einrechnen:
+
+         Leistenhöhe (56) + Trennlinie (1) + Abstand (12) = 69px
+
+       Als calc() statt als fertige 69, damit die ersten beiden Summanden
+       aus derselben Quelle kommen wie die Leiste selbst. Vorher stand
+       hier eine feste 54 – die Zahl passte zur alten Leistenhöhe und
+       wurde beim Vergrößern der Leiste still falsch.
+
+       z-index:5 sorgt zusätzlich dafür, dass der Schalter nicht von der
+       Leiste überdeckt wird, falls sich die Kanten je wieder berühren. */
+    .emotion-schalter--schwebend {
+      position: absolute;
+      right: 16px;
+      bottom: calc(var(--tab-leiste-hoehe) + 1px + 12px);
+      z-index: 5;
+    }
+
+
+    /* ══════════════════════════════════════════════════════
+       MODUSWECHSEL-TRANSITION
+       Alle Farb-Eigenschaften im Frame wechseln weich (0.4 s).
+       Betrifft NUR background-color, border-color, color –
+       keine Konflikte mit transform/opacity-Animationen.
+       Muss als letztes stehen, damit es nicht überschrieben wird.
+       ══════════════════════════════════════════════════════ */
+    .phone-frame,
+    .phone-frame * {
+      transition-property: background-color, border-color, color;
+      transition-duration: 0.4s;
+      transition-timing-function: ease;
+    }
+
+    /* Slider-Thumb (Pseudo-Elemente brauchen eigene Regel) */
+    .dimension-slider::-webkit-slider-thumb { transition: background-color 0.4s ease; }
+    .dimension-slider::-moz-range-thumb     { transition: background-color 0.4s ease; }
+
+    /* Balken-Breite bleibt schnell (0.15 s) – nur Farbe folgt dem Modus */
+    .dimension-balken { transition: width 0.15s ease, background-color 0.4s ease; }
+
+    /* Toggle-Schieber bewegt sich immer mit 0.4 s (konsistent mit
+       Moduswechsel) UND wechselt seine Füllfarbe (AUS/AN-Kontrast)
+       ebenso weich – ::after ist ein Pseudo-Element und wird von der
+       globalen ".phone-frame *"-Regel oben NICHT erfasst (die matcht
+       nur echte Elemente), daher hier explizit background-color mit
+       aufgenommen statt sich auf die globale Regel zu verlassen. */
+    .schalter-visuell::after { transition: transform 0.4s ease, background-color 0.4s ease; }
+
+    /* Gruppenraum: eigene transition-property, muss ebenso NACH der
+       MODUSWECHSEL-TRANSITION-Regel stehen, sonst gewinnt deren
+       transition-property (nur background-color/border-color/color) und
+       font-size ändert sich abrupt statt weich. Die Konturfarbe selbst
+       hängt nicht mehr an .raum-nachricht (kein box-shadow/border mehr,
+       siehe Kommentar dort) – die beiden Kontur-Ebenen (::before/::after)
+       tragen ihre eigene transition-Zeile direkt an sich selbst, siehe
+       dort (Pseudoelemente erben keine transition ihres Elternelements). */
+    .raum-nachricht { transition: font-size 0.6s ease; }
+
+    /* Absender-Label + Sprechblasen-Wrapper (siehe .raum-eintrag, CSS
+       weiter oben): eigene opacity-Transition aus demselben Grund NACH
+       der globalen MODUSWECHSEL-TRANSITION-Regel nötig – trägt sowohl
+       das Verblassen alter Nachrichten (.raum-eintrag--verblasst) als
+       auch das Ein-/Ausblenden ganzer Zonen beim Verschmelzen/Auflösen
+       (siehe .raum-zone/.raum-merge unten – Wrapper UND Zone teilen sich
+       dieselbe Übergangsdauer, damit beide Ebenen synchron wirken). */
+    .raum-eintrag { transition: opacity 0.6s ease; }
+
+    /* Zonen-Name (Kopfzeile jeder Zone/des Verschmelzungs-Containers). */
+    .raum-zone-name { transition: opacity 0.6s ease; }
+
+    /* Zeilen-Gewichtung (siehe .raum-zeile, CSS weiter oben):
+       --zeilen-gewicht steuert flex-grow (ein reiner <number>-Wert, in
+       Chromium/Android-WebView zuverlässig interpolierbar, anders als
+       eine grid-template-columns/-rows-Transition – siehe Kommentar-
+       Historie, das wurde an dieser Stelle bereits einmal probiert und
+       wegen unzuverlässiger Animation auf genau diesem WebView-Stand
+       wieder verworfen). Aus demselben Grund wie oben NACH der globalen
+       MODUSWECHSEL-TRANSITION-Regel nötig. */
+    .raum-zeile { transition: flex-grow 0.6s ease; }
+
+    /* Zonen/Verschmelzungs-Container selbst blenden sich beim Entstehen/
+       Verschwinden weich ein bzw. aus (siehe .raum-eintretend weiter
+       oben und raumStrukturUmbauen, JS). */
+    .raum-zone { transition: opacity 0.5s ease; }
+
+    /* ── Invertierter Modus (Emotion AN): helle Schrift auf dunklem Grund ── */
+    /* Überschreibt hartcodierte Farben, die nicht über CSS-Variablen laufen.  */
+    .phone-frame.emotion-an .app-logo              { filter: invert(1); }
+    .phone-frame.emotion-an .gespraechs-name       { color: #ffffff; }
+    .phone-frame.emotion-an .nachricht-andere .text          { color: #ffffff; }
+    .phone-frame.emotion-an .nachricht-ich .text             { color: #ffffff; }
+    .phone-frame.emotion-an #eingabe                { color: #ffffff; }
+    .phone-frame.emotion-an .suche-eingabe          { color: #ffffff; }
+    .phone-frame.emotion-an .moment-eingabe         { color: #ffffff; }
+    .phone-frame.emotion-an .avatar                 { color: #ffffff; border-color: rgba(255,255,255,0.7); }
+
+    /* ── Bluetooth-Band-Steuerung ─────────────────────────────── */
+    .band-steuerung {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .band-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 999px; /* wie .filter-chip – abgerundeter Button */
+      color: var(--text-3);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+
+    .band-btn.verbunden { color: var(--accent); border-color: var(--accent); }
+
+    .band-bpm-live {
+      font-size: 10px;
+      color: var(--text-4);
+      font-variant-numeric: tabular-nums;
+      font-style: italic;
+    }
+
+    .band-bpm-live.fehler { color: var(--text-2); }
+  </style>
+
+<style>
+  /* Nur fürs Standbild – ändert nichts an der Darstellung der
+     Nachrichten selbst, macht die Seite bloß aufnahmebereit. */
+  body { margin: 0; background: #202020; display: flex; align-items: center;
+         justify-content: center; min-height: 100vh; }
+  .phone-frame { width: 390px; height: 844px; }  /* Gerätemaß, feste Größe fürs Foto */
+
+  /* Bedienelemente bleiben sichtbar (sie gehören zum Screen), reagieren
+     aber nicht – es ist ein Standbild, kein bedienbarer Prototyp. */
+  .ansicht button, .ansicht input { pointer-events: none; }
+</style>
+</head>
+<body>
+
+<div class="phone-frame emotion-an" id="phone-frame">
+<div class="ansicht" id="ansicht-chat">
+
+    <header class="kopfzeile">
+      <div class="kopfzeile-titelzeile">
+        <div class="kopfzeile-links">
+          <button class="zurueck-btn" id="zurueck-btn">&lt;</button>
+          <button class="chat-partner-btn" id="chat-partner-btn" title="Gruppeninfo anzeigen">
+            <div class="avatar avatar--chat" id="chat-partner-avatar">–</div>
+            <span class="kopfzeile-titel" id="chat-partner-name">–</span>
+          </button>
+        </div>
+        <div class="band-steuerung">
+          <span id="band-bpm-live" class="band-bpm-live" hidden></span>
+          <button id="band-btn" class="band-btn">Band verbinden</button>
+        </div>
+      </div>
+
+      <!-- Ein-/ausfahrbares Info-Fenster (Sensor-Anzeige): standardmäßig
+           eingeklappt, an derselben Stelle wie zuvor die dauerhaft
+           sichtbare Anzeige – nur der Griff ist sichtbar, bis geöffnet. -->
+      <div class="info-drawer" id="info-drawer">
+        <button class="info-drawer-griff" id="info-drawer-griff"
+          aria-expanded="false" aria-controls="info-drawer-inhalt"
+          title="Sensor-Anzeige ein-/ausblenden">
+          <span>Sensor-Anzeige</span>
+          <span class="info-drawer-pfeil" aria-hidden="true">&gt;</span>
+        </button>
+
+        <div class="info-drawer-inhalt" id="info-drawer-inhalt">
+          <div class="info-drawer-inneres">
+            <div class="sensor-grid">
+
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <!-- Kennzeichnung wechselt zur Laufzeit: ohne Band ist
+                       der Regler ein Testwert, mit Band kommt der Wert
+                       aus dem Puls (siehe sensorHerkunftAktualisieren). -->
+                  <span class="dimension-label" id="label-intensitaet">Intensität<em class="test-badge" id="badge-intensitaet">Testwert</em></span>
+                  <span class="dimension-wert" id="wert-intensitaet">500</span>
+                </div>
+                <input class="dimension-slider" type="range"
+                  id="slider-intensitaet" min="100" max="900" value="500" step="1">
+              </div>
+
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label dimension-label--live">Tempo</span>
+                  <span class="dimension-wert" id="wert-tempo">—</span>
+                </div>
+                <div class="dimension-balken-spur">
+                  <div class="dimension-balken" id="balken-tempo"></div>
+                </div>
+              </div>
+
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label dimension-label--live" id="label-stabilitaet">Stabilität</span>
+                  <span class="dimension-wert" id="wert-stabilitaet">—</span>
+                </div>
+                <div class="dimension-balken-spur">
+                  <div class="dimension-balken" id="balken-stabilitaet"></div>
+                </div>
+              </div>
+
+              <!-- Wachheit: einzige Dimension ohne Regler. Der Wert kommt
+                   aus der nächtlichen Auswertung (nachtAuswertungPruefen),
+                   nicht aus einer Eingabe. Liegt keine Nacht vor, steht
+                   hier ausdrücklich "keine Messung" statt eines stillen
+                   Standardwerts – sonst sähe es nach Funktion aus. -->
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label" id="label-wachheit">Wachheit</span>
+                  <span class="dimension-wert" id="wert-wachheit">—</span>
+                </div>
+                <div class="dimension-balken-spur">
+                  <div class="dimension-balken" id="balken-wachheit"></div>
+                </div>
+              </div>
+
+              <!-- Atmung: Regler steht bewusst HIER und nicht mehr im
+                   Test-Panel darunter. Zwei Namen für dieselbe Größe
+                   ("Atmung" oben, "Atemfrequenz" unten) waren nur
+                   verwirrend – die Kennzeichnung als Testwert sagt
+                   ohnehin, dass hier nichts gemessen wird. -->
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label">Atmung<em class="test-badge">Testwert</em></span>
+                  <span class="dimension-wert" id="wert-atemfrequenz">900</span>
+                </div>
+                <input class="dimension-slider" type="range"
+                  id="slider-atemfrequenz" min="100" max="900" value="900" step="1">
+                <div class="dimension-endpunkte"><span>aufgewühlt</span><span>gefasst</span></div>
+              </div>
+
+              <!-- Temperatur wirkt auf die Schriftgröße (kühl = kleiner,
+                   warm = größer, ±12 % – siehe sensorZuSchriftAchse).
+                   "Testwert", weil die Hauttemperatur weiterhin nicht
+                   angebunden ist: Der Wert kommt vom Regler, die echte
+                   Messung bleibt Ausblick. -->
+              <div class="sensor-dimension">
+                <div class="dimension-header">
+                  <span class="dimension-label">Temperatur<em class="test-badge">Testwert</em></span>
+                  <span class="dimension-wert" id="wert-tonalitaet">500</span>
+                </div>
+                <input class="dimension-slider" type="range"
+                  id="slider-tonalitaet" min="100" max="900" value="500" step="1">
+              </div>
+
+            </div>
+
+            <!-- Ein-/ausfahrbares Test-/Demo-Panel: liegt bewusst INNERHALB
+                 der Sensor-Anzeige (nicht mehr als eigener, immer
+                 sichtbarer Griff daneben) – der Test-Eingaben-Griff
+                 selbst wird also erst sichtbar, wenn die Sensor-Anzeige
+                 aufgeklappt ist. Fährt beim Öffnen sanft aus. ── -->
+            <div class="test-drawer" id="test-drawer">
+              <button class="test-drawer-griff" id="test-drawer-griff"
+                aria-expanded="false" aria-controls="test-drawer-inhalt"
+                title="Test-Eingaben ein-/ausblenden">
+                <span>Test-Eingaben</span>
+                <span class="test-drawer-pfeil" aria-hidden="true">&gt;</span>
+              </button>
+
+              <div class="test-drawer-inhalt" id="test-drawer-inhalt">
+                <div class="test-drawer-inneres">
+                  <span class="test-panel-label">Test-Eingaben · alle Regler stehen jetzt oben</span>
+
+                  <!-- Gerätewechsel beim Testen: Die persönlichen
+                       Grundlinien für Puls und Pulsvariabilität gehören zu
+                       EINER Person. Wird das Band weitergegeben, sind sie
+                       ungültig – und eine fremde Grundlinie erzeugt sofort
+                       Scheinabweichungen (das war die Ursache für
+                       Stabilität 100 direkt nach dem Anlegen). Beide werden
+                       immer gemeinsam zurückgesetzt, nie einzeln: Der
+                       Stress-Index verrechnet sie miteinander. -->
+                  <button class="btn-sekundaer btn--kompakt" id="neue-person-btn" type="button">
+                    Neue Person
+                  </button>
+                  <span class="test-neue-person-hinweis" id="neue-person-hinweis">
+                    Setzt die Grundlinien für Puls und Variabilität zurück
+                  </span>
+                  <!-- Die Regler für Atmung und Temperatur sind in die
+                       Sensor-Anzeige darüber gewandert: Dort stehen alle
+                       sechs Dimensionen beisammen, jeweils mit dem Vermerk
+                       "Testwert", wo nichts gemessen wird. Zwei Namen für
+                       dieselbe Größe ("Atmung" oben, "Atemfrequenz" hier)
+                       und doppelte element-IDs waren das Ergebnis der
+                       vorherigen Aufteilung. -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="chat-bereich" id="chat"></main>
+
+    <!-- ── Räumlicher Gruppenchat: komplett eigener Container, NICHT
+         #chat – siehe JS-Abschnitt "GRUPPEN-RAUM". Wird nur bei
+         geöffnetem Gruppenchat sichtbar (zeigeGruppenChat), bei 1:1
+         bleibt er hidden und #chat unverändert wie bisher. ── -->
+    <main class="raum-bereich" id="gruppen-raum" hidden></main>
+
+    <footer class="eingabe-bereich">
+      <div class="eingabe-innen">
+        <!-- Kein sichtbarer Sende-/Antwort-Button mehr im Interface –
+             Absenden geschieht per ENTER (siehe #eingabe keydown-
+             Handler, JS). Der Button bleibt im DOM (nur hidden), damit
+             die Demo-Antworten-Simulation (1:1 + Gruppenraum) über
+             die Konsole weiter auslösbar ist, ohne dass sie im
+             normalen Interface sichtbar ist. -->
+        <button id="antwort-btn" hidden>&lt; Antwort</button>
+        <!-- textarea statt input: wächst automatisch nach oben -->
+        <textarea id="eingabe" rows="1"
+          placeholder="Nachricht schreiben …"
+          autocomplete="off"></textarea>
+        <label class="emotion-schalter" title="Emotionale Typografie an/aus">
+          <input type="checkbox" id="emotion-toggle" checked>
+          <span class="schalter-visuell"></span>
+          <span class="schalter-label">Emotion</span>
+        </label>
+      </div>
+    </footer>
+
+    <!-- ── Gruppeninfo: Mitgliederliste + Gruppe löschen ── -->
+    <div class="overlay" id="gruppeninfo-overlay">
+      <div class="overlay-karte">
+        <div class="overlay-kopf">
+          <span class="overlay-titel">Gruppeninfo</span>
+          <button class="overlay-schliessen" id="gruppeninfo-schliessen" aria-label="Schließen">&times;</button>
+        </div>
+        <!-- Gruppenbild (optional): fällt ohne Auswahl auf die
+             Mitglieder-Initialen zurück, siehe gruppenAvatarAnwenden (JS). -->
+        <div class="gruppe-foto-zeile">
+          <div class="profil-foto-wrapper">
+            <div class="avatar avatar--profil" id="gruppeninfo-avatar">–</div>
+            <button class="profil-foto-upload-btn" id="gruppeninfo-foto-upload-btn" type="button" title="Gruppenbild ändern" aria-label="Gruppenbild ändern">✎</button>
+            <input type="file" accept="image/*" id="gruppeninfo-foto-input" hidden>
+          </div>
+        </div>
+        <div class="kontakt-auswahl-liste" id="gruppeninfo-mitglieder-liste"></div>
+        <button class="btn-sekundaer btn--gefahr" id="gruppe-loeschen-btn">Gruppe löschen</button>
+      </div>
+    </div>
+
+    <!-- ── Bestätigungs-Dialog: für Mitglied entfernen / Gruppe löschen ── -->
+    <div class="overlay overlay--zentriert" id="bestaetigung-overlay">
+      <div class="bestaetigung-karte">
+        <p class="bestaetigung-text" id="bestaetigung-text">Wirklich?</p>
+        <div class="bestaetigung-aktionen">
+          <button class="btn-tertiaer" id="bestaetigung-abbrechen-btn">Abbrechen</button>
+          <button class="btn-primaer btn--gefahr" id="bestaetigung-bestaetigen-btn">Entfernen</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+// ══════════════════════════════════════════════════════════════════
+//  WÖRTLICH AUS chat.html – von build-mockup.js eingesetzt
+// ══════════════════════════════════════════════════════════════════
+const SITURA_SCHRIFTSCHNITTE = [
+    'Situra-Thin',
+    'Situra-Light',
+    'Situra-Regular',
+    'Situra-Medium',
+    'Situra-SemiBold',
+    'Situra-Bold',
+    'Situra-Black'
+  ];
+const SPACING_WEIT = 0.30;
+const SPACING_ENG_PRO_SCHNITT = {
+    'Situra-Thin':     -0.100,
+    'Situra-Light':    -0.090,
+    'Situra-Regular':  -0.065,
+    'Situra-Medium':   -0.055,
+    'Situra-SemiBold': -0.045,
+    'Situra-Bold':     -0.035,
+    'Situra-Black':    -0.025
+  };
+const SPACING_ENG_STANDARD = -0.025;
+  function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
+    return zuMin + (wert - vonMin) / (vonMax - vonMin) * (zuMax - zuMin);
+  }
+  function intensitaetZuSchriftschnitt(intensitaet) {
+    const stufenBreite = 800 / SITURA_SCHRIFTSCHNITTE.length; // (900−100) / 7
+    const index = Math.min(
+      SITURA_SCHRIFTSCHNITTE.length - 1,
+      Math.max(0, Math.floor((intensitaet - 100) / stufenBreite))
+    );
+    return SITURA_SCHRIFTSCHNITTE[index];
+  }
+  function sensorZuSchriftAchse(rohwerte) {
+
+    // Intensität → statischer Schriftschnitt (echtes Umschalten
+    // zwischen 7 Dateien statt fließender Gewichts-Verschiebung)
+    const schriftschnitt = intensitaetZuSchriftschnitt(rohwerte.intensitaet);
+
+    // BEHELF – Tempo → letter-spacing (0.14 em … −0.02 em)
+    // RICHTUNG: schnelles Tippen (tempo hoch) = enge Laufweite, langsames
+    // Tippen (tempo niedrig) = weite Laufweite – Hast lässt den Text
+    // zusammenrücken, Zögern zieht ihn auseinander. Bei sehr schnellem
+    // Tippen (tempo nahe 900) wird die Laufweite leicht NEGATIV, sodass
+    // Buchstaben sichtbar ineinanderlaufen – bewusst nur dezent negativ,
+    // damit es bei den fetteren Situra-Schnitten noch lesbar bleibt.
+    //
+    // Obere Grenze von 0,12 auf 0,14 em angehoben: Zusammen mit der
+    // Neukalibrierung des Tempo-Bandes (siehe CPS_MINIMUM/CPS_MAXIMUM)
+    // trennt das ein gezögertes Wort deutlicher von einem schnell
+    // getippten. 0,14 em ist bei 26–30 px Schriftgröße rund 4 px
+    // Zusatzabstand – klar erkennbar, ohne das Wort auseinanderfallen
+    // zu lassen. ← nachjustieren, wenn der Unterschied zu stark wirkt.
+    // ══════════════════════════════════════════════════════════════
+    //  TEMPO → LAUFWEITE, erweitert in beide Richtungen
+    //
+    //  Vorher: 0,140 em … −0,020 em. Der enge Pol war praktisch wirkungs-
+    //  los (−0,02 em sind bei 30 px keine 0,6 px), der weite blieb brav.
+    //
+    //  WEITER POL: 0,300 em, mehr als das Doppelte. Am Bildschirm geprüft
+    //  (Situra, 30 px = echte Größe von .nachricht .text): auch bei
+    //  0,380 em bleibt alles gut lesbar, aber ein langes Wort wird dann so
+    //  breit, dass es fast immer umbricht. 0,300 em ist deutlich gesperrt
+    //  und bricht seltener.
+    //
+    //  ENGER POL: schnittabhängig statt pauschal – das ist der Kern
+    //  dieser Änderung. Ein fester Wert kann nicht funktionieren, weil
+    //  Laufweite und Strichstärke sich gegenseitig aufheben: Dieselben
+    //  −0,07 em, die in Thin noch luftig wirken, machen Black zu einer
+    //  Masse. Die Intensitäts-Dimension wählt den Schnitt unabhängig vom
+    //  Tempo, beide Pole können also gleichzeitig auftreten.
+    //
+    //  Am Bildschirm ermittelt, mit langen Wörtern und den heiklen Paaren
+    //  rn / cl / vv / ss (dort summiert sich die Überlappung am stärksten,
+    //  und "rn" kippt als Erstes sichtbar zu "m"):
+    //
+    //    Schnitt     eng      Beobachtung an "Kernmodul"/"…schwierigkeiten"
+    //    ─────────── ──────── ────────────────────────────────────────────
+    //    Thin        −0,100   Striche kreuzen sich, Formen bleiben lesbar
+    //    Light       −0,090   dicht, alle Zeichen einzeln erkennbar
+    //    Regular     −0,065   berühren sich; ab −0,070 wird "rn" zu "m"
+    //    Medium      −0,055   entsprechend früher
+    //    SemiBold    −0,045
+    //    Bold        −0,035
+    //    Black       −0,025   hat kaum Spielraum: schon beim alten −0,020
+    //                         verschmilzt "ss" zu einer Form
+    //
+    //  Black bekommt damit sogar etwas WENIGER als vorher – dort war der
+    //  bisherige Wert bereits an der Grenze. Alle anderen Schnitte gewinnen
+    //  deutlich, Thin das Fünffache.
+    //  ← nachjustieren: Werte gelten für 30 px; bei kleinerer Schrift
+    //  verschmilzt es früher, weil die Überlappung in Pixeln gleich bleibt.
+    // ══════════════════════════════════════════════════════════════
+    const spacing = umrechnen(
+      rohwerte.tempo, 100, 900,
+      SPACING_WEIT,
+      SPACING_ENG_PRO_SCHNITT[schriftschnitt] != null
+        ? SPACING_ENG_PRO_SCHNITT[schriftschnitt]
+        : SPACING_ENG_STANDARD
+    );
+
+    // Tempo → Dauer der Einblend-Animation neuer Nachrichten
+    // Niedrig (100) = langsam/bedächtig (0.5 s) · hoch (900) = schnell/knapp (0.06 s)
+    // Teilt KEINEN Parameter mehr mit Stabilität.
+    const einblendDauer = umrechnen(rohwerte.tempo, 100, 900, 0.5, 0.06);
+
+    // BEHELF – Stabilität → Translations-Amplitude pro Buchstabe
+    // Dezenterer Bereich: spürbar aber nie unleserlich/grotesk
+    const WOBBLE_AMPLITUDE_MAX = 2.0; // ← nachjustieren (px): Maximum bei Stabilität 100
+    const WOBBLE_TOTZONE_PX    = 0.4; // ← nachjustieren (px): darunter = kein Zittern
+    const wobbleRoh = umrechnen(rohwerte.stabilitaet, 100, 900, WOBBLE_AMPLITUDE_MAX, 0);
+    const wobble    = wobbleRoh < WOBBLE_TOTZONE_PX ? 0 : wobbleRoh;
+
+    // BEHELF – Stabilität → Rotations-Amplitude pro Buchstabe (Grad)
+    const WOBBLE_ROT_MAX     = 2.5; // ← nachjustieren (Grad): Maximum
+    const WOBBLE_ROT_TOTZONE = 0.5; // ← nachjustieren (Grad): Totzone
+    const wobbleRotRoh = umrechnen(rohwerte.stabilitaet, 100, 900, WOBBLE_ROT_MAX, 0);
+    const wobbleRot    = wobbleRotRoh < WOBBLE_ROT_TOTZONE ? 0 : wobbleRotRoh;
+
+    // ══ TEST/DEMO – Temperatur → Schriftgröße ══════════════════════
+    // Analogie Wärmeausdehnung: kühl = kleiner, warm = größer.
+    // Die Hauttemperatur wird NICHT real gemessen – der Wert kommt
+    // vorerst vom Testregler, die Anbindung bleibt Ausblick.
+    //
+    // Bewusst ein FAKTOR und keine Pixelgröße: Angewendet wird er als
+    // em-Wert (siehe stilAnwenden), also relativ zur Größe, die das
+    // umgebende Element ohnehin vorgibt. Dadurch bleibt die
+    // Größen-Hierarchie des Interface unangetastet – eine Nachricht
+    // skaliert von ihren 30px aus, ein Moment-Text von seinen 24px,
+    // und beide bleiben in ihrem jeweiligen Verhältnis.
+    //
+    // ±12 % ist eng genug, dass sich nichts überholt: Eine Nachricht
+    // misst im Minimum noch 26,4px und liegt damit weiterhin über dem
+    // Kontaktnamen (22px, skaliert gar nicht mit – stilAnwenden wirkt
+    // nur auf Wort-Spans in Nachrichten, Gruppenraum und Momenten).
+    // ← nachjustieren: größer als ~0,15 lässt Zeilen sichtbar springen.
+    const GROESSE_SPANNE = 0.12;
+    const temperaturWert = (rohwerte.tonalitaet != null) ? rohwerte.tonalitaet : 500;
+    const groesse = umrechnen(temperaturWert, 100, 900, 1 - GROESSE_SPANNE, 1 + GROESSE_SPANNE);
+
+    // ══ TEST/DEMO – Schlafqualität → Unschärfe (filter: blur) ══════
+    // Simulierte Eingabe, kein Live-Sensor. Niedrig/"müde" (100) = unscharf,
+    // hoch/"wach" (900) = scharf. Siehe Matrix: Unschärfe-Dimension.
+    // Falls für die aktuelle Sitzung keine Schlafqualität gemessen/
+    // eingegeben wurde (Wert fehlt/ist null/undefined), greift als
+    // Standardwert "wach" (900) statt Fehler oder leerer Anzeige – ergibt
+    // hier scharfen (unverschwommenen) Text, wie bei echtem "wach".
+    const BLUR_MAX = 1.4; // ← nachjustieren (px): Maximum bei Schlafqualität 100 – bewusst dezent, Text bleibt lesbar
+    const schlafqualitaetWert = (rohwerte.schlafqualitaet != null) ? rohwerte.schlafqualitaet : 900;
+    const blur = umrechnen(schlafqualitaetWert, 100, 900, BLUR_MAX, 0);
+
+    // ══ TEST/DEMO – Atemfrequenz → Transparenz (opacity) ═══════════
+    // Simulierte Eingabe, kein Live-Sensor. Niedrig/"aufgewühlt" (100) = blass,
+    // hoch/"gefasst" (900) = deckend. Siehe Matrix: Transparenz-Dimension.
+    const TRANSPARENZ_MIN = 0.35; // ← nachjustieren: Minimum bei Atemfrequenz 100
+    const transparenz = umrechnen(rohwerte.atemfrequenz, 100, 900, TRANSPARENZ_MIN, 1);
+
+    return { schriftschnitt, spacing, einblendDauer, wobble, wobbleRot, blur, transparenz, groesse };
+  }
+  const zitterStyleEl = document.createElement('style');
+  document.head.appendChild(zitterStyleEl);
+
+  function erstelleZitterAnimation(amplitude, rotAmplitude) {
+    // Eindeutiger Name, damit Buchstaben sich nicht gegenseitig überschreiben
+    const name = 'zb' + Math.random().toString(36).slice(2, 9);
+
+    // Unregelmäßige Zeitstempel (nicht gleichmäßig verteilt) für nervöses Timing
+    const schritte = [0];
+    for (let i = 0; i < 5; i++) {
+      schritte.push(Math.round(10 + Math.random() * 78));
+    }
+    schritte.push(100);
+    schritte.sort((a, b) => a - b);
+
+    let css = `@keyframes ${name}{`;
+    schritte.forEach(pct => {
+      const x   = ((Math.random() * 2 - 1) * amplitude   ).toFixed(2);
+      const y   = ((Math.random() * 2 - 1) * amplitude * 0.8).toFixed(2);
+      const r   = ((Math.random() * 2 - 1) * rotAmplitude).toFixed(2);
+      // Leichte Zufalls-Skalierung: vermittelt Forminstabilität
+      const sx  = (1 + (Math.random() * 2 - 1) * 0.04).toFixed(3);
+      const sy  = (1 + (Math.random() * 2 - 1) * 0.04).toFixed(3);
+      css += `${pct}%{transform:translate(${x}px,${y}px) rotate(${r}deg) scale(${sx},${sy});}`;
+    });
+    css += '}';
+
+    zitterStyleEl.sheet.insertRule(css, zitterStyleEl.sheet.cssRules.length);
+    return name;
+  }
+  function buchstabenAnimieren(element, achsen) {
+    const text = element.textContent;
+    element.textContent = ''; // Inhalt leeren, dann neu aufbauen
+
+    for (const buchstabe of text) {
+      const span = document.createElement('span');
+      span.textContent = buchstabe;
+
+      if (buchstabe === ' ' || buchstabe === '\n') {
+        // Leer-/Trennzeichen: kein Transform, kein inline-block nötig
+        element.appendChild(span);
+        continue;
+      }
+
+      span.classList.add('zitter-buchstabe'); // display: inline-block per CSS
+
+      // Einzigartiger Keyframe + zufällige Dauer und Startversatz pro Buchstabe
+      // → unregelmäßiges, asynchrones Zittern statt synchronem Takt
+      const animName  = erstelleZitterAnimation(achsen.wobble, achsen.wobbleRot);
+      const dauer     = (0.25 + Math.random() * 0.9).toFixed(2); // 0.25–1.15 s
+      const verzoeger = (-Math.random() * 1.5).toFixed(2);        // negativer Delay = mid-cycle start
+
+      span.style.animationName           = animName;
+      span.style.animationDuration       = `${dauer}s`;
+      span.style.animationTimingFunction = 'ease-in-out';
+      span.style.animationIterationCount = 'infinite';
+      span.style.animationDelay          = `${verzoeger}s`;
+
+      element.appendChild(span);
+    }
+  }
+  function stilAnwenden(element, achsen) {
+    // Intensität → statischer Schriftschnitt (7 feste Situra-Dateien,
+    // echtes Umschalten statt Variable-Font-Achse). Fällt auf Inter
+    // zurück, falls eine Datei nicht lädt.
+    element.style.fontFamily = `'${achsen.schriftschnitt}', 'Inter', sans-serif`;
+
+    // BEHELF – Tempo → letter-spacing
+    // Tempo steuert NICHT das Zittern – nur Laufweite und Einblend-Speed.
+    element.style.letterSpacing = `${achsen.spacing.toFixed(3)}em`;
+
+    // ══ TEST/DEMO – Temperatur → Schriftgröße ═════════════════════
+    // In em, nicht in px: Der Faktor wirkt damit relativ zu der Größe,
+    // die das umgebende Element vorgibt (Nachricht 30px, Moment 24px,
+    // Gruppenraum eigene Container-Einheit). Die Hierarchie bleibt so
+    // erhalten, ohne dass diese Funktion sie kennen müsste.
+    // Ältere Snapshots ohne "groesse" (vor dieser Fassung eingefroren)
+    // fallen auf 1 zurück und bleiben damit unverändert.
+    element.style.fontSize = (achsen.groesse != null ? achsen.groesse : 1).toFixed(3) + 'em';
+
+    // Die Farbe bleibt von der Temperatur unberührt – Text ist schwarz
+    // oder weiß je nach Modus (element.style.color unangetastet, siehe
+    // stilNeutralAnwenden). Die Farb-Zuordnung kühl→warm ist rein
+    // illustrativ im Onboarding zu sehen.
+
+    // BEHELF – Stabilität → per-Buchstaben-Zittern mit Zufallsanimation
+    // Teilt KEINEN Parameter mit Tempo.
+    if (achsen.wobble > 0) {
+      buchstabenAnimieren(element, achsen);
+    }
+    // Kein transform/animation auf dem Container-Element selbst
+
+    // ══ TEST/DEMO – Schlafqualität → Unschärfe (filter: blur) ══════
+    element.style.filter = achsen.blur > 0.05 ? `blur(${achsen.blur.toFixed(2)}px)` : 'none';
+
+    // ══ TEST/DEMO – Atemfrequenz → Transparenz (opacity) ═══════════
+    element.style.opacity = achsen.transparenz.toFixed(2);
+
+    // ── Pause vor diesem Wort → zusätzlicher Wortabstand ────────────
+    // word-spacing griffe hier nicht zuverlässig: jedes Wort ist ein
+    // eigenes Element mit eigenem Inline-Style, das Leerzeichen davor
+    // liegt außerhalb dieses Elements als eigener Textknoten (siehe
+    // nachrichtHinzufuegen/momentTextRendern). margin-left auf dem
+    // FOLGENDEN Wort wirkt dagegen zuverlässig auf Inline-Elementen.
+    // achsen.pausenZuschlag ist bereits 0, wenn keine/zu kurze Pause
+    // vorlag oder das Wort leblos ist (siehe pausenZuschlagVerbrauchen).
+    element.style.marginLeft = `${(achsen.pausenZuschlag || 0).toFixed(3)}em`;
+  }
+  function stilNeutralAnwenden(element) {
+    // Neutraler Zustand entspricht dem mittleren Schnitt der 7-stufigen Skala
+    element.style.fontFamily            = "'Situra-Regular', 'Inter', sans-serif";
+    element.style.letterSpacing         = '0em';
+    element.style.color                 = '';
+    element.style.transform             = 'none';
+    element.style.animation             = 'none';
+    element.style.filter                = 'none';
+    element.style.opacity               = '1';
+    // Zurück auf die Größe des umgebenden Elements – neutral heißt
+    // hier: gar keine eigene Größe setzen, nicht "Faktor 1".
+    element.style.fontSize              = '';
+    // Kein Pausenzuschlag im leblosen Zustand (siehe pausenZuschlagVerbrauchen)
+    element.style.marginLeft            = '0em';
+  }
+  function blasenPfad(breite, hoeheGesamt, radius, spitze, versatz, rechts) {
+    const koerperHoehe = hoeheGesamt - spitze;
+    if (!rechts) {
+      // Spitze unten LINKS: Uhrzeigersinn ab der linken Kante der Ecke
+      // oben-links, drei Ecken echt gerundet (Q-Kurve, Kontrollpunkt =
+      // die scharfe Eckposition selbst), die vierte (unten-links, wo
+      // die Spitze sitzt) BEWUSST ungerundet – die Spitze wächst als
+      // einfache Verlängerung der linken Kante nach unten heraus, kein
+      // eigener Rundungspunkt lässt sie organisch statt angesetzt wirken.
+      return 'M0,' + radius + ' Q0,0 ' + radius + ',0' +
+        ' L' + (breite - radius) + ',0 Q' + breite + ',0 ' + breite + ',' + radius +
+        ' L' + breite + ',' + (koerperHoehe - radius) + ' Q' + breite + ',' + koerperHoehe + ' ' + (breite - radius) + ',' + koerperHoehe +
+        ' L' + versatz + ',' + koerperHoehe + ' L0,' + hoeheGesamt + ' Z';
+    }
+    // Spitze unten RECHTS ("Du") – horizontal gespiegelte Punktfolge.
+    return 'M' + breite + ',' + radius + ' Q' + breite + ',0 ' + (breite - radius) + ',0' +
+      ' L' + radius + ',0 Q0,0 0,' + radius +
+      ' L0,' + (koerperHoehe - radius) + ' Q0,' + koerperHoehe + ' ' + radius + ',' + koerperHoehe +
+      ' L' + (breite - versatz) + ',' + koerperHoehe + ' L' + breite + ',' + hoeheGesamt + ' Z';
+  }
+  function blasenKonturAktualisieren(el) {
+    const woerter = el.querySelectorAll('.wort');
+    // VOR jeder Messung zurücksetzen – sonst entsteht ein sich selbst
+    // verstärkender Rückkopplungs-Kreis: .raum-nachricht/.text haben
+    // selbst keine feste Breite (shrink-to-fit, siehe CSS), ihre
+    // gemessene Breite hängt also direkt von der AKTUELLEN max-width
+    // jedes .wort ab – die aber genau die Zahl ist, die diese Funktion
+    // gleich neu berechnet. Bliebe der alte (ggf. bereits zu kleine)
+    // Wert beim Messen stehen, könnte ein neu berechneter Wert nie
+    // wieder GRÖSSER werden als vorher, selbst wenn (z. B. nach einer
+    // font-size-Transition beim Schrumpfen einer Gruppen-Zone) eigentlich
+    // wieder mehr Platz da wäre – über mehrere ResizeObserver-Ticks
+    // hinweg "rastet" die Blase dann immer enger ein, bis Wörter mitten
+    // im Wort umbrechen, obwohl reichlich Platz vorhanden wäre (genau
+    // der ursprünglich gemeldete Fehler). "none" statt der Prozent-
+    // Basisregel entkoppelt die Messung: die Blase kann jetzt nur noch
+    // durch IHRE EIGENE max-width (fest gegen ein stabiles Elternelement,
+    // siehe .raum-eintrag/.nachricht) begrenzt werden, nicht mehr im
+    // Kreis durch ihre eigenen Wörter.
+    woerter.forEach(function (wort) { wort.style.maxWidth = 'none'; });
+
+    // KORREKTUR ("Hallo" bricht mitten im Wort um, obwohl rechnerisch
+    // reichlich Platz da wäre") – offsetWidth/offsetHeight liefern per
+    // Spezifikation GERUNDETE Ganzzahl-Pixel, nicht die tatsächliche
+    // (subpixelgenaue) Breite. Bei Buchstabenabstand (letter-spacing,
+    // siehe stilAnwenden, JS) braucht ein Wort oft exakt einen
+    // gebrochenen Pixelwert (z. B. 77.25px) – offsetWidth rundete diesen
+    // Wert bislang auf 77px ab, wodurch der berechnete max-width-Wert
+    // GENAU DAS fehlende Viertel-Pixel zu knapp war und das Wort exakt
+    // an dieser Kante umbrach. getBoundingClientRect() liefert dieselbe
+    // Breite subpixelgenau (als float) – exakt genug, um diesen
+    // Rundungsfehler zu vermeiden.
+    const eigeneBox = el.getBoundingClientRect();
+    const breite = eigeneBox.width;
+    const hoeheKoerper = eigeneBox.height;
+    if (!breite || !hoeheKoerper) return; // noch nicht gerendert (z. B. unsichtbare Zone)
+
+    const cs = getComputedStyle(el);
+    const radius  = parseFloat(cs.getPropertyValue('--blase-radius'))  || 0;
+    const spitze  = parseFloat(cs.getPropertyValue('--blase-spitze'))  || 0;
+    const versatz = parseFloat(cs.getPropertyValue('--blase-versatz')) || 0;
+    const rechts = el.classList.contains('raum-nachricht--ich') || !!el.closest('.nachricht-ich');
+
+
+    const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    // +0.5px Sicherheitsspanne: rundet den ohnehin schon subpixelgenauen
+    // Wert bewusst leicht AUFwärts statt abwärts – fängt verbleibende
+    // Subpixel-Rundungsunterschiede zwischen dieser Messung und dem
+    // eigentlichen Zeilenumbruch-Layout des Browsers ab (verschiedene
+    // interne Rundungsschritte), ohne die Blase sichtbar zu vergrößern.
+    const inhaltsBreite = Math.max(0, breite - padX) + 0.5;
+    woerter.forEach(function (wort) {
+      wort.style.maxWidth = inhaltsBreite + 'px';
+    });
+
+    // ══════════════════════════════════════════════════════════════
+    //  ERNEUT MESSEN – nach dem Setzen der Wort-Breiten
+    //
+    //  Die Messung ganz oben passiert bei maxWidth:none, also im
+    //  UNBESCHRÄNKTEN Layout. Erst die Zeile darüber legt die
+    //  tatsächliche Wortbreite fest, wodurch der Text neu umbricht und
+    //  die Blase in der Regel höher wird. Die erste Messung taugt
+    //  deshalb nur zur Berechnung von inhaltsBreite – für die Kontur
+    //  wäre sie zu klein.
+    //
+    //  Früher fiel das nicht auf: Die Kontur lag in Pseudoelementen,
+    //  die per CSS (left/right/top/bottom) automatisch die ECHTE
+    //  Elementgröße hatten. Das SVG bekommt seine Maße dagegen aus
+    //  dieser Funktion – misst sie zu früh, bleibt die Blase zu klein
+    //  und der Text steht oben heraus.
+    // ══════════════════════════════════════════════════════════════
+    const endBox    = el.getBoundingClientRect();
+    const breiteEnd = endBox.width;
+    const hoeheEnd  = endBox.height;
+    if (!breiteEnd || !hoeheEnd) return;
+    // ══════════════════════════════════════════════════════════════
+    //  KONTUR ALS ECHTER STRICH (SVG) – ersetzt die frühere Lösung aus
+    //  zwei übereinanderliegenden clip-path-Ebenen.
+    //
+    //  Warum der Wechsel: Die alte Fassung erzeugte die sichtbare Linie
+    //  als Zwischenraum zweier Flächen – außen die Konturfarbe, innen
+    //  1px kleiner die Hintergrundfarbe. Rechnet man die Unterkante des
+    //  Blasenkörpers nach, hoben sich dort die "-2" in der Höhe und die
+    //  "-1" in der Spitze gegen den 1px-Versatz der inneren Ebene exakt
+    //  auf: Abstand 0 statt 1px. Oben, links und rechts stimmte es –
+    //  nur unten fehlte die Linie ganz. Genau das war als "unten dünner"
+    //  sichtbar.
+    //
+    //  Ein Strich hat dieses Problem prinzipiell nicht: Seine Breite
+    //  wird senkrecht zur Kurve gemessen, an jeder Stelle gleich – auch
+    //  an der schrägen Flanke der Spitze, wo ein Koordinaten-Versatz
+    //  systematisch zu dünn ausfällt (dort wirkt er nicht senkrecht,
+    //  sondern nur waagerecht/senkrecht zur Achse).
+    //
+    //  Der Pfad wird um 0,5px eingerückt gezeichnet und um denselben
+    //  Betrag verschoben. Da der Strich mittig auf der Kurve liegt,
+    //  bedeckt er dadurch exakt das äußerste Pixel – die Blase behält
+    //  ihre bisherigen Außenmaße.
+    // ══════════════════════════════════════════════════════════════
+    const hoeheGesamt = hoeheEnd + spitze;
+    const pfad = blasenPfad(
+      breiteEnd - 1, hoeheGesamt - 1, radius - 0.5, spitze - 0.5, versatz - 0.5, rechts
+    );
+
+    let svg = el.querySelector(':scope > .blase-kontur');
+    if (!svg) {
+      const NS = 'http://www.w3.org/2000/svg';
+      svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('class', 'blase-kontur');
+      svg.setAttribute('aria-hidden', 'true');   // reine Dekoration
+      svg.appendChild(document.createElementNS(NS, 'path'));
+      // Als ERSTES Kind: liegt hinter dem Text (z-index im CSS), und
+      // position:absolute hält es aus dem Textfluss heraus.
+      el.insertBefore(svg, el.firstChild);
+    }
+
+    svg.setAttribute('viewBox', '0 0 ' + breiteEnd + ' ' + hoeheGesamt);
+    svg.setAttribute('width', breiteEnd);
+    svg.setAttribute('height', hoeheGesamt);
+
+    const pfadEl = svg.firstChild;
+    pfadEl.setAttribute('d', pfad);
+    pfadEl.setAttribute('transform', 'translate(0.5,0.5)');
+  }
+const blasenKonturBeobachter = new ResizeObserver(function (entries) {
+    entries.forEach(function (entry) { blasenKonturAktualisieren(entry.target); });
+  });
+  function blasenSchriftenLaden(el) {
+    if (!(window.document && document.fonts && document.fonts.load)) return Promise.resolve();
+    const anfragen = [];
+    el.querySelectorAll('.wort').forEach(function (wort) {
+      const cs = getComputedStyle(wort);
+      const angabe = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+      anfragen.push(document.fonts.load(angabe, wort.textContent).catch(function () {}));
+    });
+    return Promise.all(anfragen);
+  }
+  function blasenKonturEinrichten(el) {
+    blasenKonturAktualisieren(el);
+    blasenKonturBeobachter.observe(el);
+    blasenSchriftenLaden(el).then(function () { blasenKonturAktualisieren(el); });
+  }
+  function nachrichtElementErstellen(eintrag) {
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('nachricht', eintrag.vonMir ? 'nachricht-ich' : 'nachricht-andere');
+
+    // Tempo steuert die Dauer der Einblend-Animation eigener Nachrichten
+    if (eintrag.einblendDauer != null) {
+      wrapper.style.setProperty('--einblenden-dauer', `${eintrag.einblendDauer.toFixed(2)}s`);
+    }
+
+    // Kein Absendername im Einzelchat: Zwischen genau zwei Personen ist
+    // ohnehin klar, wer schreibt – die Seite der Blase sagt es bereits.
+    // Im Gruppenraum bleibt die Zuordnung erhalten, der läuft über einen
+    // eigenen Renderpfad (.raum-* / raumNachrichtHinzufuegen) und ist
+    // von dieser Funktion nicht betroffen.
+
+    const textEl = document.createElement('p');
+    textEl.classList.add('text');
+
+    if (eintrag.wortSnapshots) {
+      // ═══════════════════════════════════════════════════════════
+      // WORT-EBENE: Jedes Wort wird als eigenes <span class="wort">
+      // dargestellt und bekommt SEINEN eigenen eingefrorenen Zustand
+      // angewendet (statt eines einzigen Zustands für die ganze
+      // Nachricht). Zwischen den Wörtern steht ein normales
+      // Leerzeichen (Textknoten), damit der Zeilenumbruch dort
+      // weiterhin normal funktioniert.
+      // ═══════════════════════════════════════════════════════════
+      const woerter = eintrag.text.split(/\s+/).filter(w => w.length > 0);
+
+      woerter.forEach((wort, i) => {
+        const snapshot = eintrag.wortSnapshots[i];
+
+        const wortSpan = document.createElement('span');
+        wortSpan.classList.add('wort');
+        wortSpan.textContent = wort;
+
+        // ★★★ HIER wird der für dieses Wort eingefrorene Zustand ★★★
+        // ★★★ angewendet (oder die neutrale "leblos"-Darstellung). ★★★
+        if (snapshot && !snapshot.leblos) {
+          stilAnwenden(wortSpan, snapshot.achsen);
+        } else {
+          stilNeutralAnwenden(wortSpan);
+        }
+
+        textEl.appendChild(wortSpan);
+        if (i < woerter.length - 1) {
+          textEl.appendChild(document.createTextNode(' '));
+        }
+      });
+    } else {
+      textEl.textContent = eintrag.text;
+    }
+
+    wrapper.appendChild(textEl);
+
+    // Status-Indikator: Emotion-Zustand beim Absenden, eingefroren.
+    //
+    // Gilt für BEIDE Richtungen. Vorher stand hier "if (eintrag.vonMir)" –
+    // empfangene Nachrichten bekamen also nie ein "e", obwohl die
+    // Information vorliegt: Der leblos-Marker wird pro Wort mit
+    // übertragen (siehe Abschnitt VERBINDUNG, woerterPruefen im Server).
+    // Sie wurde beim Empfänger nur nie dargestellt.
+    //
+    // Das Kennzeichen sagt aus, wie die Nachricht GESENDET wurde – es
+    // gehört damit genauso zu einer empfangenen wie zu einer eigenen.
+    if (eintrag.wortSnapshots) {
+      const statusEl = document.createElement('span');
+      statusEl.classList.add('nachricht-status');
+      // "e" sichtbar, wenn mindestens EIN Wort emotional eingefroren wurde;
+      // leer = alle Wörter leblos/neutral (Abwesenheit ist das Signal)
+      const hatEmotionalesWort = eintrag.wortSnapshots.some(s => !s.leblos);
+      statusEl.textContent = hatEmotionalesWort ? 'e' : '';
+      wrapper.appendChild(statusEl);
+    }
+
+    return wrapper;
+  }
+
+// ══════════════════════════════════════════════════════════════════
+//  INHALT DES MOCKUPS – aus scripts/mockup-inhalt.js
+// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+//  INHALT DES MOCKUPS
+//
+//  Wird von build-mockup.js in mockup-chat.html eingesetzt. Hier steht
+//  NUR, welche Rohwerte gezeigt werden – wie daraus Typografie wird,
+//  entscheidet ausschließlich sensorZuSchriftAchse aus chat.html.
+//
+//  Die Zahlen sind Rohwerte der Sensor-Skala (100–900), also genau das,
+//  was in der App aus Band und Tippverhalten entsteht. Kein einziger
+//  typografischer Wert ist hier von Hand gesetzt.
+// ══════════════════════════════════════════════════════════════════
+
+// Neutrale Grundlage – einzelne Wörter weichen davon ab.
+function roh(ueberschreibung) {
+  return Object.assign({
+    intensitaet: 500, tempo: 500, stabilitaet: 900,
+    tonalitaet: 500, schlafqualitaet: 900, atemfrequenz: 900
+  }, ueberschreibung || {});
+}
+
+// ── Eingehende Nachricht ──────────────────────────────────────────
+// "hey, alles okay bei dir?" – ruhig gesetzt. Intensität um 500 trifft
+// Situra-Medium (mittlere Strichstärke), Tempo um 450 eine normale
+// Laufweite. Stabilität und Schlaf auf dem oberen Anschlag: kein
+// Zittern, keine Unschärfe. Die kleinen Abweichungen von Wort zu Wort
+// sind Absicht – gleichmäßige Werte über alle Wörter kommen beim
+// echten Tippen nicht vor.
+const EINGEHEND = {
+  text: 'hey, alles okay bei dir?',
+  vonMir: false,
+  rohwerte: [
+    roh({ intensitaet: 520, tempo: 470 }),   // hey,
+    roh({ intensitaet: 495, tempo: 440 }),   // alles
+    roh({ intensitaet: 510, tempo: 455 }),   // okay
+    roh({ intensitaet: 480, tempo: 430 }),   // bei
+    roh({ intensitaet: 505, tempo: 460 })    // dir?
+  ]
+};
+
+// ── Eigene Antwort ────────────────────────────────────────────────
+// "ja, mir geht's gut" – der Wortlaut sagt das eine, der Zustand das
+// andere. Intensität über 800 trifft Situra-Black (schwerster Schnitt),
+// hohes Tempo zieht die Laufweite zusammen, niedrige Stabilität lässt
+// die Buchstaben zittern, abgesenkter Schlafwert macht sie weich.
+//
+// ENTSCHEIDEND: "gut" ist deutlich gezögert – Tempo 150 statt 880.
+// Daraus wird eine weite Laufweite, während die drei Wörter davor eng
+// stehen. Genau so entsteht es beim echten Wort-für-Wort-Einfrieren:
+// Wer vor einem Wort zögert, dehnt es. Dass ausgerechnet die
+// Bestätigung gedehnt wird, ist der Widerspruch, um den es geht.
+const ANTWORT = {
+  text: "ja, mir geht's gut",
+  vonMir: true,
+  // Zur Unschärfe: Ein erster Versuch stand bei Schlafwerten um 340
+  // (rund 0,96 px). Am Bildschirm geprüft war "geht's" damit nicht mehr
+  // lesbar – die Unschärfe kommt auf die enge Laufweite von Black
+  // obendrauf, und beides zusammen lässt die Buchstaben verschmelzen.
+  // Werte um 580 ergeben rund 0,55 px: sichtbar weich, aber jeder
+  // Buchstabe bleibt einzeln erkennbar. Das entspricht auch eher dem
+  // "leicht weich" der Vorgabe.
+  rohwerte: [
+    roh({ intensitaet: 800, tempo: 870, stabilitaet: 260, schlafqualitaet: 620 }), // ja,
+    roh({ intensitaet: 830, tempo: 890, stabilitaet: 230, schlafqualitaet: 600 }), // mir
+    roh({ intensitaet: 850, tempo: 880, stabilitaet: 200, schlafqualitaet: 570 }), // geht's
+    roh({ intensitaet: 820, tempo: 150, stabilitaet: 180, schlafqualitaet: 550 })  // gut  ← gezögert
+  ]
+};
+
+// Baut einen Verlaufs-Eintrag im Format, das nachrichtElementErstellen
+// erwartet: wortSnapshots mit fertig berechneten Achsen je Wort.
+function eintragBauen(quelle) {
+  return {
+    text: quelle.text,
+    vonMir: quelle.vonMir,
+    einblendDauer: sensorZuSchriftAchse(quelle.rohwerte[0]).einblendDauer,
+    wortSnapshots: quelle.rohwerte.map(function (r) {
+      return { achsen: sensorZuSchriftAchse(r), leblos: false };
+    })
+  };
+}
+
+// ── Kopfzeile ─────────────────────────────────────────────────────
+document.getElementById('chat-partner-name').textContent = 'Marie';
+document.getElementById('chat-partner-avatar').textContent = 'M';
+
+// Band verbunden zeigen – sonst sähe es aus, als käme die Darstellung
+// aus Testreglern statt aus einer echten Messung.
+const bandBtn = document.getElementById('band-btn');
+bandBtn.textContent = 'Verbunden';
+bandBtn.classList.add('verbunden');
+const bpmLive = document.getElementById('band-bpm-live');
+bpmLive.hidden = false;
+bpmLive.textContent = '92 bpm';
+
+// ── Sensor-Anzeige ────────────────────────────────────────────────
+// Aufgeklappt, damit im Foto erkennbar ist, woher die Darstellung
+// kommt. Die Werte entsprechen dem Zustand der eigenen Antwort – der
+// Screen zeigt also nicht irgendwelche Zahlen, sondern die, aus denen
+// die Blase darunter entstanden ist.
+const drawer = document.getElementById('info-drawer');
+if (drawer) drawer.classList.add('offen');
+const griff = document.getElementById('info-drawer-griff');
+if (griff) griff.setAttribute('aria-expanded', 'true');
+
+// Mittelwert der Antwort-Rohwerte – das ist der Zustand, in dem sie
+// geschrieben wurde.
+function mittel(feld) {
+  return Math.round(ANTWORT.rohwerte.reduce(function (s, r) { return s + r[feld]; }, 0)
+                    / ANTWORT.rohwerte.length);
+}
+const ANZEIGE = {
+  intensitaet: mittel('intensitaet'),
+  tempo:       mittel('tempo'),
+  stabilitaet: mittel('stabilitaet'),
+  schlaf:      340   // Wachheit: aus der Nacht-Auswertung, nicht aus dem Tippen
+};
+
+function setzen(id, wert) { const el = document.getElementById(id); if (el) el.textContent = wert; }
+function balken(id, wert) {
+  const el = document.getElementById(id);
+  if (el) el.style.width = Math.max(0, Math.min(100, (wert - 100) / 8)) + '%';
+}
+
+setzen('wert-intensitaet', ANZEIGE.intensitaet);
+const sliderInt = document.getElementById('slider-intensitaet');
+if (sliderInt) sliderInt.value = ANZEIGE.intensitaet;
+// Mit Band ist die Intensität eine Messung, kein Testwert.
+const badgeInt = document.getElementById('badge-intensitaet');
+if (badgeInt) badgeInt.hidden = true;
+const labelInt = document.getElementById('label-intensitaet');
+if (labelInt) labelInt.classList.add('dimension-label--live');
+
+setzen('wert-tempo', ANZEIGE.tempo);              balken('balken-tempo', ANZEIGE.tempo);
+setzen('wert-stabilitaet', ANZEIGE.stabilitaet);  balken('balken-stabilitaet', ANZEIGE.stabilitaet);
+setzen('wert-wachheit', ANZEIGE.schlaf);          balken('balken-wachheit', ANZEIGE.schlaf);
+const labelWach = document.getElementById('label-wachheit');
+if (labelWach) labelWach.innerHTML = 'Wachheit';  // echte Nacht vorhanden
+
+// Profil-Werte, falls im Markup vorhanden
+setzen('profil-wert-puls', '92 bpm');
+setzen('profil-wert-stabilitaet', ANZEIGE.stabilitaet);
+
+// ── Nachrichten einsetzen ─────────────────────────────────────────
+const chat = document.getElementById('chat');
+chat.innerHTML = '';
+[EINGEHEND, ANTWORT].forEach(function (quelle) {
+  const el = nachrichtElementErstellen(eintragBauen(quelle));
+  chat.appendChild(el);
+  // Kontur erst NACH dem Einfügen – sie braucht echtes Layout.
+  blasenKonturEinrichten(el.querySelector('.text'));
+});
+
+// Eingabefeld leer und ohne Fokus – es ist ein Standbild.
+const eingabe = document.getElementById('eingabe');
+if (eingabe) { eingabe.value = ''; eingabe.blur(); }
+
+// Für eine Kontrolle von außen (Konsole), nicht fürs Foto:
+window.__mockup = {
+  eingehend: EINGEHEND,
+  antwort: ANTWORT,
+  achsenJeWort: function (quelle) {
+    return quelle.rohwerte.map(function (r, i) {
+      const a = sensorZuSchriftAchse(r);
+      return {
+        wort: quelle.text.split(/\s+/)[i],
+        schnitt: a.schriftschnitt,
+        laufweite: +a.spacing.toFixed(3),
+        zittern: +a.wobble.toFixed(2),
+        unschaerfe: +a.blur.toFixed(2)
+      };
+    });
+  }
+};
+
+})();
+</script>
+</body>
+</html>
