@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Situra – Situative Typografie</title>
+
+  <style>
+    /* ══════════════════════════════════════════════════════════════
+       PULS-SCHRIFTSCHNITTE – 7 statische Situra-Schnitte (kein
+       Variable Font). Identische Einbindung wie in chat.html: jeder
+       Schnitt ein eigener font-family-Name, bewusst mit font-weight:
+       400 registriert, damit kein Browser zusätzlich synthetisch
+       fett/kursiv rendert – der Schnitt selbst trägt die Strichstärke.
+       KORREKTUR (Browser-Kompatibilität, Safari) – .woff2 zusätzlich
+       zur bisherigen .ttf erzeugt und in src ZUERST gelistet: Server
+       wie GitHub Pages liefern .ttf teils ohne korrekten Font-MIME-Typ
+       (application/octet-stream) aus, was Safari beim @font-face-Laden
+       ablehnt. .woff2 ist praktisch immer korrekt typisiert und wird
+       von jedem aktuellen Browser bevorzugt geladen (erste unterstützte
+       Quelle in src gewinnt) – .ttf bleibt als Fallback für den
+       (unwahrscheinlichen) Fall eines noch älteren Browsers ohne
+       WOFF2-Unterstützung.
+       ══════════════════════════════════════════════════════════════ */
+    @font-face {
+      font-family: 'Situra-Thin';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-thin.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-thin.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Light';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Light.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Light.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Regular';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Regular.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Regular.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Medium';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Medium.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Medium.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-SemiBold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-SemiBold.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Bold';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Bold.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Bold.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Situra-Black';
+      src: url('assets/fonts/Situra/OpenType-TT/Situra-Black.woff2') format('woff2'),
+           url('assets/fonts/Situra/OpenType-TT/Situra-Black.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --bg:     #0a0a0a;
+      --fg:     #ffffff;
+      --grau:   #8a8a8a;
+      --grau-2: #4a4a4a;
+      --linie:  #2a2a2a;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       FOKUS & ANTIPP-MARKIERUNG – schwarzweiß statt Systemblau
+
+       Zwei verschiedene Dinge: die blaue Fläche beim BERÜHREN
+       (-webkit-tap-highlight-color, rein kosmetisch, folgenlos
+       abschaltbar) und der Fokus-Rahmen, der zeigt, WO man gerade
+       ist. Letzterer wird NICHT entfernt, sondern schwarzweiß neu
+       gezeichnet – ohne ihn wäre die Seite per Tastatur unbedienbar.
+
+       :focus-visible statt :focus: der Rahmen erscheint bei
+       Tastatur/Tab, aber nicht bei Maus- oder Fingertipp.
+       Gleiche Lösung wie in chat.html, siehe Kommentar dort.
+       ══════════════════════════════════════════════════════════════ */
+
+    * { -webkit-tap-highlight-color: transparent; }
+
+    /* Textauswahl: ebenfalls systemblau, wenn man sie nicht setzt.
+       Invertiert statt blau – Vordergrund und Hintergrund tauschen
+       die Rollen, dadurch passt es in beiden Modi. */
+    ::selection { background: var(--fg); color: var(--bg); }
+
+    body :focus-visible {
+      outline: 2px solid var(--fg);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    /* Eigene Regel statt nur body :focus-visible (0,1,0): die
+       Regler-Regel .dimension-regler input[type="range"] ist (0,1,1)
+       und würde sonst mit ihrem outline:none gewinnen. */
+    .dimension-regler input[type="range"]:focus-visible {
+      outline: 2px solid var(--fg);
+      outline-offset: 6px;
+    }
+
+
+    html { background: var(--bg); }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .eyebrow {
+      display: block;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--grau);
+      margin-bottom: 22px;
+    }
+
+    /* ── Sektionen: eine pro Matrix-Dimension ─────────────────────
+       Editorial/Poster-Rhythmus: dünne Trennlinie, große Nummer,
+       großer Titel, kurze Erklärung – dann die Bühne + der Regler. */
+    .dimension {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: clamp(56px, 9vh, 96px) 28px;
+      border-top: 1px solid var(--linie);
+    }
+
+    .dimension-kopf {
+      display: flex;
+      align-items: baseline;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+
+    .dimension-nr {
+      font-family: 'Situra-Light', 'Inter', sans-serif;
+      font-size: 15px;
+      letter-spacing: 0.05em;
+      color: var(--grau-2);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dimension-kopf h2 {
+      margin: 0;
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: clamp(1.8rem, 4.4vw, 2.6rem);
+      letter-spacing: -0.01em;
+    }
+
+    .dimension-text {
+      margin: 0 0 clamp(36px, 6vh, 56px);
+      max-width: 46ch;
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--grau);
+    }
+
+    /* ── Bühne: das reagierende Beispielwort ──────────────────────
+       Feste Mindesthöhe, damit Blur/Zittern/Transform keinen
+       Layout-Sprung verursachen. */
+    .dimension-buehne {
+      min-height: clamp(120px, 20vw, 190px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 0;
+    }
+
+    .dimension-wort {
+      font-family: 'Situra-Regular', 'Inter', sans-serif;
+      font-size: clamp(3.2rem, 11vw, 6.4rem);
+      line-height: 1;
+      letter-spacing: -0.01em;
+      color: var(--fg);
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    /* Einzelbuchstaben im Zitter-Beispiel brauchen inline-block,
+       damit transform auf sie wirkt. */
+    .zitter-buchstabe { display: inline-block; }
+
+    @keyframes situraZittern {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25%      { transform: translate(var(--amp, 0px), calc(var(--amp, 0px) * -1)) rotate(calc(var(--rot, 0deg) * -1)); }
+      50%      { transform: translate(calc(var(--amp, 0px) * -1), var(--amp, 0px)) rotate(var(--rot, 0deg)); }
+      75%      { transform: translate(var(--amp, 0px), var(--amp, 0px)) rotate(calc(var(--rot, 0deg) * -1)); }
+    }
+
+    /* ── Regler-Zeile: Slider + Wert-Anzeige ───────────────────── */
+    .dimension-regler {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .dimension-regler input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      min-width: 0;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--linie);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .dimension-regler input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--fg);
+      cursor: pointer;
+    }
+
+    .dimension-regler input[type="range"]::-moz-range-thumb {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--fg);
+      border: none;
+      cursor: pointer;
+    }
+
+    /* FESTE Breite, nicht min-width: Der längste Inhalt ist
+       "Situra-SemiBold · 900" (21 Zeichen). Am Bildschirm gemessen
+       braucht der 135px, das Feld hatte mit min-width:15ch aber nur
+       124px – es wuchs also beim Ziehen, der Regler daneben schrumpfte
+       entsprechend, und der Griff rutschte unter dem Finger weg.
+
+       22ch statt einer Pixelzahl, damit die Breite mitskaliert, falls
+       die Schriftgröße hier je geändert wird. Bei 13px sind das rund
+       151px – genug Luft über den gemessenen 135.
+
+       nowrap verhindert zusätzlich, dass der Text bei knappem Platz
+       umbricht und die Zeilenhöhe springt. */
+    .dimension-wert {
+      flex: 0 0 auto;
+      width: 22ch;
+      text-align: right;
+      white-space: nowrap;
+      font-size: 13px;
+      color: var(--grau);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+
+    .dimension-wert strong {
+      color: var(--fg);
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-weight: normal;
+    }
+
+    /* ── Kombinierter Regler-Block: alle Achsen auf EIN Wort ───────
+       Jede Achse bekommt zusätzlich zum Regler einen Ein/Aus-Schalter
+       (Pillen-Stil, an die Schwarz/Weiß-Palette dieser Seite angepasst
+       statt der Original-Farben aus chat.html) – ausgeschaltete Achsen
+       wirken neutral auf das gemeinsame Wort, unabhängig von der
+       Regler-Position (siehe JS: anwenden()/neutral() pro Achse). ── */
+    .kombi-achsen {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(22px, 3.4vh, 34px);
+    }
+
+    .kombi-achse {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .kombi-achse-kopf {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .kombi-achse-label {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      color: var(--fg);
+      transition: color 0.25s ease;
+    }
+
+    .kombi-achse--aus .kombi-achse-label { color: var(--grau-2); }
+    .kombi-achse--aus .dimension-regler  { opacity: 0.35; }
+
+    .kombi-schalter {
+      flex-shrink: 0;
+      display: inline-flex;
+      cursor: pointer;
+    }
+
+    .kombi-schalter input { display: none; }
+
+    .kombi-schalter-visuell {
+      width: 34px; height: 19px;
+      background: var(--linie);
+      border-radius: 10px;
+      position: relative;
+      transition: background-color 0.25s ease;
+    }
+
+    .kombi-schalter-visuell::after {
+      content: '';
+      position: absolute;
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      background: var(--fg);
+      top: 3px; left: 3px;
+      transition: transform 0.25s ease;
+    }
+
+    .kombi-schalter input:checked + .kombi-schalter-visuell {
+      background: var(--grau-2);
+    }
+
+    .kombi-schalter input:checked + .kombi-schalter-visuell::after {
+      transform: translateX(15px);
+    }
+
+    /* ── Fuß ───────────────────────────────────────────────────── */
+    footer {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 48px 28px 80px;
+      border-top: 1px solid var(--linie);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--grau-2);
+    }
+
+    @media (max-width: 560px) {
+      .dimension-regler { flex-direction: column; align-items: stretch; gap: 10px; }
+      .dimension-wert { text-align: left; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PROJEKTSEITE – Film, Bild-Text-Abschnitte, Werkschau, Dank
+       ──────────────────────────────────────────────────────────────
+       Haltung: wenige Größen mit großem Abstand zueinander, Trennung
+       allein über Weißraum (keine Linien, keine Kästen, keine
+       wechselnden Flächen), schmale Textspalte, genau eine gefüllte
+       Aktion je Abschnitt.
+
+       Zwei Größen tragen die ganze Seite:
+         Überschrift   clamp(38px … 88px)   Situra-Black
+         Fließtext     19px                 Situra-Regular
+       Das Verhältnis liegt damit zwischen 2:1 und 4,6:1 – ein
+       einziger großer Sprung statt einer feinen Treppe.
+
+       --abschnitt ist der Abstand ZWISCHEN Themen. Er ist bewusst ein
+       Vielfaches der Abstände innerhalb eines Abschnitts: Erst dieses
+       Verhältnis macht ohne Trennlinien sichtbar, dass ein neues
+       Thema beginnt.
+       ══════════════════════════════════════════════════════════════ */
+    :root {
+      --abschnitt: clamp(96px, 16vh, 180px);
+      --spalte:    780px;   /* Textspalte: rund 55–65 Zeichen je Zeile */
+    }
+
+    /* ── Case-Film: bildschirmfüllender Einstieg ──────────────────
+       Kein Text darüber – das Video ist die Aussage. Das Poster ist
+       das letzte Bild des Films (die App), der Film endet also
+       dort, wo das Standbild schon steht. */
+    .film {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      background: #000;
+      overflow: hidden;
+    }
+
+    /* Vorschaubild füllt die Fläche. object-fit:cover schneidet lieber
+       Ränder ab, als Balken zu zeigen – der Einstieg soll geschlossen
+       wirken. */
+    .film-vorschau {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Der Player wird erst beim Antippen erzeugt (siehe Skript) und
+       legt sich über die ganze Fläche. Ein iframe kennt kein
+       object-fit; YouTube fügt selbst schwarze Balken hinzu, wenn das
+       Seitenverhältnis nicht passt – auf schwarzem Grund fällt das
+       nicht auf. */
+    .film iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+
+    /* Meldung im Filmbereich, falls der Player nicht laufen kann –
+       bleibt IM Layout, statt auf YouTube wegzuleiten. */
+    .film-hinweis {
+      position: absolute;
+      inset: auto 0 0 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 28px;
+      background: rgba(0, 0, 0, 0.72);
+      color: var(--fg);
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .film-hinweis strong {
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-weight: 400;
+    }
+    .film-hinweis span { color: var(--grau); max-width: 46ch; }
+
+    /* MUSS nach den display-Regeln darüber stehen: Eine
+       display-Angabe in CSS schlägt das hidden-Attribut. */
+    .film [hidden] { display: none; }
+
+    /* Abspiel-Fläche: liegt über dem Video und verschwindet beim
+       Start. Ganzflächig, damit das Antippen überall trifft – auf
+       einem Ausstellungsbildschirm zielt niemand auf ein Knöpfchen. */
+    .film-start {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.28);
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.35s ease, background-color 0.35s ease;
+    }
+    .film-start:hover { background: rgba(0, 0, 0, 0.16); }
+    .film--laeuft .film-start { opacity: 0; pointer-events: none; }
+
+    .film-start-kreis {
+      width: clamp(72px, 9vw, 116px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 2px solid var(--fg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+
+    /* Dreieck rein aus Rahmen gezeichnet – kein Bild, keine
+       Fremddatei, skaliert verlustfrei mit. Der optische Versatz
+       nach rechts ist Absicht: Ein geometrisch zentriertes Dreieck
+       wirkt im Kreis nach links gerutscht. */
+    .film-start-kreis::after {
+      content: '';
+      border-style: solid;
+      border-width: 0.42em 0 0.42em 0.68em;
+      border-color: transparent transparent transparent var(--fg);
+      font-size: clamp(26px, 3.2vw, 42px);
+      margin-left: 0.16em;
+    }
+
+    /* ── Einleitung unter dem Film ────────────────────────────── */
+    .einleitung {
+      max-width: var(--spalte);
+      margin: 0 auto;
+      padding: var(--abschnitt) 28px 0;
+    }
+
+    .gross {
+      margin: 0 0 28px;
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: clamp(38px, 7vw, 88px);
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+    }
+
+    .fliess {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.65;
+      color: var(--grau);
+      max-width: 62ch;
+    }
+    .fliess strong { color: var(--fg); font-family: 'Situra-Medium', 'Inter', sans-serif; font-weight: 400; }
+    .fliess + .fliess { margin-top: 18px; }
+
+    /* ── Bild-Text-Abschnitte, abwechselnd ─────────────────────── */
+    .zeilen { padding: var(--abschnitt) 0 0; }
+
+    .zeile {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 28px var(--abschnitt);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(32px, 5vw, 80px);
+      align-items: center;
+    }
+
+    /* Jede zweite Zeile spiegeln: Bild nach rechts, Text nach links.
+       Über grid-column statt über die Reihenfolge im Markup – so
+       bleibt die Lesereihenfolge für Vorlesewerkzeuge korrekt. */
+    .zeile:nth-child(even) .zeile-bild { grid-column: 2; grid-row: 1; }
+    .zeile:nth-child(even) .zeile-text { grid-column: 1; grid-row: 1; }
+
+    /* KEIN erzwungenes Seitenverhältnis mehr.
+       Vorher stand hier aspect-ratio:4/3 mit object-fit:cover. Die
+       Aufnahmen sind aber 16:9 (die JPEGs) bzw. 3:2 (die PNGs) – sie
+       wurden dadurch seitlich beschnitten UND auf den sichtbaren
+       Ausschnitt herangezoomt. Beides kostet Bildqualität, ohne dass
+       es etwas bringt. Jetzt bestimmt das Bild selbst sein Verhältnis
+       und wird vollständig gezeigt. */
+    .zeile-bild {
+      margin: 0;
+      background: #141414;
+      overflow: hidden;
+      line-height: 0;   /* kein Zeilenabstand unter dem Bild */
+    }
+    .zeile-bild img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Nur der Ersatz für ein fehlendes Bild braucht eine Höhe – sonst
+       wäre die Fläche null Pixel hoch. */
+    .zeile-bild--leer { aspect-ratio: 3 / 2; }
+
+    /* Fehlendes Bild: dezente Fläche mit Nummer statt kaputtem Symbol.
+       Die Seite bleibt damit auch unvollständig vorzeigbar. */
+    .zeile-bild--leer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: clamp(48px, 7vw, 96px);
+      color: #222;
+    }
+
+    .zeile-nr {
+      display: block;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      color: var(--grau-2);
+      margin-bottom: 18px;
+    }
+
+    .zeile-text h2 {
+      margin: 0 0 18px;
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: clamp(28px, 3.6vw, 46px);
+      line-height: 1.08;
+      letter-spacing: -0.015em;
+    }
+
+    @media (max-width: 820px) {
+      .zeile { grid-template-columns: 1fr; }
+      .zeile:nth-child(even) .zeile-bild,
+      .zeile:nth-child(even) .zeile-text { grid-column: 1; grid-row: auto; }
+    }
+
+    /* ── Werkschau-Anleitung ───────────────────────────────────────
+       Muss im Vorbeigehen lesbar sein: größere Schrift als der übrige
+       Fließtext, kurze Zeilen, klar nummeriert. Deshalb 21px statt 19
+       und eine eigene, breitere Zählung. */
+    .werkschau {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 28px var(--abschnitt);
+    }
+
+    .schritte {
+      list-style: none;
+      margin: 44px 0 0;
+      padding: 0;
+      counter-reset: schritt;
+    }
+
+    .schritt {
+      counter-increment: schritt;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: clamp(20px, 3vw, 40px);
+      align-items: baseline;
+      padding: 28px 0;
+      border-top: 1px solid var(--linie);
+    }
+    .schritt:last-child { border-bottom: 1px solid var(--linie); }
+
+    /* Ziffer als eigenständiges Element, nicht als Aufzählungszeichen:
+       So groß, dass sie aus zwei Metern Entfernung trägt. */
+    .schritt::before {
+      content: counter(schritt, decimal-leading-zero);
+      font-family: 'Situra-Black', 'Inter', sans-serif;
+      font-size: clamp(32px, 4.4vw, 58px);
+      line-height: 0.9;
+      color: var(--grau-2);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .schritt h3 {
+      margin: 0 0 8px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: clamp(19px, 2.2vw, 26px);
+      line-height: 1.2;
+    }
+    .schritt p {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.6;
+      color: var(--grau);
+      max-width: 58ch;
+    }
+
+    /* Geräte-Kennzeichnung: dieselbe Pillenform wie die Knöpfe der
+       App, damit „Handy 1" auf der Seite so aussieht wie am Gerät. */
+    .geraet {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.1em;
+      padding: 2px 10px;
+      border: 1px solid var(--fg);
+      border-radius: 999px;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-size: 0.82em;
+      color: var(--fg);
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Regler-Bereich: Überschrift über den bestehenden Abschnitten ── */
+    .regler-kopf {
+      max-width: var(--spalte);
+      margin: 0 auto;
+      padding: 0 28px 8px;
+    }
+
+    /* ── Dank ─────────────────────────────────────────────────────
+       Bewusst der leiseste Abschnitt der Seite: kleinere Schrift als
+       die Erklärtexte, keine Überschrift, sehr viel Weißraum darüber.
+       Die drei Absätze sind abgestuft – der erste trägt die Fakten,
+       der letzte tritt am weitesten zurück. */
+    .dank {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: calc(var(--abschnitt) * 1.6) 28px calc(var(--abschnitt) * 0.9);
+      border-top: 1px solid var(--linie);
+    }
+
+    .dank p { margin: 0; max-width: 58ch; }
+
+    .dank-haupt {
+      font-size: 17px;
+      line-height: 1.7;
+      color: var(--grau);
+    }
+    .dank-haupt strong { color: var(--fg); font-family: 'Situra-Medium', 'Inter', sans-serif; font-weight: 400; }
+
+    .dank-mitte {
+      margin-top: 26px !important;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--grau-2);
+    }
+
+    .dank-leise {
+      margin-top: 26px !important;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--grau-2);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       CASE-FILM – eingebettet von YouTube
+       Bildschirmfüllender Einstieg, kein Text darüber.
+
+       VORSCHALTBILD STATT SOFORTIGEM PLAYER ("Fassade"):
+       Zuerst steht hier nur ein Bild mit Abspielkreis. Der
+       YouTube-Player wird erst beim Antippen erzeugt. Drei Gründe:
+
+         1. Eigenes Vorschaubild möglich. Ein eingebetteter Player
+            lässt sich nicht mit einem eigenen Standbild belegen –
+            über die Fassade schon.
+         2. Ohne Antippen lädt YouTube gar nichts: keine Skripte,
+            keine Cookies, kein Datenabfluss an Google, solange
+            niemand den Film startet.
+         3. Die Seite bleibt schnell – der Player wiegt ein
+            Vielfaches des Vorschaubilds.
+
+       Beim Erzeugen läuft der Player mit autoplay an. Das ist
+       zulässig, weil unmittelbar davor angetippt wurde; ohne diese
+       Nutzergeste würden Browser die Wiedergabe blockieren.
+
+       EIGENES VORSCHAUBILD: In FILM_VORSCHAU unten einen Pfad
+       eintragen (z. B. 'assets/Bilder/film-letztes-bild.jpg').
+       Bleibt der Eintrag leer, nimmt die Seite das automatische
+       Vorschaubild von YouTube.
+       ══════════════════════════════════════════════════════════════ -->
+  <header class="film" id="film">
+    <img class="film-vorschau" id="film-vorschau" alt="" aria-hidden="true">
+
+    <button class="film-start" id="film-start" type="button"
+            aria-label="Case-Film abspielen">
+      <span class="film-start-kreis" aria-hidden="true"></span>
+    </button>
+  </header>
+
+  <!-- Einleitung: erklärt in zwei Absätzen, worum es geht. Anders als
+       bei einer bekannten Marke kann hier kein Name die Arbeit tragen –
+       der Text muss es tun. -->
+  <section class="einleitung">
+    <span class="eyebrow">Situra · Situative Typografie</span>
+    <h1 class="gross">Schrift mit Puls.</h1>
+    <p class="fliess">
+      Situra ist eine Schrift, die sich verändert, während du schreibst.
+      Sechs Dimensionen deines Zustands – von <strong>Intensität</strong>
+      bis <strong>Temperatur</strong> – werden direkt zu Strichstärke,
+      Abstand, Zittern, Schärfe, Deckkraft und Größe.
+    </p>
+    <p class="fliess">
+      Gemessen wird über ein Armband am Puls und über das Tippverhalten.
+      Was dabei entsteht, ist keine Verzierung: Jedes Wort trägt den
+      Zustand, in dem es geschrieben wurde – und behält ihn.
+    </p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       BILD-TEXT-ABSCHNITTE
+       Abwechselnd links und rechts. Fünf Abschnitte, jeder mit einem
+       eigenen Bild aus assets/Bilder/.
+
+       Ein sechster Abschnitt mit Band.png war angelegt, ist aber
+       wieder entfernt: Dafür lag kein eigener Text vor, und das
+       Armband ist mit 02 (Sensor) und 04 (Ständer) bereits zweimal
+       vertreten. Soll er zurück, braucht er eine eigene Aussage.
+
+       Die Bilder bestimmen ihr Seitenverhältnis selbst und werden
+       vollständig gezeigt – nicht beschnitten (siehe .zeile-bild).
+
+       Fehlt ein Bild, zeigt die Fläche dezent ihre Nummer statt eines
+       kaputten Symbols; die Seite bleibt vorzeigbar.
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="zeilen">
+
+    <section class="zeile">
+      <figure class="zeile-bild">
+        <!-- Das erste Bild bewusst OHNE loading="lazy": Es steht auf
+             manchen Bildschirmen direkt unter dem Film und soll schon
+             da sein, wenn man es erreicht. Die uebrigen fuenf laden
+             verzoegert – sie sind zusammen ueber 70 MB gross. -->
+        <img src="assets/Bilder/App_Handy_Bild_1.jpg" alt="Die App auf dem Handy" data-nr="01">
+      </figure>
+      <div class="zeile-text">
+        <span class="zeile-nr">01</span>
+        <h2>Schrift, die reagiert</h2>
+        <p class="fliess">
+          Momentum ist eine Chat-App, in der die Schrift auf den Körper reagiert.
+        </p>
+      </div>
+    </section>
+
+    <section class="zeile">
+      <figure class="zeile-bild">
+        <img src="assets/Bilder/Band_Bild_1.png" alt="Das Armband am Puls" data-nr="02" loading="lazy">
+      </figure>
+      <div class="zeile-text">
+        <span class="zeile-nr">02</span>
+        <h2>Gemessen am Arm</h2>
+        <p class="fliess">
+          Ein Sensor am Arm misst Körperdaten und übersetzt sie in Schrift.
+        </p>
+      </div>
+    </section>
+
+    <section class="zeile">
+      <figure class="zeile-bild">
+        <img src="assets/Bilder/App_Bild_1.jpg" alt="Ein Chat in der App" data-nr="03" loading="lazy">
+      </figure>
+      <div class="zeile-text">
+        <span class="zeile-nr">03</span>
+        <h2>Lesbar, wie es einem geht</h2>
+        <p class="fliess">
+          So wird erfahrbar, wie es einem im Moment des Schreibens geht.
+        </p>
+      </div>
+    </section>
+
+    <section class="zeile">
+      <figure class="zeile-bild">
+        <img src="assets/Bilder/Band_Turm_1.png" alt="Die Armbaender auf dem Staender" data-nr="04" loading="lazy">
+      </figure>
+      <div class="zeile-text">
+        <span class="zeile-nr">04</span>
+        <h2>Die Bänder</h2>
+        <p class="fliess">
+          Hier stehen die beiden Armbänder, die vor Ort ausprobiert werden können.
+        </p>
+      </div>
+    </section>
+
+    <section class="zeile">
+      <figure class="zeile-bild">
+        <img src="assets/Bilder/Handy_Aufsteller.png" alt="Die Handys auf den Staendern" data-nr="05" loading="lazy">
+      </figure>
+      <div class="zeile-text">
+        <span class="zeile-nr">05</span>
+        <h2>Die Geräte</h2>
+        <p class="fliess">
+          Auf diesen beiden Geräten lässt sich die App direkt testen – <span class="geraet">Handy 1</span> und <span class="geraet">Handy 2</span> schreiben miteinander.
+        </p>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       WERKSCHAU – Anleitung an den Ausstellungsgeräten
+       Größere Schrift als der übrige Fließtext und kurze Zeilen:
+       Das hier muss im Vorbeigehen funktionieren.
+       ══════════════════════════════════════════════════════════════ -->
+  <section class="werkschau">
+    <span class="eyebrow">Werkschau</span>
+    <h2 class="gross">So probierst du es aus.</h2>
+    <p class="fliess">
+      Auf dem Ständer liegen zwei Armbänder und zwei Handys. Ihr könnt zu
+      zweit schreiben – jede Person nimmt ein Gerät.
+    </p>
+
+    <ol class="schritte">
+      <li class="schritt">
+        <div>
+          <h3>Armband anlegen</h3>
+          <p>
+            Nimm eines der beiden Armbänder vom Ständer und lege es ums
+            Handgelenk. Es misst deinen Puls.
+          </p>
+        </div>
+      </li>
+
+      <li class="schritt">
+        <div>
+          <h3>Das passende Handy nehmen</h3>
+          <p>
+            Die Handys sind mit <span class="geraet">1</span> und
+            <span class="geraet">2</span> beschriftet. Jedes ist fest mit
+            einem der beiden Armbänder verbunden – nimm das Handy mit
+            derselben Nummer wie dein Armband.
+          </p>
+        </div>
+      </li>
+
+      <li class="schritt">
+        <div>
+          <h3>App öffnen</h3>
+          <p>
+            Die App erkennst du am Logo auf dem Startbildschirm. Sie
+            verbindet sich selbst mit dem Armband, du musst nichts
+            einstellen.
+          </p>
+        </div>
+      </li>
+
+      <li class="schritt">
+        <div>
+          <h3>Den anderen im Chat finden</h3>
+          <p>
+            In der Liste stehen <span class="geraet">Handy 1</span> und
+            <span class="geraet">Handy 2</span>. Tippe auf das jeweils
+            andere Gerät – das ist die Person neben dir.
+          </p>
+        </div>
+      </li>
+
+      <li class="schritt">
+        <div>
+          <h3>Schreiben</h3>
+          <p>
+            Schreibt euch. Die Schrift verändert sich dabei mit eurem
+            Puls und eurem Tippverhalten – jedes Wort behält den Zustand,
+            in dem es geschrieben wurde.
+          </p>
+        </div>
+      </li>
+
+      <li class="schritt">
+        <div>
+          <h3>Danach zurücklegen</h3>
+          <p>
+            Armband und Handy bitte wieder auf den Ständer legen, damit
+            die Nächsten es genauso vorfinden.
+          </p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       REGLER – der bestehende Bereich, unverändert, nur weiter unten
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="regler-kopf">
+    <span class="eyebrow">Zum Ausprobieren</span>
+    <h2 class="gross">Die sechs Dimensionen.</h2>
+    <p class="fliess">
+      Bewege die Regler und sieh, wie sich das Wort verändert. Es sind
+      dieselben Werte, mit denen die App arbeitet.
+    </p>
+  </div>
+
+  <main>
+
+    <!-- 1 — Intensität → Strichstärke (7 statische Schnitte) -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">01</span>
+        <h2>Intensität</h2>
+      </div>
+      <p class="dimension-text">
+        Wie intensiv du schreibst, bestimmt, wie fett die Schrift
+        erscheint.
+      </p>
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-intensitaet">Hallo</div>
+      </div>
+      <div class="dimension-regler">
+        <input type="range" id="regler-intensitaet" min="100" max="900" step="1" value="400"
+          aria-label="Intensität">
+        <span class="dimension-wert" id="wert-intensitaet"></span>
+      </div>
+    </section>
+
+    <!-- 2 — Tempo → Zeichenabstand (stufenlos) -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">02</span>
+        <h2>Tempo</h2>
+      </div>
+      <p class="dimension-text">
+        Dein Schreibtempo verändert den Zeichenabstand. Schnelles Tippen
+        rückt die Buchstaben zusammen, langsames lässt sie auseinandertreten.
+      </p>
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-tempo">Hallo</div>
+      </div>
+      <div class="dimension-regler">
+        <input type="range" id="regler-tempo" min="100" max="900" step="1" value="400"
+          aria-label="Tempo">
+        <span class="dimension-wert" id="wert-tempo"></span>
+      </div>
+    </section>
+
+    <!-- 3 — Stabilität → Zitter-Stärke (0–10, stufenlos) -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">03</span>
+        <h2>Stabilität</h2>
+      </div>
+      <p class="dimension-text">
+        Unruhiges Tippen lässt die Schrift sichtbar zittern – ruhiges
+        Tippen hält sie vollkommen still.
+      </p>
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-stabilitaet">Hallo</div>
+      </div>
+      <div class="dimension-regler">
+        <input type="range" id="regler-stabilitaet" min="0" max="10" step="0.5" value="0"
+          aria-label="Stabilität">
+        <span class="dimension-wert" id="wert-stabilitaet"></span>
+      </div>
+    </section>
+
+    <!-- 4 — Wachheit → Unschärfe (blur, stufenlos, dezent) -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">04</span>
+        <h2>Wachheit</h2>
+      </div>
+      <p class="dimension-text">
+        Deine Wachheit bestimmt, ob der Text scharf oder unscharf wirkt.
+      </p>
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-wachheit">Hallo</div>
+      </div>
+      <div class="dimension-regler">
+        <input type="range" id="regler-wachheit" min="0" max="100" step="1" value="50"
+          aria-label="Wachheit">
+        <span class="dimension-wert" id="wert-wachheit"></span>
+      </div>
+    </section>
+
+    <!-- 5 — Atmung → Deckkraft (opacity, stufenlos) -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">05</span>
+        <h2>Atmung</h2>
+      </div>
+      <p class="dimension-text">
+        Als Testwert bestimmt deine Atmung, wie deckend der Text
+        erscheint. Flache Atmung lässt ihn blass werden, tiefe deckend.
+      </p>
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-gefasstheit">Hallo</div>
+      </div>
+      <div class="dimension-regler">
+        <input type="range" id="regler-gefasstheit" min="0" max="100" step="1" value="50"
+          aria-label="Atmung">
+        <span class="dimension-wert" id="wert-gefasstheit"></span>
+      </div>
+    </section>
+
+    <!-- 6 — Temperatur → Schriftgröße kühl↔warm (klein↔groß). -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">06</span>
+        <h2>Temperatur</h2>
+      </div>
+      <p class="dimension-text">
+        Eine wärmere Temperatur lässt die Schrift von klein zu groß wachsen.
+      </p>
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-tonalitaet">Hallo</div>
+      </div>
+      <div class="dimension-regler">
+        <input type="range" id="regler-tonalitaet" min="0" max="100" step="1" value="50"
+          aria-label="Temperatur">
+        <span class="dimension-wert" id="wert-tonalitaet"></span>
+      </div>
+    </section>
+
+    <!-- 7 — KOMBINIERT: alle sechs Achsen gleichzeitig auf EIN Wort,
+         jede einzeln ein-/ausschaltbar und frei verschiebbar. Eigener,
+         zusätzlicher Bereich am Ende der Seite – die sechs Einzel-
+         Abschnitte oben bleiben unverändert. -->
+    <section class="dimension">
+      <div class="dimension-kopf">
+        <span class="dimension-nr">07</span>
+        <h2>Kombiniert</h2>
+      </div>
+      <p class="dimension-text">
+        Alle sechs Dimensionen zugleich auf ein Wort. Schalte einzelne
+        Achsen ein oder aus und verschiebe sie unabhängig voneinander –
+        so lässt sich ausprobieren, wie mehrere Zustände gleichzeitig
+        auf dieselbe Schrift wirken. Ausgeschaltete Achsen bleiben ohne
+        Einfluss, das Wort verhält sich in dieser Hinsicht neutral.
+      </p>
+
+      <div class="dimension-buehne">
+        <div class="dimension-wort" id="wort-kombiniert">Hallo</div>
+      </div>
+
+      <div class="kombi-achsen">
+
+        <div class="kombi-achse" id="kombi-achse-intensitaet">
+          <div class="kombi-achse-kopf">
+            <label class="kombi-schalter" title="Intensität ein-/ausschalten">
+              <input type="checkbox" id="schalter-k-intensitaet" checked>
+              <span class="kombi-schalter-visuell"></span>
+            </label>
+            <span class="kombi-achse-label">Intensität</span>
+          </div>
+          <div class="dimension-regler">
+            <input type="range" id="regler-k-intensitaet" min="100" max="900" step="1" value="400"
+              aria-label="Intensität">
+            <span class="dimension-wert" id="wert-k-intensitaet"></span>
+          </div>
+        </div>
+
+        <div class="kombi-achse" id="kombi-achse-tempo">
+          <div class="kombi-achse-kopf">
+            <label class="kombi-schalter" title="Tempo ein-/ausschalten">
+              <input type="checkbox" id="schalter-k-tempo" checked>
+              <span class="kombi-schalter-visuell"></span>
+            </label>
+            <span class="kombi-achse-label">Tempo</span>
+          </div>
+          <div class="dimension-regler">
+            <input type="range" id="regler-k-tempo" min="100" max="900" step="1" value="400"
+              aria-label="Tempo">
+            <span class="dimension-wert" id="wert-k-tempo"></span>
+          </div>
+        </div>
+
+        <div class="kombi-achse" id="kombi-achse-stabilitaet">
+          <div class="kombi-achse-kopf">
+            <label class="kombi-schalter" title="Stabilität ein-/ausschalten">
+              <input type="checkbox" id="schalter-k-stabilitaet" checked>
+              <span class="kombi-schalter-visuell"></span>
+            </label>
+            <span class="kombi-achse-label">Stabilität</span>
+          </div>
+          <div class="dimension-regler">
+            <input type="range" id="regler-k-stabilitaet" min="0" max="10" step="0.5" value="0"
+              aria-label="Stabilität">
+            <span class="dimension-wert" id="wert-k-stabilitaet"></span>
+          </div>
+        </div>
+
+        <div class="kombi-achse" id="kombi-achse-wachheit">
+          <div class="kombi-achse-kopf">
+            <label class="kombi-schalter" title="Wachheit ein-/ausschalten">
+              <input type="checkbox" id="schalter-k-wachheit" checked>
+              <span class="kombi-schalter-visuell"></span>
+            </label>
+            <span class="kombi-achse-label">Wachheit</span>
+          </div>
+          <div class="dimension-regler">
+            <input type="range" id="regler-k-wachheit" min="0" max="100" step="1" value="50"
+              aria-label="Wachheit">
+            <span class="dimension-wert" id="wert-k-wachheit"></span>
+          </div>
+        </div>
+
+        <div class="kombi-achse" id="kombi-achse-gefasstheit">
+          <div class="kombi-achse-kopf">
+            <label class="kombi-schalter" title="Atmung ein-/ausschalten">
+              <input type="checkbox" id="schalter-k-gefasstheit" checked>
+              <span class="kombi-schalter-visuell"></span>
+            </label>
+            <span class="kombi-achse-label">Atmung</span>
+          </div>
+          <div class="dimension-regler">
+            <input type="range" id="regler-k-gefasstheit" min="0" max="100" step="1" value="50"
+              aria-label="Atmung">
+            <span class="dimension-wert" id="wert-k-gefasstheit"></span>
+          </div>
+        </div>
+
+        <div class="kombi-achse" id="kombi-achse-tonalitaet">
+          <div class="kombi-achse-kopf">
+            <label class="kombi-schalter" title="Temperatur ein-/ausschalten">
+              <input type="checkbox" id="schalter-k-tonalitaet" checked>
+              <span class="kombi-schalter-visuell"></span>
+            </label>
+            <span class="kombi-achse-label">Temperatur</span>
+          </div>
+          <div class="dimension-regler">
+            <input type="range" id="regler-k-tonalitaet" min="0" max="100" step="1" value="50"
+              aria-label="Temperatur">
+            <span class="dimension-wert" id="wert-k-tonalitaet"></span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       DANK
+       Der leiseste Abschnitt der Seite: kleinere Schrift als die
+       Erklärtexte, keine Überschrift, sehr viel Weißraum darüber.
+       Die drei Absätze sind abgestuft – der erste trägt die Fakten
+       und nennt die Namen im vollen Kontrast, die beiden folgenden
+       treten weiter zurück.
+       ══════════════════════════════════════════════════════════════ -->
+  <section class="dank">
+    <p class="dank-haupt">
+      Diese Arbeit ist als Bachelorarbeit im Studiengang Mediendesign an der
+      <strong>DHBW Ravensburg</strong> entstanden, betreut von
+      <strong>Markus Rathgeb</strong>, <strong>Maike Strothmann</strong>,
+      <strong>Patrik Ferrarelli</strong> und <strong>André Apel</strong>.
+    </p>
+    <p class="dank-mitte">
+      Danke an alle Ausbilder und Kollegen, die mich in den vergangenen
+      Jahren begleitet haben.
+    </p>
+    <p class="dank-leise">
+      Besonderer Dank gilt meinen Eltern Klemens und Elke Schlör, Roland und
+      Heike Luft, Gina Barth, Tim Husemann, Marius Schmidt und Paul Bier.
+    </p>
+  </section>
+
+  <footer>Situra — Situative Typografie · Prototyp</footer>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════
+    // CASE-FILM – YouTube, erst auf Antippen geladen
+    // Siehe den ausführlichen Kommentar beim <header class="film">.
+    // ═══════════════════════════════════════════════════════════
+    (function () {
+      const VIDEO_ID = '5-bx-pWhKHc';
+
+      // Eigenes Vorschaubild – hier einen Pfad eintragen, um das
+      // letzte Bild des Films zu zeigen. Leer lassen = automatisches
+      // Vorschaubild von YouTube.
+      const FILM_VORSCHAU = '';
+
+      // maxresdefault gibt es nicht für jedes Video; hqdefault schon.
+      // Deshalb der Rückfall, siehe onerror weiter unten.
+      const YT_GROSS = 'https://i.ytimg.com/vi/' + VIDEO_ID + '/maxresdefault.jpg';
+      const YT_KLEIN = 'https://i.ytimg.com/vi/' + VIDEO_ID + '/hqdefault.jpg';
+
+      const bereich    = document.getElementById('film');
+      const vorschau   = document.getElementById('film-vorschau');
+      const startKnopf = document.getElementById('film-start');
+      if (!bereich || !vorschau || !startKnopf) return;
+
+      // Meldung an Ort und Stelle, ohne die Seite zu verlassen.
+      function hinweisZeigen(titel, text) {
+        let k = bereich.querySelector('.film-hinweis');
+        if (!k) {
+          k = document.createElement('div');
+          k.className = 'film-hinweis';
+          bereich.appendChild(k);
+        }
+        k.innerHTML = '';
+        const h = document.createElement('strong');
+        h.textContent = titel;
+        const p = document.createElement('span');
+        p.textContent = text;
+        k.appendChild(h); k.appendChild(p);
+        startKnopf.hidden = true;
+        console.warn('[Film] ' + titel + ' ' + text);
+      }
+
+      vorschau.addEventListener('error', function () {
+        if (vorschau.src !== YT_KLEIN) {
+          vorschau.src = YT_KLEIN;   // maxres fehlt – kleinere Fassung
+        } else {
+          vorschau.hidden = true;    // gar kein Bild: schwarze Fläche, Kreis bleibt
+          console.warn('[Film] Kein Vorschaubild erreichbar – Abspielkreis auf schwarzem Grund.');
+        }
+      });
+      vorschau.src = FILM_VORSCHAU || YT_GROSS;
+
+      // ─────────────────────────────────────────────────────────
+      // SCHUTZ GEGEN DAS ÖFFNEN PER DOPPELKLICK (file://)
+      //
+      // Wird die Datei direkt aus dem Ordner geöffnet, hat die Seite
+      // keine Herkunft, die YouTube prüfen könnte. Der Player zeigt
+      // dann einen "Konfigurationsfehler" – eine Meldung, die nach
+      // einem Fehler im Code aussieht, obwohl der Code stimmt.
+      // (YouTube meldet in dem Fall EMBEDDER_IDENTITY_MISSING_REFERRER.)
+      //
+      // Statt diese Meldung stehen zu lassen: klar sagen, was zu tun
+      // ist, und den Film direkt auf YouTube anbieten.
+      const ohneHerkunft = location.protocol === 'file:';
+      // ─────────────────────────────────────────────────────────
+
+      let laeuft = false;
+      startKnopf.addEventListener('click', function () {
+        if (laeuft) return;
+
+        // Ohne Server hat die Seite keine Herkunft, die YouTube prüfen
+        // kann – der Player zeigt dann einen Konfigurationsfehler.
+        // BEWUSST KEINE WEITERLEITUNG zu YouTube: Der Film gehört auf
+        // diese Seite. Stattdessen an Ort und Stelle sagen, was fehlt.
+        if (ohneHerkunft) {
+          hinweisZeigen(
+            'Diese Seite wurde direkt aus dem Ordner geöffnet.',
+            'Eingebettete Videos brauchen eine Web-Adresse. Bitte über einen ' +
+            'Server aufrufen, z. B. http://localhost:8790/webseite.html'
+          );
+          return;
+        }
+
+        laeuft = true;
+
+        const rahmen = document.createElement('iframe');
+
+        // Bewusst NUR noch vier Parameter, alle wirksam und
+        // dokumentiert. Zwei frühere sind raus:
+        //   modestbranding=1 und color=white hat YouTube abgeschafft –
+        //   sie bewirkten nachweislich nichts (am Bildschirm geprüft:
+        //   Logo erschien weiter, Balken blieb rot) und waren nur
+        //   zusätzliche Fehlerquellen bei der Player-Konfiguration.
+        //
+        //   autoplay=1        läuft sofort – erlaubt, weil gerade
+        //                     angetippt wurde (Nutzergeste)
+        //   playsinline=1     ENTSCHEIDEND fürs iPhone: ohne das
+        //                     reißt iOS den Film ins Vollbild
+        //   rel=0             am Ende nur Videos desselben Kanals.
+        //                     Seit 2018 lassen sich die Vorschläge
+        //                     nicht mehr vollständig abschalten.
+        //   iv_load_policy=3  keine eingeblendeten Anmerkungen
+        const parameter = 'autoplay=1&playsinline=1&rel=0&iv_load_policy=3';
+
+        // www.youtube.com – die Standard-Einbettungsadresse.
+        // (Zuvor youtube-nocookie.com; beide funktionierten im Test
+        // gleich, aber die Standardadresse ist die verbreitetste und
+        // damit die unverdächtigste Fehlerquelle.)
+        rahmen.src = 'https://www.youtube.com/embed/' + VIDEO_ID + '?' + parameter;
+        rahmen.title = 'Case-Film';
+        rahmen.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+        rahmen.setAttribute('allowfullscreen', '');
+        rahmen.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+
+        bereich.appendChild(rahmen);
+        bereich.classList.add('film--laeuft');
+        vorschau.hidden = true;
+      });
+    })();
+
+    // ═══════════════════════════════════════════════════════════
+    // FEHLENDE BILDER der Bild-Text-Abschnitte
+    // Statt eines kaputten Symbols eine ruhige Fläche mit der
+    // Nummer des Abschnitts. Damit lässt sich die Seite auch mit
+    // erst halb gefüllten Plätzen zeigen.
+    // ═══════════════════════════════════════════════════════════
+    document.querySelectorAll('.zeile-bild img').forEach(function (bild) {
+      bild.addEventListener('error', function () {
+        const rahmen = bild.parentElement;
+        rahmen.classList.add('zeile-bild--leer');
+        rahmen.textContent = bild.dataset.nr || '';
+      });
+    });
+
+    function umrechnen(wert, vonMin, vonMax, zuMin, zuMax) {
+      return zuMin + (wert - vonMin) / (vonMax - vonMin) * (zuMax - zuMin);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 1 — INTENSITÄT: 7 statische Situra-Schnitte, dünn → fett.
+    // Exakt dieselbe Stufen-Logik wie intensitaetZuSchriftschnitt()
+    // in chat.html: ein 100–900-Rohwert wird in 7 gleich große
+    // Stufen geteilt – jede Stufe zeigt GENAU einen Schnitt, kein
+    // fließendes Überblenden (Situra ist keine Variable Font).
+    // ═══════════════════════════════════════════════════════════
+    const SITURA_SCHRIFTSCHNITTE = [
+      'Situra-Thin', 'Situra-Light', 'Situra-Regular', 'Situra-Medium',
+      'Situra-SemiBold', 'Situra-Bold', 'Situra-Black'
+    ];
+
+    function intensitaetZuSchriftschnitt(intensitaet) {
+      const stufenBreite = 800 / SITURA_SCHRIFTSCHNITTE.length; // (900−100) / 7
+      const index = Math.min(
+        SITURA_SCHRIFTSCHNITTE.length - 1,
+        Math.max(0, Math.floor((intensitaet - 100) / stufenBreite))
+      );
+      return SITURA_SCHRIFTSCHNITTE[index];
+    }
+
+    const reglerIntensitaet = document.getElementById('regler-intensitaet');
+    const wortIntensitaet   = document.getElementById('wort-intensitaet');
+    const wertIntensitaet   = document.getElementById('wert-intensitaet');
+
+    function intensitaetAktualisieren() {
+      const wert    = Number(reglerIntensitaet.value);
+      const schnitt = intensitaetZuSchriftschnitt(wert);
+      wortIntensitaet.style.fontFamily = `'${schnitt}', 'Inter', sans-serif`;
+      wertIntensitaet.innerHTML = `<strong>${schnitt}</strong> · ${wert}`;
+    }
+    reglerIntensitaet.addEventListener('input', intensitaetAktualisieren);
+    intensitaetAktualisieren();
+
+    // ═══════════════════════════════════════════════════════════
+    // 2 — TEMPO: letter-spacing, stufenlos (0.12em … −0.04em).
+    // KORREKTUR – Richtung war invertiert: hoher Tempo-Wert (schnelles
+    // Tippen) muss zu KLEINEREM letter-spacing führen (Buchstaben rücken
+    // zusammen), niedriger Wert (langsames Tippen) zu größerem (Buch-
+    // staben treten auseinander) – siehe auch Text oben. Endpunkte
+    // bewusst unverändert gelassen (nur ihre Reihenfolge getauscht), nur
+    // die Richtung war zu korrigieren.
+    // ═══════════════════════════════════════════════════════════
+    const reglerTempo = document.getElementById('regler-tempo');
+    const wortTempo    = document.getElementById('wort-tempo');
+    const wertTempo    = document.getElementById('wert-tempo');
+
+    function tempoAktualisieren() {
+      const wert    = Number(reglerTempo.value);
+      const spacing = umrechnen(wert, 100, 900, 0.12, -0.04);
+      wortTempo.style.letterSpacing = `${spacing.toFixed(3)}em`;
+      wertTempo.innerHTML = `<strong>${spacing.toFixed(3)}em</strong> · ${wert}`;
+    }
+    reglerTempo.addEventListener('input', tempoAktualisieren);
+    tempoAktualisieren();
+
+    // ═══════════════════════════════════════════════════════════
+    // 3 — STABILITÄT: Zitter-Stärke, 0 (ruhig) … 10 (stark).
+    // Buchstaben werden EINMALIG in Spans zerlegt; jeder Buchstabe
+    // bekommt eine eigene, leicht zufällige Dauer/Verzögerung für
+    // organisches, asynchrones Zittern (wie in chat.html/onboarding.
+    // html) – die STÄRKE (--amp/--rot) wird direkt vom Regler gesetzt.
+    // ═══════════════════════════════════════════════════════════
+    const reglerStabilitaet = document.getElementById('regler-stabilitaet');
+    const wortStabilitaet   = document.getElementById('wort-stabilitaet');
+    const wertStabilitaet   = document.getElementById('wert-stabilitaet');
+
+    (function buchstabenVorbereiten() {
+      const text = wortStabilitaet.textContent;
+      wortStabilitaet.textContent = '';
+      for (const zeichen of text) {
+        const span = document.createElement('span');
+        span.textContent = zeichen;
+        span.classList.add('zitter-buchstabe');
+        const dauer     = (0.3 + Math.random() * 0.4).toFixed(2);
+        const verzoeger = (-Math.random() * 1.2).toFixed(2);
+        span.style.animationName           = 'situraZittern';
+        span.style.animationDuration       = `${dauer}s`;
+        span.style.animationTimingFunction = 'ease-in-out';
+        span.style.animationIterationCount = 'infinite';
+        span.style.animationDelay          = `${verzoeger}s`;
+        wortStabilitaet.appendChild(span);
+      }
+    })();
+
+    function stabilitaetAktualisieren() {
+      const wert = Number(reglerStabilitaet.value); // 0–10
+      const amp  = wert;              // px – direkt die Reglerstärke
+      const rot  = wert * 1.2;        // Grad – proportional zur Stärke
+
+      wortStabilitaet.querySelectorAll('.zitter-buchstabe').forEach(function (span) {
+        span.style.setProperty('--amp', `${amp}px`);
+        span.style.setProperty('--rot', `${rot}deg`);
+        span.style.animationPlayState = wert > 0 ? 'running' : 'paused';
+      });
+
+      wertStabilitaet.innerHTML = wert <= 0
+        ? `<strong>ruhig</strong> · 0`
+        : `<strong>${amp.toFixed(1)}px</strong> · ${wert}`;
+    }
+    reglerStabilitaet.addEventListener('input', stabilitaetAktualisieren);
+    stabilitaetAktualisieren();
+
+    // ═══════════════════════════════════════════════════════════
+    // 4 — WACHHEIT: Unschärfe (blur), stufenlos – 0 = müde/unscharf,
+    // 100 = wach/scharf. Deutlich stärker als früher (war 2px, kaum
+    // wahrnehmbar bei der großen Wort-Schriftgröße dieser Seite) –
+    // bei voller Unschärfe (0) noch klar als "Hallo" lesbar, aber der
+    // Unterschied zu "wach" (scharf) ist jetzt unübersehbar. Dieselbe
+    // Konstante wird auch vom kombinierten Regler-Block (Abschnitt 7)
+    // für die dortige Wachheit-Achse verwendet.
+    // ═══════════════════════════════════════════════════════════
+    const reglerWachheit = document.getElementById('regler-wachheit');
+    const wortWachheit    = document.getElementById('wort-wachheit');
+    const wertWachheit    = document.getElementById('wert-wachheit');
+    const BLUR_MAX = 5.0;
+
+    function wachheitAktualisieren() {
+      const wert = Number(reglerWachheit.value);
+      const blur = umrechnen(wert, 0, 100, BLUR_MAX, 0);
+      const filterWert = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
+      // -webkit-Variante zusätzlich zur Standard-Eigenschaft (Browser-
+      // Kompatibilität, ältere Safari-Versionen kennen filter nur
+      // vorangestellt) – siehe @font-face weiter oben für denselben
+      // Kompatibilitäts-Anlass.
+      wortWachheit.style.webkitFilter = filterWert;
+      wortWachheit.style.filter = filterWert;
+      wertWachheit.innerHTML = `<strong>${blur.toFixed(2)}px</strong> · ${wert}`;
+    }
+    reglerWachheit.addEventListener('input', wachheitAktualisieren);
+    wachheitAktualisieren();
+
+    // ═══════════════════════════════════════════════════════════
+    // 5 — ATMUNG: Deckkraft (opacity), stufenlos –
+    // 0 = flach/blass (0.35), 100 = tief/deckend (1).
+    // ═══════════════════════════════════════════════════════════
+    const reglerGefasstheit = document.getElementById('regler-gefasstheit');
+    const wortGefasstheit    = document.getElementById('wort-gefasstheit');
+    const wertGefasstheit    = document.getElementById('wert-gefasstheit');
+    const TRANSPARENZ_MIN = 0.35;
+
+    function gefasstheitAktualisieren() {
+      const wert = Number(reglerGefasstheit.value);
+      const deckkraft = umrechnen(wert, 0, 100, TRANSPARENZ_MIN, 1);
+      wortGefasstheit.style.opacity = deckkraft.toFixed(2);
+      wertGefasstheit.innerHTML = `<strong>${deckkraft.toFixed(2)}</strong> · ${wert}`;
+    }
+    reglerGefasstheit.addEventListener('input', gefasstheitAktualisieren);
+    gefasstheitAktualisieren();
+
+    // ═══════════════════════════════════════════════════════════
+    // 6 — TEMPERATUR: Schriftgröße kühl → warm, stufenlos.
+    // kühl = klein, warm = groß. Bewusst NUR ±12% um die tatsächlich
+    // gerenderte Basisgröße (per getComputedStyle erfasst, VOR jeder
+    // Inline-Überschreibung, da .dimension-wort eine responsive
+    // clamp()-Größe hat) – die Schriftgrößen-Hierarchie bleibt so in
+    // engen Grenzen.
+    // ═══════════════════════════════════════════════════════════
+    const reglerTonalitaet = document.getElementById('regler-tonalitaet');
+    const wortTonalitaet    = document.getElementById('wort-tonalitaet');
+    const wertTonalitaet    = document.getElementById('wert-tonalitaet');
+    const TON_GROESSE_BASIS_PX = parseFloat(getComputedStyle(wortTonalitaet).fontSize);
+    const TON_GROESSE_MIN_PX   = TON_GROESSE_BASIS_PX * 0.88;
+    const TON_GROESSE_MAX_PX   = TON_GROESSE_BASIS_PX * 1.12;
+
+    function tonalitaetAktualisieren() {
+      const wert = Number(reglerTonalitaet.value);
+      const groesse = umrechnen(wert, 0, 100, TON_GROESSE_MIN_PX, TON_GROESSE_MAX_PX);
+      wortTonalitaet.style.fontSize = `${groesse.toFixed(1)}px`;
+      const label = wert < 35 ? 'klein' : wert > 65 ? 'groß' : 'mittel';
+      wertTonalitaet.innerHTML = `<strong>${label}</strong> · ${wert}`;
+    }
+    reglerTonalitaet.addEventListener('input', tonalitaetAktualisieren);
+    tonalitaetAktualisieren();
+
+    // ═══════════════════════════════════════════════════════════
+    // 7 — KOMBINIERT: alle sechs Achsen auf EIN gemeinsames Wort.
+    // Jede Achse bleibt technisch unabhängig – Intensität/Tempo/
+    // Wachheit/Atmung/Temperatur setzen je eine eigene CSS-
+    // Eigenschaft auf dem Wort-Container (fontFamily/letterSpacing/
+    // filter/opacity/color), Stabilität wirkt wie in Abschnitt 3 auf
+    // die einzeln zerlegten Buchstaben-Spans darin – sie überschreiben
+    // sich also nie gegenseitig. kombiAchseEinrichten() bindet Regler +
+    // Schalter pro Achse: ist der Schalter aus, wird IMMER neutral()
+    // angewendet statt anwenden(reglerWert), unabhängig von der
+    // Reglerposition (siehe Anforderung "deaktivierte Achsen ohne
+    // Einfluss").
+    // ═══════════════════════════════════════════════════════════
+    const wortKombiniert = document.getElementById('wort-kombiniert');
+
+    // Buchstaben einmalig in Spans zerlegen (exakt wie Abschnitt 3) –
+    // nötig, damit Stabilität/Zittern pro Buchstabe wirken kann. Die
+    // übrigen Achsen setzen ihre Eigenschaften weiterhin auf dem
+    // umschließenden wortKombiniert-Element selbst (wird an die
+    // Buchstaben-Spans vererbt, z. B. font-family/opacity/color).
+    (function buchstabenVorbereitenKombiniert() {
+      const text = wortKombiniert.textContent;
+      wortKombiniert.textContent = '';
+      for (const zeichen of text) {
+        const span = document.createElement('span');
+        span.textContent = zeichen;
+        span.classList.add('zitter-buchstabe');
+        const dauer     = (0.3 + Math.random() * 0.4).toFixed(2);
+        const verzoeger = (-Math.random() * 1.2).toFixed(2);
+        span.style.animationName           = 'situraZittern';
+        span.style.animationDuration       = `${dauer}s`;
+        span.style.animationTimingFunction = 'ease-in-out';
+        span.style.animationIterationCount = 'infinite';
+        span.style.animationDelay          = `${verzoeger}s`;
+        wortKombiniert.appendChild(span);
+      }
+    })();
+
+    // Bindet Schalter + Regler EINER Achse ans gemeinsame Wort.
+    // konfig.anwenden(wert, wertEl) setzt die Eigenschaft passend zum
+    // aktuellen Reglerwert; konfig.neutral() setzt exakt diese eine
+    // Eigenschaft zurück, ohne die der anderen Achsen zu berühren.
+    function kombiAchseEinrichten(name, konfig) {
+      const wrapper  = document.getElementById(`kombi-achse-${name}`);
+      const schalter = document.getElementById(`schalter-k-${name}`);
+      const regler   = document.getElementById(`regler-k-${name}`);
+      const wertEl   = document.getElementById(`wert-k-${name}`);
+
+      function aktualisieren() {
+        const aktiv = schalter.checked;
+        wrapper.classList.toggle('kombi-achse--aus', !aktiv);
+        regler.disabled = !aktiv;
+        if (aktiv) {
+          konfig.anwenden(Number(regler.value), wertEl);
+        } else {
+          konfig.neutral();
+          wertEl.textContent = 'Aus';
+        }
+      }
+
+      schalter.addEventListener('change', aktualisieren);
+      regler.addEventListener('input', aktualisieren);
+      aktualisieren();
+    }
+
+    kombiAchseEinrichten('intensitaet', {
+      anwenden(wert, wertEl) {
+        const schnitt = intensitaetZuSchriftschnitt(wert);
+        wortKombiniert.style.fontFamily = `'${schnitt}', 'Inter', sans-serif`;
+        wertEl.innerHTML = `<strong>${schnitt}</strong> · ${wert}`;
+      },
+      neutral() {
+        wortKombiniert.style.fontFamily = `'Situra-Regular', 'Inter', sans-serif`;
+      }
+    });
+
+    kombiAchseEinrichten('tempo', {
+      anwenden(wert, wertEl) {
+        // KORREKTUR – Richtung wie bei Abschnitt 2 (siehe dort): hoher
+        // Tempo-Wert muss zu kleinerem letter-spacing führen.
+        const spacing = umrechnen(wert, 100, 900, 0.12, -0.04);
+        wortKombiniert.style.letterSpacing = `${spacing.toFixed(3)}em`;
+        wertEl.innerHTML = `<strong>${spacing.toFixed(3)}em</strong> · ${wert}`;
+      },
+      neutral() {
+        wortKombiniert.style.letterSpacing = 'normal';
+      }
+    });
+
+    kombiAchseEinrichten('stabilitaet', {
+      anwenden(wert, wertEl) {
+        const amp = wert;         // px – direkt die Reglerstärke
+        const rot = wert * 1.2;   // Grad – proportional zur Stärke
+        wortKombiniert.querySelectorAll('.zitter-buchstabe').forEach(function (span) {
+          span.style.setProperty('--amp', `${amp}px`);
+          span.style.setProperty('--rot', `${rot}deg`);
+          span.style.animationPlayState = wert > 0 ? 'running' : 'paused';
+        });
+        wertEl.innerHTML = wert <= 0
+          ? `<strong>ruhig</strong> · 0`
+          : `<strong>${amp.toFixed(1)}px</strong> · ${wert}`;
+      },
+      neutral() {
+        wortKombiniert.querySelectorAll('.zitter-buchstabe').forEach(function (span) {
+          span.style.setProperty('--amp', '0px');
+          span.style.setProperty('--rot', '0deg');
+          span.style.animationPlayState = 'paused';
+        });
+      }
+    });
+
+    kombiAchseEinrichten('wachheit', {
+      anwenden(wert, wertEl) {
+        const blur = umrechnen(wert, 0, 100, BLUR_MAX, 0);
+        wortKombiniert.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
+        wertEl.innerHTML = `<strong>${blur.toFixed(2)}px</strong> · ${wert}`;
+      },
+      neutral() {
+        wortKombiniert.style.filter = 'none';
+      }
+    });
+
+    kombiAchseEinrichten('gefasstheit', {
+      anwenden(wert, wertEl) {
+        const deckkraft = umrechnen(wert, 0, 100, TRANSPARENZ_MIN, 1);
+        wortKombiniert.style.opacity = deckkraft.toFixed(2);
+        wertEl.innerHTML = `<strong>${deckkraft.toFixed(2)}</strong> · ${wert}`;
+      },
+      neutral() {
+        wortKombiniert.style.opacity = '1';
+      }
+    });
+
+    kombiAchseEinrichten('tonalitaet', {
+      anwenden(wert, wertEl) {
+        // Dieselbe ±12%-Basis wie Abschnitt 6 (TON_GROESSE_MIN_PX/MAX_PX,
+        // siehe dort) – wortKombiniert teilt dieselbe .dimension-wort-
+        // Klasse/Basisgröße wie wortTonalitaet.
+        const groesse = umrechnen(wert, 0, 100, TON_GROESSE_MIN_PX, TON_GROESSE_MAX_PX);
+        wortKombiniert.style.fontSize = `${groesse.toFixed(1)}px`;
+        const label = wert < 35 ? 'klein' : wert > 65 ? 'groß' : 'mittel';
+        wertEl.innerHTML = `<strong>${label}</strong> · ${wert}`;
+      },
+      neutral() {
+        wortKombiniert.style.fontSize = '';
+      }
+    });
+  </script>
+
+</body>
+</html>

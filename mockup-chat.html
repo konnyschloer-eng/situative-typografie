@@ -1235,10 +1235,20 @@
       cursor: pointer;
     }
 
+    /* FESTE Breite, nicht min-width: Der längste Inhalt ist
+       "Situra-SemiBold · 900" (21 Zeichen). Mit min-width wuchs das
+       Feld beim Ziehen über seine Mindestbreite hinaus, der Regler
+       daneben schrumpfte entsprechend – der Griff rutschte unter dem
+       Finger weg. Mit fester Breite bleibt die Reglerlänge konstant.
+
+       22ch statt einer Pixelzahl, damit die Breite mitskaliert, falls
+       die Schriftgröße geändert wird. nowrap verhindert zusätzlich
+       einen Umbruch bei knappem Platz. */
     .testregler-wert {
-      flex-shrink: 0;
-      min-width: 13ch;
+      flex: 0 0 auto;
+      width: 22ch;
       text-align: right;
+      white-space: nowrap;
       font-size: 11px;
       color: var(--text-2);
       font-variant-numeric: tabular-nums;
@@ -2641,6 +2651,26 @@
       font-size: 10px;
       color: var(--text-4);
       font-variant-numeric: tabular-nums;
+    }
+
+    /* Sensor-Anzeige: Der Regler liegt hier in einer EIGENEN Zeile
+       unter der Kopfzeile (.dimension-slider, width:100%) – er kann
+       durch die Wertbreite also gar nicht verrutschen. Trotzdem eine
+       feste Breite, damit die Zahl beim Zählen nicht seitlich wandert:
+       Die Kopfzeile steht auf space-between, ohne feste Breite rückt
+       die linke Kante des Werts bei jedem Stellenwechsel nach.
+
+       9ch deckt den längsten Inhalt ab – das ist nicht die dreistellige
+       Zahl, sondern die Schlafstufe "sehr gut" (8 Zeichen).
+
+       BEWUSST auf .sensor-grid eingegrenzt: Dieselbe Klasse trägt auch
+       die drei Werte im Profil, die untereinander in eigenen Zellen
+       stehen. Eine feste Breite würde deren Satzbild zerreißen. */
+    .sensor-grid .dimension-wert {
+      flex: 0 0 auto;
+      width: 9ch;
+      text-align: right;
+      white-space: nowrap;
     }
 
     .dimension-slider {

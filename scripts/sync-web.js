@@ -95,7 +95,10 @@ console.log('Gruppenbilder gefunden:', gruppenDateien.length, gruppenDateien);
 // Der Wahrnehmungstest läuft im Browser, der Stresstest braucht dagegen
 // das Bluetooth-Band – und das Capacitor-Plugin dafür gibt es nur in der
 // gebauten App. Im reinen Browser bliebe die Seite ohne Messwerte.
-const dateien = ['index.html', 'chat.html', 'onboarding.html', 'situra-slider.html', 'ble-test.html', 'stresstest.html'];
+// webseite.html ist bewusst NICHT dabei: Das ist die Projektseite,
+// nicht Teil der App. App und Webseite bleiben getrennt – sie würde
+// im Android-Bundle nur Platz kosten und dort nie aufgerufen.
+const dateien = ['index.html', 'chat.html', 'onboarding.html', 'ble-test.html', 'stresstest.html'];
 const ordner = ['assets', 'vendor'];
 
 fs.mkdirSync(dest, { recursive: true });
