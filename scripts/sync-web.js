@@ -103,27 +103,54 @@ const ordner = ['assets', 'vendor'];
 
 fs.mkdirSync(dest, { recursive: true });
 
-const AVATARS_MANIFEST_PLATZHALTER = '/* @AVATARS_MANIFEST@ */ []';
-const GRUPPEN_MANIFEST_PLATZHALTER = '/* @GRUPPEN_MANIFEST@ */ []';
+// ── Manifeste in chat.html einsetzen ──────────────────────────────
+//
+// WICHTIG, und genau hier lag ein Fehler: Die Manifeste wurden bisher
+// NUR in www/chat.html geschrieben. Die Datei im Wurzelverzeichnis
+// behielt ihren leeren Platzhalter – und genau die liefert GitHub
+// Pages aus. Im Web erschienen deshalb weder Kontaktfotos noch die
+// echten Namen, sondern die fest einprogrammierte Rückfallliste
+// (Anna, Ben, Clara …), während dieselbe App auf dem Handy alles
+// richtig zeigte.
+//
+// Jetzt wird BEIDES geschrieben: Wurzel und www/. Damit verhält sich
+// die Web-Auslieferung identisch zur App.
+//
+// Die Ersetzung muss dafür WIEDERHOLBAR sein: Nach dem ersten Lauf
+// steht in der Wurzeldatei kein leeres "[]" mehr, sondern die zuletzt
+// eingesetzte Liste. Ein Muster, das nur auf "[]" passt, würde beim
+// zweiten Lauf nichts mehr finden. Die Regex fasst deshalb den Marker
+// plus ein beliebiges folgendes Array.
+const AVATARS_MARKER = '/* @AVATARS_MANIFEST@ */';
+const GRUPPEN_MARKER = '/* @GRUPPEN_MANIFEST@ */';
+
+function manifestErsetzen(inhalt, marker, liste, bezeichnung) {
+  // Marker maskieren (enthält * und /), danach beliebiges Array fassen.
+  const maskiert = marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const muster = new RegExp(maskiert + '\\s*\\[[^\\]]*\\]');
+  if (!muster.test(inhalt)) {
+    throw new Error(
+      'chat.html: Marker "' + marker + '" mit folgendem Array nicht gefunden – ' +
+      'wurde er umbenannt/entfernt? Die App würde sonst ohne ' + bezeichnung + ' gebaut.'
+    );
+  }
+  return inhalt.replace(muster, marker + ' ' + JSON.stringify(liste));
+}
+
 const chatHtmlQuelle = fs.readFileSync(path.join(root, 'chat.html'), 'utf8');
-if (!chatHtmlQuelle.includes(AVATARS_MANIFEST_PLATZHALTER)) {
-  throw new Error(
-    'chat.html: Platzhalter "' + AVATARS_MANIFEST_PLATZHALTER + '" nicht gefunden – ' +
-    'wurde er umbenannt/entfernt? www/chat.html würde sonst ohne Kontaktfotos gebaut.'
-  );
-}
-if (!chatHtmlQuelle.includes(GRUPPEN_MANIFEST_PLATZHALTER)) {
-  throw new Error(
-    'chat.html: Platzhalter "' + GRUPPEN_MANIFEST_PLATZHALTER + '" nicht gefunden – ' +
-    'wurde er umbenannt/entfernt? www/chat.html würde sonst ohne Gruppenbilder gebaut.'
-  );
-}
-fs.writeFileSync(
-  path.join(dest, 'chat.html'),
-  chatHtmlQuelle
-    .replace(AVATARS_MANIFEST_PLATZHALTER, '/* @AVATARS_MANIFEST@ */ ' + JSON.stringify(avatarDateien))
-    .replace(GRUPPEN_MANIFEST_PLATZHALTER, '/* @GRUPPEN_MANIFEST@ */ ' + JSON.stringify(gruppenDateien))
+const chatHtmlFertig = manifestErsetzen(
+  manifestErsetzen(chatHtmlQuelle, AVATARS_MARKER, avatarDateien, 'Kontaktfotos'),
+  GRUPPEN_MARKER, gruppenDateien, 'Gruppenbilder'
 );
+
+// In die Wurzeldatei nur schreiben, wenn sich wirklich etwas ändert –
+// sonst entstünde bei jedem Lauf eine Änderung in der Versionierung,
+// obwohl inhaltlich alles gleich bleibt.
+if (chatHtmlFertig !== chatHtmlQuelle) {
+  fs.writeFileSync(path.join(root, 'chat.html'), chatHtmlFertig);
+  console.log('chat.html (Wurzel): Manifeste aktualisiert – wird so auch im Web ausgeliefert');
+}
+fs.writeFileSync(path.join(dest, 'chat.html'), chatHtmlFertig);
 fs.copyFileSync(path.join(root, 'avatars-manifest.json'), path.join(dest, 'avatars-manifest.json'));
 
 for (const datei of dateien) {
