@@ -406,9 +406,28 @@
 
   const AUTO_INTERVALL_MS = 5000;   // Hintergrund-Messpunkt alle 5 s
 
-  const BleClient = capacitorCommunityBluetoothLe.BleClient;
-  const HEART_RATE_SERVICE     = capacitorCommunityBluetoothLe.numberToUUID(0x180d);
-  const HEART_RATE_MEASUREMENT = capacitorCommunityBluetoothLe.numberToUUID(0x2a37);
+  // Bluetooth ist optional - ohne vendor/ oder in Safari fehlt das
+  // Global, und der ungepruefte Zugriff haette die ganze Seite
+  // abgebrochen. Die Seite BRAUCHT das Band zwar, soll aber statt
+  // einer weissen Flaeche wenigstens ihren Hinweis zeigen koennen.
+  const BLE_MODUL = (typeof capacitorCommunityBluetoothLe !== 'undefined' &&
+                     capacitorCommunityBluetoothLe &&
+                     capacitorCommunityBluetoothLe.BleClient)
+                    ? capacitorCommunityBluetoothLe : null;
+  const BLE_DA = BLE_MODUL !== null;
+  const BleClient = BLE_MODUL ? BLE_MODUL.BleClient : new Proxy({}, {
+    get: function () {
+      return function () {
+        return Promise.reject(new Error('Bluetooth in diesem Browser nicht verfuegbar'));
+      };
+    }
+  });
+  function uuidAusNummer(n) {
+    return (BLE_MODUL && BLE_MODUL.numberToUUID) ? BLE_MODUL.numberToUUID(n)
+      : '0000' + n.toString(16).padStart(4, '0') + '-0000-1000-8000-00805f9b34fb';
+  }
+  const HEART_RATE_SERVICE     = uuidAusNummer(0x180d);
+  const HEART_RATE_MEASUREMENT = uuidAusNummer(0x2a37);
 
   // ══════════════════════════════════════════════════════════════
   //  FOREGROUND SERVICE – der Grund für die Verbindungsabbrüche
@@ -425,17 +444,23 @@
   //  beobachten. Registrierung 1:1 wie in chat.html, inklusive der
   //  Web-Attrappe, damit die Seite im Browser nicht abstürzt.
   // ══════════════════════════════════════════════════════════════
-  const MomentumBleService = capacitorExports.registerPlugin('MomentumBleService', {
-    web: () => ({
-      async start() {}, async stop() {},
-      async meldeHerzfrequenz() {}, async meldeBewegung() {}, async meldeVariabilitaet() {},
-      async holeNachtDaten() {
-        return { summeHerzfrequenz: 0, summeBewegung: 0, anzahlMesspunkte: 0,
-                 summeVariabilitaet: 0, anzahlVariabilitaetsmesspunkte: 0 };
-      },
-      async nachtDatenZuruecksetzen() {}
-    })
-  });
+  const BLE_ERSATZ = { start: async function(){}, stop: async function(){},
+    meldeHerzfrequenz: async function(){}, meldeBewegung: async function(){},
+    meldeVariabilitaet: async function(){} };
+  const MomentumBleService = (typeof capacitorExports !== 'undefined' && capacitorExports &&
+                              typeof capacitorExports.registerPlugin === 'function')
+    ? capacitorExports.registerPlugin('MomentumBleService', {
+        web: () => ({
+          async start() {}, async stop() {},
+          async meldeHerzfrequenz() {}, async meldeBewegung() {}, async meldeVariabilitaet() {},
+          async holeNachtDaten() {
+            return { summeHerzfrequenz: 0, summeBewegung: 0, anzahlMesspunkte: 0,
+                     summeVariabilitaet: 0, anzahlVariabilitaetsmesspunkte: 0 };
+          },
+          async nachtDatenZuruecksetzen() {}
+        })
+      })
+    : BLE_ERSATZ;
 
   // Dieselbe Geräte-ID wie chat.html: Ist das Band dort schon einmal
   // verbunden gewesen, kann diese Seite ohne Auswahldialog direkt

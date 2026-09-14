@@ -1114,6 +1114,40 @@
       margin-top: 4px;
     }
 
+    /* ── Dank: ruhiger Abschluss des Info-Bereichs ────────────────
+       Bewusst der leiseste Block der Karte. Kleiner als .infos-text
+       (12 statt 13px), in der schwächeren Textfarbe, und mit viel
+       Abstand nach oben – der Sprung trennt ihn vom Erklärenden
+       darüber, ohne dass es dafür eine Überschrift bräuchte.
+       Dieselbe Abstufung wie im Dank-Abschnitt auf webseite.html:
+       Der erste Absatz trägt die Fakten und nennt die Namen im
+       vollen Kontrast, die beiden folgenden treten weiter zurück. */
+    .infos-dank {
+      margin-top: 44px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .infos-dank p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.65;
+      color: var(--text-3);
+    }
+
+    .infos-dank strong {
+      color: #000000;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-weight: 400;
+    }
+    .phone-frame.emotion-an .infos-dank strong { color: #ffffff; }
+
+    /* Die beiden letzten Absätze noch eine Spur zurückgenommen. */
+    .infos-dank p + p { color: var(--text-4); }
+
     .testregler-buehne {
       min-height: 90px;
       display: flex;
@@ -4299,6 +4333,28 @@
           </div>
 
         </div>
+
+        <!-- ── Dank: ruhiger Abschluss ganz unten ──────────────────
+             Gleicher Wortlaut wie der Dank-Abschnitt auf
+             webseite.html. Steht bewusst NACH den Testreglern, als
+             Letztes in der Karte – wer bis hierher scrollt, hat alles
+             Erklärende hinter sich. ── -->
+        <div class="infos-dank">
+          <p>
+            Diese Arbeit ist als Bachelorarbeit im Studiengang Mediendesign an der
+            <strong>DHBW Ravensburg</strong> entstanden, betreut von
+            <strong>Markus Rathgeb</strong>, <strong>Maike Strothmann</strong>,
+            <strong>Patrik Ferrarelli</strong> und <strong>André Apel</strong>.
+          </p>
+          <p>
+            Danke an alle Ausbilder und Kollegen, die mich in den vergangenen
+            Jahren begleitet haben.
+          </p>
+          <p>
+            Besonderer Dank gilt meinen Eltern Klemens und Elke Schlör, Roland und
+            Heike Luft, Gina Barth, Tim Husemann, Marius Schmidt und Paul Bier.
+          </p>
+        </div>
       </div>
     </div>
 
@@ -5525,9 +5581,32 @@
     if (DEMO_KONTAKTE.includes(name)) return;
     const bisher = avatarMittelwertVon(name);
     avatarMittelwerte[name] = bisher + (neuerPulsWert - bisher) * AVATAR_EMA_ALPHA;
-    localStorage.setItem(AVATAR_SPEICHER_KEY, JSON.stringify(avatarMittelwerte));
+    // try/catch wie an allen anderen Speicherstellen: Safari wirft im
+    // privaten Modus beim Schreiben, was hier sonst die Darstellung
+    // mit abgerissen hätte.
+    try { localStorage.setItem(AVATAR_SPEICHER_KEY, JSON.stringify(avatarMittelwerte)); } catch (e) {}
     avatarDarstellungAktualisieren(name);
   }
+
+  /**
+   * Übernimmt den Durchschnitt, den ein Kontakt SELBST berechnet und
+   * mitgeschickt hat. KEINE eigene Mittelung: Der Wert wird unverändert
+   * gesetzt, damit alle Geräte denselben zeigen.
+   *
+   * Das ist der Unterschied zu avatarMittelwertAktualisieren darüber –
+   * die faltet einen neuen Messwert ein und bleibt deshalb ausschließlich
+   * der EIGENEN Person vorbehalten (siehe eigenerMittelwertAktualisieren).
+   */
+  function kontaktMittelwertUebernehmen(name, wert) {
+    if (wert == null || typeof wert !== 'number' || !isFinite(wert)) return;
+    if (DEMO_KONTAKTE.includes(name)) return;   // Demo-Werte stehen fest im Code
+    const gerundet = Math.min(900, Math.max(100, Math.round(wert)));
+    if (avatarMittelwerte[name] === gerundet) return;
+    avatarMittelwerte[name] = gerundet;
+    try { localStorage.setItem(AVATAR_SPEICHER_KEY, JSON.stringify(avatarMittelwerte)); } catch (e) {}
+    avatarDarstellungAktualisieren(name);
+  }
+  window.kontaktMittelwertUebernehmen = kontaktMittelwertUebernehmen;
 
 
   // ═══════════════════════════════════════════════════════════════
@@ -7860,14 +7939,23 @@
       autoAntwortPlanen(chatPartnerName.textContent);
     }
 
-    // ── Profilbild: Puls-/Zustandswert dieser Nachricht in den
-    // gesonderten, gleitenden Mittelwert der Person einfließen lassen
-    // (unabhängig vom Emotion-Toggle – reiner Rohwert der Person).
-    // Bei Gruppen-Chats bewusst übersprungen: es gibt keine EINE Person,
-    // deren Puls hier gemittelt werden könnte (siehe Gruppen-Abschnitt).
-    if (!aktuellerChatIstGruppe) {
-      avatarMittelwertAktualisieren(chatPartnerName.textContent, aktuelleRohwerte.intensitaet);
-    }
+    // ── HIER STAND EIN FEHLER ──────────────────────────────────
+    // Bis hierher wurde der Durchschnitt DES CHAT-PARTNERS mit dem
+    // EIGENEN Intensitätswert gefüttert:
+    //
+    //   avatarMittelwertAktualisieren(chatPartnerName.textContent,
+    //                                 aktuelleRohwerte.intensitaet);
+    //
+    // Der Name des Gegenübers zeigte damit meinen Zustand, nicht
+    // seinen – und weil der Wert nur lokal lag, sah dieselbe Person
+    // auf jedem Gerät anders aus. Bei nebeneinanderstehenden Geräten
+    // fällt das sofort auf.
+    //
+    // Richtig ist: Jedes Gerät berechnet NUR den Durchschnitt seiner
+    // eigenen Person und überträgt ihn. Der Wert des Gegenübers kommt
+    // ausschließlich aus dessen Übertragung (siehe
+    // kontaktMittelwertUebernehmen im Abschnitt VERBINDUNG).
+    // ───────────────────────────────────────────────────────────
 
     // ── Eigener Durchschnitt fürs Profil (siehe Abschnitt PROFIL
     // weiter unten) – exakt dasselbe EMA-Prinzip wie oben, aber für
@@ -8095,9 +8183,63 @@
   //  Intensität, Strichstärke) ist komplett unverändert.
   // ══════════════════════════════════════════════════════════════════
 
-  const { BleClient, ConnectionPriority } = capacitorCommunityBluetoothLe;
-  const HEART_RATE_SERVICE     = capacitorCommunityBluetoothLe.numberToUUID(0x180d);
-  const HEART_RATE_MEASUREMENT = capacitorCommunityBluetoothLe.numberToUUID(0x2a37);
+  // ══════════════════════════════════════════════════════════════════
+  //  BLUETOOTH IST OPTIONAL – die App startet auch ohne
+  //
+  //  Hier stand bis zuletzt ein ungeprüfter Zugriff:
+  //
+  //    const { BleClient } = capacitorCommunityBluetoothLe;
+  //
+  //  Fehlt das Global, wirft diese Zeile einen ReferenceError und
+  //  bricht das GESAMTE restliche Skript ab – Chat, Moment, Profil,
+  //  Tagebuch und die Serververbindung waren damit tot. Die Oberfläche
+  //  baute sich noch auf, ließ sich aber nicht bedienen; von außen sah
+  //  das aus wie "startet gar nicht".
+  //
+  //  Zwei Wege führen dahin, beide nachgewiesen:
+  //    1. Die Dateien unter vendor/ fehlen. Sie stehen in .gitignore,
+  //       sind also in keinem Checkout und in keiner Web-Auslieferung
+  //       enthalten (im Browser nachgestellt: Global undefined,
+  //       verbProfilNachmelden undefined, Bedienung tot).
+  //    2. Safari kennt Web Bluetooth grundsätzlich nicht.
+  //
+  //  Deshalb wird jetzt NUR NOCH über diesen Umweg zugegriffen. Fehlt
+  //  die Schnittstelle, liefert BLE_DA false und alles Weitere läuft
+  //  unverändert – mit Testreglern und Tippverhalten statt Puls.
+  // ══════════════════════════════════════════════════════════════════
+  const BLE_MODUL = (typeof capacitorCommunityBluetoothLe !== 'undefined' &&
+                     capacitorCommunityBluetoothLe &&
+                     capacitorCommunityBluetoothLe.BleClient)
+                    ? capacitorCommunityBluetoothLe : null;
+  const BLE_DA = BLE_MODUL !== null;
+
+  if (!BLE_DA) {
+    console.warn('[Bluetooth] Schnittstelle nicht verfügbar – die App läuft ohne ' +
+      'Sensorverbindung weiter. Für das Band wird Chrome auf Android benötigt.');
+  }
+
+  // Ersatz-Objekt statt undefined: So dürfen alle Aufrufstellen
+  // unverändert bleiben. Jeder Aufruf scheitert kontrolliert mit einer
+  // abgewiesenen Zusage, statt beim Zugriff auf null zu zerbrechen.
+  const BleClient = BLE_MODUL ? BLE_MODUL.BleClient : new Proxy({}, {
+    get: function () {
+      return function () {
+        return Promise.reject(new Error('Bluetooth in diesem Browser nicht verfügbar'));
+      };
+    }
+  });
+  const ConnectionPriority = BLE_MODUL ? BLE_MODUL.ConnectionPriority : {};
+
+  // numberToUUID nur eine Zahlenformatierung – ohne Modul selbst bauen,
+  // damit die Konstanten in jedem Fall gültige UUIDs enthalten.
+  function uuidAusNummer(nummer) {
+    if (BLE_MODUL && typeof BLE_MODUL.numberToUUID === 'function') {
+      return BLE_MODUL.numberToUUID(nummer);
+    }
+    return '0000' + nummer.toString(16).padStart(4, '0') + '-0000-1000-8000-00805f9b34fb';
+  }
+  const HEART_RATE_SERVICE     = uuidAusNummer(0x180d);
+  const HEART_RATE_MEASUREMENT = uuidAusNummer(0x2a37);
 
   // ── Nacht-Rahmen (21:00–11:00) – Gerätesystemzeit, siehe MomentumBle-
   // ForegroundService.istNachtzeit() für das native Pendant (native und
@@ -8167,19 +8309,28 @@
   // Rein additiv: start()/stop() beeinflussen nirgends die BPM-/
   // Intensitäts-/Strichstärke-Logik, sie laufen nebenher (fire-and-forget,
   // siehe bandNachVerbindungAktivieren/bandZuruecksetzen unten).
-  const MomentumBleService = capacitorExports.registerPlugin('MomentumBleService', {
-    web: () => ({
-      async start() {},
-      async stop() {},
-      async meldeHerzfrequenz() {},
-      async meldeBewegung() {},
-      async meldeVariabilitaet() {},
-      async holeNachtDaten() {
-        return { messpunkte: [], rahmenVorbei: false };
-      },
-      async nachtDatenZuruecksetzen() {}
-    })
-  });
+  // Dieselbe Absicherung wie oben: Ohne vendor/capacitor.js gibt es
+  // capacitorExports nicht, und der ungeprüfte Zugriff hätte das Skript
+  // an dieser Stelle erneut abgebrochen. Die No-Op-Fassung entspricht
+  // genau dem web-Zweig darunter – die Nacht-Erfassung liefert dann
+  // eben keine Messpunkte, alles andere läuft.
+  const BLE_DIENST_ERSATZ = {
+    start: async function () {},
+    stop: async function () {},
+    meldeHerzfrequenz: async function () {},
+    meldeBewegung: async function () {},
+    meldeVariabilitaet: async function () {},
+    holeNachtDaten: async function () { return { messpunkte: [], rahmenVorbei: false }; },
+    nachtDatenZuruecksetzen: async function () {}
+  };
+
+  const MomentumBleService = (typeof capacitorExports !== 'undefined' &&
+                              capacitorExports &&
+                              typeof capacitorExports.registerPlugin === 'function')
+    ? capacitorExports.registerPlugin('MomentumBleService', {
+        web: () => BLE_DIENST_ERSATZ
+      })
+    : BLE_DIENST_ERSATZ;
 
   const BAND_BPM_MIN = 50;   // ← nachjustieren: ab diesem Puls dünnste Strichstärke (Minimum)
   const BAND_BPM_MAX = 150;  // ← nachjustieren: ab diesem Puls fetteste Strichstärke (Maximum)
@@ -8664,10 +8815,25 @@
   }
 
   // ── Verbindungsaufbau per Klick ─────────────────────────────────
+  // Ohne Bluetooth den Knopf ehrlich beschriften, statt etwas zu
+  // versprechen, das dieser Browser nicht kann. Er bleibt anklickbar
+  // und erklärt beim Antippen, woran es liegt – blockiert also nichts.
+  if (!BLE_DA) {
+    bandBtn.textContent = 'Band: nur in Chrome/Android';
+    bandBtn.title = 'Die Sensorverbindung braucht Chrome auf Android. ' +
+                    'Alles Übrige funktioniert hier ganz normal.';
+  }
+
   bandBtn.addEventListener('click', async function () {
     // Zweiter Klick trennt das Band explizit
     if (bandVerbunden) {
       await bandExplizitTrennen();
+      return;
+    }
+
+    if (!BLE_DA) {
+      bandFehlerZeigen('Für das Band wird Chrome auf Android benötigt – ' +
+        'die Testregler funktionieren hier weiterhin.');
       return;
     }
 
@@ -10255,7 +10421,15 @@
     eigenerMittelwert = eigenerMittelwert + (neuerWert - eigenerMittelwert) * AVATAR_EMA_ALPHA;
     try { localStorage.setItem(EIGENER_MITTELWERT_KEY, JSON.stringify(eigenerMittelwert)); } catch (e) {}
     profilNameSchriftAktualisieren();
+    // Die Kontakte sollen den neuen Stand sehen, ohne auf meine nächste
+    // Nachricht warten zu müssen. verbProfilNachmelden sendet nur bei
+    // tatsächlicher Änderung (siehe dort), das kostet also nichts.
+    if (window.verbProfilNachmelden) window.verbProfilNachmelden();
   }
+
+  // Für den Verbindungs-Abschnitt: Der eigene Durchschnitt wird von
+  // DIESEM Gerät gebildet und mit Profil und Nachrichten übertragen.
+  window.eigenerMittelwertHolen = function () { return eigenerMittelwert; };
 
   // ── DOM-Referenzen ────────────────────────────────────────────
   const profilAvatar          = document.getElementById('profil-avatar');
@@ -11747,6 +11921,14 @@
       const name = meinNameOderNichts();
       if (name) grundlage.name = name;
 
+      // Eigener Durchschnitt: gehört zum Profil wie Name und Bild.
+      // Damit sieht mein Name bei meinen Kontakten sofort richtig aus –
+      // nicht erst, nachdem ich ihnen etwas geschrieben habe.
+      if (window.eigenerMittelwertHolen) {
+        const m = window.eigenerMittelwertHolen();
+        if (m != null) grundlage.mittelwert = Math.round(m);
+      }
+
       const bild = eigenesProfilbildLaden();
       if (!bild) return Promise.resolve(grundlage);
 
@@ -11857,6 +12039,16 @@
             kontakteSpeichern();
           }
           listeAufbauen();
+
+          // Durchschnittswerte der Kontakte übernehmen – NACH
+          // listeAufbauen(), weil die Namens-Elemente erst dort
+          // entstehen. Damit stimmt die Darstellung schon beim
+          // Verbinden, ohne auf die erste Nachricht zu warten.
+          if (Array.isArray(nachricht.kontakte) && window.kontaktMittelwertUebernehmen) {
+            nachricht.kontakte.forEach(function (k) {
+              window.kontaktMittelwertUebernehmen(k.name, k.mittelwert);
+            });
+          }
           statusZeileAktualisieren();
           overlayKnoepfeAktualisieren();
           melden(kontakte.length ? kontakte.length + ' Kontakt(e) verbunden' : 'Mit dem Server verbunden');
@@ -11898,6 +12090,11 @@
           // der "+"-Zeile hat sich damit erledigt.
           zuruecksetzungGemeldet = false;
           listeAufbauen();
+          // Durchschnitt der frisch gekoppelten Person übernehmen – sonst
+          // sähe ihr Name bis zu ihrer ersten Nachricht falsch aus.
+          if (window.kontaktMittelwertUebernehmen) {
+            window.kontaktMittelwertUebernehmen(k.name, k.mittelwert);
+          }
           melden(namen[k.id] + ' hinzugefügt');
           if (eingabeEl) eingabeEl.value = '';
           setTimeout(overlaySchliessen, 900);
@@ -11912,6 +12109,11 @@
           if (nachricht.bild != null) k.bild = nachricht.bild;
           kontakteSpeichern();
           listeAufbauen();
+          // Durchschnitt der Person ÜBERNEHMEN, nicht selbst bilden –
+          // so zeigen alle Geräte denselben Wert.
+          if (window.kontaktMittelwertUebernehmen) {
+            window.kontaktMittelwertUebernehmen(k.name, nachricht.mittelwert);
+          }
           break;
         }
 
@@ -12000,6 +12202,15 @@
     function eingehendeNachricht(nachricht) {
       const name = namen[nachricht.von];
       if (!name) return;   // Kontakt unbekannt – ignorieren
+
+      // Der Absender hat seinen eigenen Durchschnitt mitgeschickt. Er
+      // wird unverändert übernommen – NICHT aus dieser Nachricht neu
+      // berechnet. Dadurch sieht der Name dieser Person auf jedem Gerät
+      // gleich aus, auch auf Geräten, die gerade nichts empfangen haben.
+      if (window.kontaktMittelwertUebernehmen) {
+        window.kontaktMittelwertUebernehmen(name, nachricht.mittelwert);
+      }
+
       nachrichtHinzufuegen(
         nachricht.text,
         false,
@@ -12129,7 +12340,7 @@
     window.verbNachrichtSenden = function (name, text, wortSnapshots) {
       const kontakt = kontaktNachAnzeigename(name);
       if (!kontakt) return;
-      senden({
+      const hinaus = {
         typ: 'nachricht',
         an: kontakt.id,
         text: text,
@@ -12140,7 +12351,16 @@
             leblos: !!w.leblos
           };
         })
-      });
+      };
+
+      // Eigener Durchschnitt mit jeder Nachricht – so bleibt er beim
+      // Gegenüber aktuell, ohne dass es ihn selbst berechnen müsste.
+      if (window.eigenerMittelwertHolen) {
+        const m = window.eigenerMittelwertHolen();
+        if (m != null) hinaus.mittelwert = Math.round(m);
+      }
+
+      senden(hinaus);
     };
 
     // Nach einer Änderung an Name oder Profilbild: sofort nachmelden,
@@ -12150,7 +12370,12 @@
     window.verbProfilNachmelden = function () {
       if (!bereit() || !geraetId || !geheim) return;
       meinProfil().then(function (profil) {
-        const kennung = (profil.name || '') + '|' + (profil.bild || '').length;
+        // Der Mittelwert MUSS in die Kennung: Sonst gälte eine reine
+        // Änderung des Durchschnitts als "nichts Neues" und würde nie
+        // übertragen – der Name bliebe bei den Kontakten auf dem alten
+        // Stand stehen.
+        const kennung = (profil.name || '') + '|' + (profil.bild || '').length +
+                        '|' + (profil.mittelwert != null ? profil.mittelwert : '');
         if (kennung === zuletztGesendetesProfil) return;   // nichts Neues
         zuletztGesendetesProfil = kennung;
         profil.geraetId = geraetId;

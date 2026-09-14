@@ -126,6 +126,21 @@ if (geraeteSpalten.indexOf('bild') === -1) {
   console.log('Schema: Spalte geraete.bild ergänzt');
 }
 
+// Gemittelter Zustandswert einer Person (100–900).
+//
+// WICHTIG, worin der Unterschied liegt: Dieser Wert wird auf dem Gerät
+// DER PERSON SELBST gebildet und hier nur weitergereicht. Vorher bildete
+// jedes Gerät den Durchschnitt seiner Kontakte eigenständig – und zwar
+// aus den eigenen Messwerten, nicht aus denen des Gegenübers. Dieselbe
+// Person sah dadurch auf jedem Handy anders aus.
+//
+// Additive Migration wie bei bild darüber: bestehende Datenbanken
+// behalten ihre Zeilen, die neue Spalte ist zunächst NULL.
+if (geraeteSpalten.indexOf('mittelwert') === -1) {
+  db.exec('ALTER TABLE geraete ADD COLUMN mittelwert INTEGER');
+  console.log('Schema: Spalte geraete.mittelwert ergänzt');
+}
+
 // Bestehende 1:1-Kopplungen in die neue Kontakttabelle übernehmen,
 // damit ein bereits gekoppeltes Handy-Paar nach dem Update nicht
 // plötzlich ohne Kontakte dasteht.
@@ -149,6 +164,7 @@ const sql = {
   geraetGesehen:    db.prepare('UPDATE geraete SET zuletzt_gesehen = ? WHERE id = ?'),
   geraetNameSetzen: db.prepare('UPDATE geraete SET name = ? WHERE id = ?'),
   geraetBildSetzen: db.prepare('UPDATE geraete SET bild = ? WHERE id = ?'),
+  geraetMittelwertSetzen: db.prepare('UPDATE geraete SET mittelwert = ? WHERE id = ?'),
 
   codeAnlegen:     db.prepare('INSERT INTO kopplungen (code, geraet_id, gueltig_bis) VALUES (?, ?, ?)'),
   codeLesen:       db.prepare('SELECT * FROM kopplungen WHERE code = ?'),
@@ -289,10 +305,13 @@ function kontaktStatusMelden(geraetId, online) {
 
 // Profiländerung (Name und/oder Bild) an alle Kontakte verteilen.
 // Ohne das sähen sie den alten Stand bis zu ihrer nächsten Anmeldung.
-function kontaktProfilMelden(geraetId, name, bild) {
+function kontaktProfilMelden(geraetId, name, bild, mittelwert) {
   for (const zeile of sql.kontaktIdsLesen.all(geraetId)) {
     sendeAnGeraet(zeile.kontakt_id, {
-      typ: 'kontakt-profil', kontaktId: geraetId, name, bild
+      typ: 'kontakt-profil', kontaktId: geraetId, name, bild,
+      // Mitgeführt, damit der Name eines Kontakts sofort richtig
+      // aussieht – nicht erst nach seiner ersten Nachricht.
+      mittelwert: mittelwert != null ? mittelwert : null
     });
   }
 }
@@ -303,8 +322,20 @@ function kontaktNachAussen(zeile) {
     id: zeile.id,
     name: zeile.name,
     bild: zeile.bild,
+    // Vom Gerät der Person selbst berechnet – siehe Spalte mittelwert.
+    // null, solange die Person seit dem Update noch nichts gesendet hat;
+    // die App fällt dann auf ihren Startwert zurück.
+    mittelwert: zeile.mittelwert != null ? zeile.mittelwert : null,
     online: verbindungen.has(zeile.id)
   };
+}
+
+// Prüft den gemittelten Zustandswert. Gleiche Spanne wie alle Rohwerte.
+// Rückgabe null = nicht mitgeschickt (zulässig), undefined = ungültig.
+function mittelwertPruefen(roh) {
+  if (roh == null) return null;
+  if (typeof roh !== 'number' || !Number.isFinite(roh)) return undefined;
+  return Math.min(900, Math.max(100, Math.round(roh)));
 }
 
 // Prüft das übertragene Miniaturbild. Erwartet wird eine Data-URL, die
@@ -368,11 +399,15 @@ wss.on('connection', (ws) => {
       const bild = bildPruefen(nachricht.bild);
       if (bild === undefined) return fehler(ws, 'Ungültiges oder zu großes Profilbild');
 
+      const mittelwert = mittelwertPruefen(nachricht.mittelwert);
+      if (mittelwert === undefined) return fehler(ws, 'Ungültiger Mittelwert');
+
       if (!geraetId || !geheim) {
         geraetId = crypto.randomUUID();
         geheim   = crypto.randomBytes(24).toString('hex');
         neu      = true;
         sql.geraetAnlegen.run(geraetId, hashen(geheim), nachricht.name || null, bild, jetzt());
+        if (mittelwert !== null) sql.geraetMittelwertSetzen.run(mittelwert, geraetId);
       } else {
         const geraet = sql.geraetLesen.get(String(geraetId));
         if (!geraet || !gleichSicher(hashen(geheim), geraet.geheim_hash)) {
@@ -393,8 +428,14 @@ wss.on('connection', (ws) => {
           sql.geraetBildSetzen.run(bild, geraetId);
           geaendert = true;
         }
+        let mittelNeu = geraet.mittelwert;
+        if (mittelwert !== null && mittelwert !== geraet.mittelwert) {
+          mittelNeu = mittelwert;
+          sql.geraetMittelwertSetzen.run(mittelwert, geraetId);
+          geaendert = true;
+        }
         if (geaendert) {
-          kontaktProfilMelden(geraetId, name, bild !== null ? bild : geraet.bild);
+          kontaktProfilMelden(geraetId, name, bild !== null ? bild : geraet.bild, mittelNeu);
         }
       }
 
@@ -475,13 +516,20 @@ wss.on('connection', (ws) => {
       // Beide bekommen das VOLLE Profil der Gegenseite (Name + Bild),
       // damit die Person sofort mit echtem Namen und Foto in der Liste
       // steht statt mit dem Raum-Code.
+      // mittelwert gehört mit dazu: Sonst sähe der frisch gekoppelte
+      // Kontakt bis zu seiner ersten Nachricht falsch aus – genau der
+      // Fall, der bei nebeneinanderstehenden Geräten auffällt.
       sende(ws, { typ: 'kontakt-neu', kontakt: {
         id: anderes, name: gegen ? gegen.name : null,
-        bild: gegen ? gegen.bild : null, online: verbindungen.has(anderes)
+        bild: gegen ? gegen.bild : null,
+        mittelwert: gegen && gegen.mittelwert != null ? gegen.mittelwert : null,
+        online: verbindungen.has(anderes)
       }});
       sendeAnGeraet(anderes, { typ: 'kontakt-neu', kontakt: {
         id: ws.geraetId, name: ich ? ich.name : null,
-        bild: ich ? ich.bild : null, online: true
+        bild: ich ? ich.bild : null,
+        mittelwert: ich && ich.mittelwert != null ? ich.mittelwert : null,
+        online: true
       }});
       return;
     }
@@ -509,6 +557,14 @@ wss.on('connection', (ws) => {
       const woerter = woerterPruefen(nachricht.woerter || []);
       if (woerter === null) return fehler(ws, 'Ungültige Wortdaten');
 
+      // Der Absender schickt seinen eigenen Durchschnitt mit. Er wird
+      // hier festgehalten, damit auch Kontakte ihn bekommen, die gerade
+      // nicht verbunden sind (siehe kontaktNachAussen beim nächsten
+      // 'hallo'), und unverändert weitergereicht.
+      const mittelwert = mittelwertPruefen(nachricht.mittelwert);
+      if (mittelwert === undefined) return fehler(ws, 'Ungültiger Mittelwert');
+      if (mittelwert !== null) sql.geraetMittelwertSetzen.run(mittelwert, ws.geraetId);
+
       const gesendetAm = jetzt();
       const empfaengerOnline = verbindungen.has(an);
 
@@ -517,6 +573,7 @@ wss.on('connection', (ws) => {
         von: ws.geraetId,
         text,
         woerter,
+        mittelwert: mittelwert,
         gesendetAm
       };
 

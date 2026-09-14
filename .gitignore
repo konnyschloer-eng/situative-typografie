@@ -1,6 +1,11 @@
 
 node_modules/
-vendor/
+# vendor/ NICHT ignorieren: Die drei Dateien darin sind zur Laufzeit
+# noetig (capacitor.js, bluetooth-le.js, qrcode.js). Standen sie in
+# dieser Datei, fehlten sie in jedem Checkout und in der Auslieferung -
+# auf GitHub Pages lieferten sie nachweislich HTTP 404, wodurch das
+# Skript abbrach und die Seite leer blieb.
+# vendor/
 android/build/
 android/app/build/
 android/.gradle/

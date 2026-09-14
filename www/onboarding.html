@@ -1845,13 +1845,65 @@
   const btSpaeterBtn     = document.getElementById('bt-spaeter-btn');
   const bluetoothHinweis = document.getElementById('bluetooth-hinweis');
 
-  const { BleClient: OnboardingBleClient } = window.capacitorCommunityBluetoothLe;
-  const ONBOARDING_HEART_RATE_SERVICE = window.capacitorCommunityBluetoothLe.numberToUUID(0x180d);
+  // ══════════════════════════════════════════════════════════════
+  //  BLUETOOTH IST OPTIONAL – das Onboarding startet auch ohne
+  //
+  //  Hier stand ein ungeprüfter Zugriff auf window.capacitor-
+  //  CommunityBluetoothLe. Fehlt das Global, warf diese Zeile einen
+  //  TypeError und brach das gesamte Skript ab: Die Seite blieb
+  //  schwarz und leer, kein Knopf reagierte.
+  //
+  //  Nachgewiesen auf GitHub Pages – dort liefern
+  //  vendor/capacitor.js und vendor/bluetooth-le.js HTTP 404, weil
+  //  vendor/ in .gitignore steht und deshalb nie ausgeliefert wird.
+  //  Dasselbe greift in Safari, das Web Bluetooth gar nicht kennt.
+  //
+  //  Jetzt: Fehlt die Schnittstelle, läuft das Onboarding vollständig
+  //  weiter, nur der Schritt "Armband verbinden" bleibt ohne Funktion
+  //  (siehe bluetoothSchrittAnpassen weiter unten).
+  // ══════════════════════════════════════════════════════════════
+  const ONBOARDING_BLE_MODUL =
+    (typeof window.capacitorCommunityBluetoothLe !== 'undefined' &&
+     window.capacitorCommunityBluetoothLe &&
+     window.capacitorCommunityBluetoothLe.BleClient)
+    ? window.capacitorCommunityBluetoothLe : null;
+  const ONBOARDING_BLE_DA = ONBOARDING_BLE_MODUL !== null;
+
+  const OnboardingBleClient = ONBOARDING_BLE_MODUL
+    ? ONBOARDING_BLE_MODUL.BleClient
+    : { initialize: function () { return Promise.reject(new Error('nicht verfügbar')); },
+        requestDevice: function () { return Promise.reject(new Error('nicht verfügbar')); },
+        connect: function () { return Promise.reject(new Error('nicht verfügbar')); },
+        startNotifications: function () { return Promise.reject(new Error('nicht verfügbar')); } };
+
+  const ONBOARDING_HEART_RATE_SERVICE = ONBOARDING_BLE_MODUL
+    ? ONBOARDING_BLE_MODUL.numberToUUID(0x180d)
+    : '0000180d-0000-1000-8000-00805f9b34fb';
+
+  if (!ONBOARDING_BLE_DA) {
+    console.warn('[Bluetooth] Schnittstelle nicht verfügbar – Onboarding läuft ohne ' +
+      'Sensorverbindung. Für das Band wird Chrome auf Android benötigt.');
+  }
+
   let onboardingBleBereit = false;
 
   function geraeteVerbindenAnzeigen() {
     onboardingView.classList.remove('aktiv');
     bluetoothView.classList.add('aktiv');
+    bluetoothSchrittAnpassen();
+  }
+
+  // Ohne Bluetooth denselben Schritt zeigen, aber ehrlich beschriftet:
+  // Der Knopf wäre sonst da und täte nichts. "Später verbinden" führt
+  // unverändert weiter – der Hinweis blockiert also nichts, er erklärt
+  // nur, warum hier gerade nichts zu holen ist.
+  function bluetoothSchrittAnpassen() {
+    if (ONBOARDING_BLE_DA) return;
+    btArmbandBtn.disabled = true;
+    btArmbandBtn.textContent = 'Armband hier nicht verfügbar';
+    bluetoothHinweisZeigen('Für die Sensorverbindung wird Chrome auf Android benötigt. ' +
+      'Alles Übrige funktioniert hier ganz normal.');
+    btSpaeterBtn.textContent = 'Weiter ohne Armband';
   }
 
   function bluetoothHinweisZeigen(text) {

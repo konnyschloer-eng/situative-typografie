@@ -1118,6 +1118,40 @@
       margin-top: 4px;
     }
 
+    /* ── Dank: ruhiger Abschluss des Info-Bereichs ────────────────
+       Bewusst der leiseste Block der Karte. Kleiner als .infos-text
+       (12 statt 13px), in der schwächeren Textfarbe, und mit viel
+       Abstand nach oben – der Sprung trennt ihn vom Erklärenden
+       darüber, ohne dass es dafür eine Überschrift bräuchte.
+       Dieselbe Abstufung wie im Dank-Abschnitt auf webseite.html:
+       Der erste Absatz trägt die Fakten und nennt die Namen im
+       vollen Kontrast, die beiden folgenden treten weiter zurück. */
+    .infos-dank {
+      margin-top: 44px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .infos-dank p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.65;
+      color: var(--text-3);
+    }
+
+    .infos-dank strong {
+      color: #000000;
+      font-family: 'Situra-Medium', 'Inter', sans-serif;
+      font-weight: 400;
+    }
+    .phone-frame.emotion-an .infos-dank strong { color: #ffffff; }
+
+    /* Die beiden letzten Absätze noch eine Spur zurückgenommen. */
+    .infos-dank p + p { color: var(--text-4); }
+
     .testregler-buehne {
       min-height: 90px;
       display: flex;
