@@ -1,0 +1,19 @@
+Gruppenbilder fuer die App
+
+Jedes Bild in diesem Ordner wird zu einer Gruppe. Der Dateiname ohne
+Endung ist der Gruppenname - genau wie bei den Kontaktfotos in
+assets/avatars/.
+
+  Wochenende.jpg   ->  Gruppe "Wochenende"
+  Studio.png       ->  Gruppe "Studio"
+
+Erlaubte Endungen: .jpg  .jpeg  .png  .webp  .gif
+
+Mitglieder werden automatisch zugeteilt: drei bis fuenf je Gruppe,
+reihum aus der Kontaktliste, sodass sich die Gruppen moeglichst wenig
+ueberschneiden. Die Zuteilung ist auf jedem Geraet gleich.
+
+NACH DEM ABLEGEN:  npm run cap:sync
+
+Solange dieser Ordner leer ist, bleiben die beiden Demo-Gruppen
+("Zwischen uns", "Wochenende") aktiv - der Bereich ist also nie leer.

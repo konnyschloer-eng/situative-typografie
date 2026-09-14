@@ -4907,6 +4907,17 @@
   // Gruppen-Eintrags in der Übersicht (z. B. nachdem ein Mitglied in
   // der Gruppeninfo entfernt wurde).
   function gruppeneintragAktualisieren(gruppe) {
+    // Nur Gruppen schreiben, die es noch gibt.
+    //
+    // Die Bildzuordnung läuft asynchron (new Image().onload). Werden die
+    // Gruppen zwischenzeitlich aus assets/gruppen/ neu aufgebaut, feuern
+    // die Rückrufe der ALTEN Gruppenobjekte weiterhin – und trugen dann
+    // deren Mitglieder in den gleichnamigen neuen Eintrag ein. Sichtbar
+    // wurde das bei einer Bilddatei, die wie eine Demo-Gruppe hieß
+    // ("Wochenende.jpg"): Die neue Gruppe zeigte plötzlich wieder die
+    // alte Besetzung. Der Abgleich gegen die aktuelle Liste beendet das.
+    if (gruppen.indexOf(gruppe) === -1) return;
+
     const eintrag = gruppenListe.querySelector('.gespraechs-eintrag[data-name="' + CSS.escape(gruppe.name) + '"]');
     if (!eintrag) return;
     gruppenAvatarAnwenden(eintrag.querySelector('.avatar'), gruppe);
@@ -4958,6 +4969,79 @@
   }
 
   gruppen.forEach(gruppenBildManifestAnwenden);
+
+  // ══════════════════════════════════════════════════════════════
+  //  GRUPPEN AUS assets/gruppen/ ABLEITEN
+  //
+  //  Wie bei den Kontakten: Der Dateiname ohne Endung wird zum
+  //  Gruppennamen. Liegen dort Bilder, ERSETZEN sie die beiden
+  //  Demo-Gruppen vollständig; liegt keines vor, bleiben die Demo-
+  //  Gruppen stehen, damit der Bereich nie leer ist.
+  //
+  //  Unterschied zum bisherigen Verhalten: Vorher mussten Gruppen im
+  //  Code stehen, und ein Bild wurde nur zugeordnet, wenn sein
+  //  Dateiname zufällig zu einem vorhandenen Namen passte. Jetzt
+  //  entstehen die Gruppen aus den Bildern selbst.
+  //
+  //  MITGLIEDER: deterministisch verteilt, nicht gewürfelt. Dasselbe
+  //  Prinzip wie bei den typografischen Demo-Werten – auf jedem Gerät
+  //  identisch, ohne dass jemand eine Liste pflegen müsste.
+  //
+  //  Die Verteilung läuft reihum über die Kontaktliste: Jede Gruppe
+  //  nimmt den nächsten Abschnitt, danach rückt der Zeiger weiter. So
+  //  überschneiden sich die Gruppen erst, wenn es mehr Gruppenplätze
+  //  als Kontakte gibt – bei 19 Kontakten also praktisch nie.
+  //  Gruppengröße 3–5, aus dem Namen abgeleitet.
+  // ══════════════════════════════════════════════════════════════
+  const GRUPPE_MIN_MITGLIEDER = 3;
+  const GRUPPE_MAX_MITGLIEDER = 5;
+
+  function gruppenNameAusDateiname(datei) {
+    return datei.replace(/\.[^./\\]+$/, '');
+  }
+
+  function gruppenAusManifestErsetzen() {
+    if (!Array.isArray(GRUPPEN_MANIFEST) || GRUPPEN_MANIFEST.length === 0) {
+      console.log('[Gruppen] Keine Bilder in assets/gruppen/ – die beiden Demo-Gruppen bleiben aktiv.');
+      return;
+    }
+
+    // Kontakte mit Foto zuerst: Sie sehen im Gruppenraum lebendiger aus
+    // als die namenlose Grundliste (Anna, Ben …).
+    const ausManifest = (AVATARS_MANIFEST || []).map(kontaktNameAusDateiname);
+    const auswahl = ausManifest.length ? ausManifest : DEMO_KONTAKTE_STATISCH.slice();
+    if (!auswahl.length) {
+      console.warn('[Gruppen] Keine Kontakte vorhanden – Demo-Gruppen bleiben aktiv.');
+      return;
+    }
+
+    let zeiger = 0;
+    gruppen = GRUPPEN_MANIFEST.map(function (datei) {
+      const name = gruppenNameAusDateiname(datei);
+      const spanne = GRUPPE_MAX_MITGLIEDER - GRUPPE_MIN_MITGLIEDER + 1;
+      const groesse = Math.min(
+        auswahl.length,
+        GRUPPE_MIN_MITGLIEDER + (demoTypografieHash(name) % spanne)
+      );
+
+      const mitglieder = [];
+      for (let i = 0; i < groesse; i++) {
+        mitglieder.push(auswahl[zeiger % auswahl.length]);
+        zeiger++;
+      }
+
+      return { name: name, mitglieder: mitglieder, bild: GRUPPEN_FOTO_ORDNER + datei };
+    });
+
+    // Die Liste enthält noch die Demo-Gruppen – vor dem Neuaufbau leeren,
+    // sonst stünden alte und neue Einträge untereinander.
+    gruppenListe.innerHTML = '';
+    gruppen.forEach(gruppenEintragErstellen);
+    gruppen.forEach(gruppenBildManifestAnwenden);
+
+    console.log('[Gruppen] aus GRUPPEN_MANIFEST aufgebaut: ' + gruppen.length + ' Gruppe(n) – ' +
+      gruppen.map(function (g) { return g.name + ' (' + g.mitglieder.length + ')'; }).join(', '));
+  }
 
   // Öffnet die bestehende Chat-Ansicht im Gruppen-Modus: Titel und
   // Avatar zeigen die Gruppe. ABER: statt des klassischen Verlaufs
@@ -10383,6 +10467,10 @@
   // die aus assets/avatars/ abgeleiteten Kontakte, sofern beim Build
   // (scripts/sync-web.js) welche gefunden wurden.
   kontaktlisteAusManifestErsetzen(AVATARS_MANIFEST);
+
+  // Direkt danach die Gruppen: Sie greifen auf DEMO_KONTAKTE zurück,
+  // das die Zeile darüber erst mit den echten Namen füllt.
+  gruppenAusManifestErsetzen();
 
   // Sensor-Anzeige einmal beim Start füllen – sonst stünde bei Wachheit
   // ein blankes "—" ohne den Vermerk "keine Messung", und die
